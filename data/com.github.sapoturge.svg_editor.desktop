@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=
+GenericName=SVG Editor
+Comment=Create Icons
+Categories=Graphics;Development;
+Exec=com.github.sapoturge.svg_editor
+Icon=custom_icon_I_need_to_make
+Terminal=false
+Type=Application
+
