@@ -1,10 +1,14 @@
 project('com.github.sapoturge.svg_editor', 'vala', 'c')
 
+cc = meson.get_compiler('c')
+
 executable(
     meson.project_name(),
     'src/Application.vala',
+    'src/EditorView.vala',
     dependencies: [
-        dependency('gtk+-3.0')
+        dependency('gtk+-3.0'),
+        cc.find_library('m', required: false)
     ],
     install: true
 )
