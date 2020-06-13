@@ -12,6 +12,8 @@ public class SvgApp : Gtk.Application {
         var layout = new Gtk.Grid ();
         var editor = new EditorView ();
         editor.create ();
+        editor.expand = true;
+        layout.expand = true;
         layout.attach (editor, 0, 0, 1, 1);
         main_window.add (layout);
         main_window.show_all();
