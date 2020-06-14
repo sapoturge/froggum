@@ -6,6 +6,10 @@ executable(
     meson.project_name(),
     'src/Application.vala',
     'src/EditorView.vala',
+    'src/Image.vala',
+    'src/Path.vala',
+    'src/Segment.vala',
+    'src/Color.vala',
     dependencies: [
         dependency('gtk+-3.0'),
         cc.find_library('m', required: false)

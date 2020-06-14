@@ -10,7 +10,15 @@ public class SvgApp : Gtk.Application {
         var main_window = new Gtk.ApplicationWindow (this);
         main_window.title = "SVG Editor";
         var layout = new Gtk.Grid ();
-        var editor = new EditorView ();
+        var path = new Path ({
+            new MoveSegment (1, 1),
+            new LineSegment (15, 1),
+            new LineSegment (15, 15),
+            new LineSegment (1, 15),
+            new ClosePathSegment ()
+        }, new Color(123, 123, 123, 255));
+        var image = new Image (16, 16, {path});
+        var editor = new EditorView (image);
         editor.create ();
         editor.expand = true;
         layout.expand = true;

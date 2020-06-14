@@ -7,6 +7,12 @@ public class EditorView : Gtk.Box {
     private int width = 0;
     private int height = 0;
     private bool scrolling = false;
+
+    private Image image;
+
+    public EditorView (Image image) {
+        this.image = image;
+    }
     
     public void create () {
         var drawing_area = new Gtk.DrawingArea ();
@@ -28,9 +34,7 @@ public class EditorView : Gtk.Box {
             cr.translate(scroll_x, scroll_y);
             cr.scale(zoom, zoom);
             
-            cr.rectangle (0, 0, 16, 16);
-            cr.set_source_rgb (0.6, 0.3, 0.4);
-            cr.fill ();
+            image.draw (cr);
 
             return false;
         });
