@@ -32,10 +32,35 @@ public class EditorView : Gtk.Box {
 
             cr.translate(width/2, height/2);
             cr.translate(scroll_x, scroll_y);
+            cr.save ();
             cr.scale(zoom, zoom);
             
             image.draw (cr);
 
+            if (zoom > 2) {
+                cr.rectangle (0, 0, 16, 16);
+                cr.restore ();
+                cr.set_source_rgba (0.1, 0.1, 0.1, 1);
+                cr.set_line_width (4);
+                cr.stroke ();
+                cr.set_line_width (2);
+                cr.save ();
+                cr.scale (zoom, zoom);
+               
+                if (zoom > 8) {
+                    for (var i = 1; i < 16; i++) {
+                        cr.move_to (i, 0);
+                        cr.line_to (i, 16);
+                        cr.move_to (0, i);
+                        cr.line_to (16, i);
+                    }
+                    cr.restore ();
+                    cr.set_source_rgba (0.1, 0.1, 0.1, 1);
+                    cr.stroke ();
+                    cr.save ();
+                }
+            }
+            cr.restore ();
             return false;
         });
         drawing_area.button_press_event.connect ((event) => {
