@@ -1,7 +1,7 @@
 Froggum Svg Editor
 ==========
 
-Froggum is a Cairo-based XVG editor for making elementary OS app icons.
+Froggum is a Cairo-based SVG editor for making elementary OS app icons.
 (Other uses are allowed.)
 
 *Note: Froggum is a work in progress. Nothing is guaranteed to work, least
