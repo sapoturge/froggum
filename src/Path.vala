@@ -1,37 +1,34 @@
-public class Path {
+public class Path : Object {
     private Segment[] segments;
-    private Color fill = null;
-    private Color stroke = null;
+
+    public Gdk.RGBA fill { get; set; }
+    public Gdk.RGBA stroke { get; set; }
+
+    public string title { get; set; }
 
     public Path (Segment[] segments = {},
-                 Color? fill = null,
-                 Color? stroke = null) {
+                 Gdk.RGBA fill = {0, 0, 0, 0},
+                 Gdk.RGBA stroke = {0, 0, 0, 0},
+                 string title = "Path") {
         this.segments = segments;
         this.fill = fill;
         this.stroke = stroke;
+        this.title = title;
     }
 
     public void draw (Cairo.Context cr) {
         foreach (Segment s in segments) {
             s.do_command (cr);
         }
-        if (fill != null) {
-            cr.set_source_rgba (fill.r/255.0,
-                                fill.g/255.0,
-                                fill.b/255.0,
-                                fill.a/255.0);
-            if (stroke != null) {
-                cr.fill_preserve ();
-            } else {
-                cr.fill ();
-            }
-        }
-        if (stroke != null) {
-            cr.set_source_rgba (stroke.r/255.0,
-                                stroke.g/255.0,
-                                stroke.b/255.0,
-                                stroke.a/255.0);
-            cr.stroke ();
-        }
+        cr.set_source_rgba (fill.red,
+                            fill.green,
+                            fill.blue,
+                            fill.alpha);
+        cr.fill_preserve ();
+        cr.set_source_rgba (stroke.red,
+                            stroke.green,
+                            stroke.blue,
+                            stroke.alpha);
+        cr.stroke ();
     }
 }

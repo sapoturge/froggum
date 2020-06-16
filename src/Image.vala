@@ -1,10 +1,20 @@
 public class Image {
-    private int width;
-    private int height;
+    private File file;
 
-    private Path[] paths;
+    public int width { get; private set; }
+    public int height { get; private set; }
 
-    public Image (int width, int height, Path[] paths = {}) {
+    public string name {
+        get {
+            return "Untitled";
+        }
+    }
+
+    public Path[] paths { get; private set; }
+
+    public Image (string filename, int width, int height, Path[] paths = {}) {
+        if (filename == "Untitled") {
+        }
         this.width = width;
         this.height = height;
         this.paths = paths;

@@ -10,11 +10,27 @@ public class EditorView : Gtk.Box {
 
     private Image image;
 
+    private Gtk.ListBox list_box;
+
     public EditorView (Image image) {
         this.image = image;
     }
     
     public void create () {
+        create_path_view ();
+        create_drawing_area ();
+    }
+
+    private void create_path_view () {
+        list_box = new Gtk.ListBox ();
+        foreach (Path path in image.paths) {
+            var row = new PathRow (image, path);
+            list_box.add (row);
+        }
+        this.add (list_box);
+    }
+
+    private void create_drawing_area () {
         var drawing_area = new Gtk.DrawingArea ();
         drawing_area.set_size_request (200, 200);
         drawing_area.add_events (Gdk.EventMask.BUTTON_RELEASE_MASK);
