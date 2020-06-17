@@ -3,7 +3,7 @@
 <component type="desktop">
   <id>com.github.sapoturge.svg_editor</id>
   <metadata-license>MIT</metadata-license>
-  <name>Unknown</name>
+  <name>Froggum</name>
   <summary>Precise App Editor</summary>
   <description>
     <p>A simple SVG editor designed for making Elementary OS app icons.</p>
