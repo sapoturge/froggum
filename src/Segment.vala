@@ -3,10 +3,10 @@ public abstract class Segment {
 }
 
 public class MoveSegment : Segment {
-    private int x;
-    private int y;
+    private double x;
+    private double y;
 
-    public MoveSegment (int x, int y) {
+    public MoveSegment (double x, double y) {
         this.x = x;
         this.y = y;
     }
@@ -17,10 +17,10 @@ public class MoveSegment : Segment {
 }
 
 public class LineSegment : Segment {
-    private int x;
-    private int y;
+    private double x;
+    private double y;
 
-    public LineSegment (int x, int y) {
+    public LineSegment (double x, double y) {
         this.x = x;
         this.y = y;
     }

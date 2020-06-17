@@ -12,6 +12,7 @@ executable(
     'src/PathRow.vala',
     dependencies: [
         dependency('gtk+-3.0'),
+        dependency('granite'),
         cc.find_library('m', required: false)
     ],
     install: true

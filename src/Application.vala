@@ -8,7 +8,7 @@ public class SvgApp : Gtk.Application {
 
     protected override void activate () {
         var main_window = new Gtk.ApplicationWindow (this);
-        main_window.title = "Froggum";
+        main_window.title = "Untitled";
 
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "icon:minimize,maximize,close";
@@ -16,21 +16,22 @@ public class SvgApp : Gtk.Application {
         header.title = "Froggum";
         main_window.set_titlebar (header);
 
-        var layout = new Gtk.Notebook ();
+        var layout = new Granite.Widgets.DynamicNotebook ();
         var path = new Path ({
-            new MoveSegment (1, 1),
-            new LineSegment (15, 1),
-            new LineSegment (15, 15),
-            new LineSegment (1, 15),
+            new MoveSegment (1.5, 1.5),
+            new LineSegment (14.5, 1.5),
+            new LineSegment (14.5, 14.5),
+            new LineSegment (1.5, 14.5),
             new ClosePathSegment ()
-        }, {0.3, 0.3, 0.3, 1});
+        }, {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1});
         var image = new Image ("Untitled", 16, 16, {path});
         var editor = new EditorView (image);
         editor.create ();
         editor.expand = true;
         layout.expand = true;
 
-        layout.append_page (editor, new Gtk.Label(image.name));
+        var tab = new Granite.Widgets.Tab (image.name, null, editor);
+        layout.insert_tab (tab, 0);
         main_window.add (layout);
         main_window.show_all();
     }

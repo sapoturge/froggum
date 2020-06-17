@@ -23,10 +23,7 @@ public class EditorView : Gtk.Box {
 
     private void create_path_view () {
         list_box = new Gtk.ListBox ();
-        foreach (Path path in image.paths) {
-            var row = new PathRow (image, path);
-            list_box.add (row);
-        }
+        image.create_path_rows (list_box);
         this.add (list_box);
     }
 

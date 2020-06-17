@@ -6,6 +6,8 @@ public class Path : Object {
 
     public string title { get; set; }
 
+    public bool visible { get; set; }
+
     public Path (Segment[] segments = {},
                  Gdk.RGBA fill = {0, 0, 0, 0},
                  Gdk.RGBA stroke = {0, 0, 0, 0},
@@ -14,9 +16,14 @@ public class Path : Object {
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
+        visible = true;
     }
 
     public void draw (Cairo.Context cr) {
+        if (!visible) {
+            return;
+        }
+        cr.set_line_width (1);
         foreach (Segment s in segments) {
             s.do_command (cr);
         }
