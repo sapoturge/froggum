@@ -23,10 +23,15 @@ public class EditorView : Gtk.Box {
     private Gtk.ListBox list_box;
     private Gtk.DrawingArea drawing_area;
 
+    public delegate void UpdateFunc ();
+
     public EditorView (Image image) {
         this.image = image;
         scroll_x = -image.width / 2;
         scroll_y = -image.height / 2;
+        image.update_func = () => {
+            updated = true;
+        };
     }
     
     public void create () {
@@ -36,9 +41,7 @@ public class EditorView : Gtk.Box {
 
     private void create_path_view () {
         list_box = new Gtk.ListBox ();
-        image.create_path_rows (list_box, () => {
-            updated = true;
-        });
+        image.create_path_rows (list_box);
         this.add (list_box);
     }
 
@@ -92,7 +95,9 @@ public class EditorView : Gtk.Box {
             return false;
         });
         drawing_area.button_press_event.connect ((event) => {
-            if (image.button_press (event)) {
+            var scaled_x = (event.x - width / 2 + scroll_x) / zoom;
+            var scaled_y = (event.y - height / 2 + scroll_y) / zoom;
+            if (image.button_press (scaled_x, scaled_y, zoom)) {
                 image_handling = true;
                 return false;
             }

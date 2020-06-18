@@ -2,15 +2,13 @@ public class PathRow : Gtk.ListBoxRow {
     private Image image;
     private Path _path;
 
-    public delegate void UpdateFunc ();
-
-    public PathRow (Image image, Path path, UpdateFunc update_func) {
+    public PathRow (Image image, Path path, EditorView.UpdateFunc update_func) {
         this.image = image;
         this._path = path;
         create (update_func);
     }
 
-    private void create (UpdateFunc update_func) {
+    private void create (EditorView.UpdateFunc update_func) {
         var layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
         var view = new Gtk.DrawingArea ();
         var visibility = new Gtk.CheckButton ();

@@ -38,4 +38,15 @@ public class Path : Object {
                             stroke.alpha);
         cr.stroke ();
     }
+
+    public void draw_handles (Cairo.Context cr) {
+        var w = 1.0;
+        cr.device_to_user_distance(ref w, ref w);
+        cr.set_line_width (w);
+        foreach (Segment s in segments) {
+            s.do_command (cr);
+        }
+        cr.set_source_rgba (1, 0, 0, 1);
+        cr.stroke ();
+    }
 }
