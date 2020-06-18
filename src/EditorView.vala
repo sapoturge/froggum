@@ -1,19 +1,32 @@
 public class EditorView : Gtk.Box {
-    private int scroll_x = -8;
-    private int scroll_y = -8;
+    private int scroll_x;
+    private int scroll_y;
     private int base_x;
     private int base_y;
     private int zoom = 1;
     private int width = 0;
     private int height = 0;
     private bool scrolling = false;
+    private bool image_handling = false;
 
     private Image image;
 
+    private bool updated {
+        get {
+            return false;
+        }
+        set {
+            drawing_area.queue_draw_area(0, 0, width, height);
+        }
+    }
+
     private Gtk.ListBox list_box;
+    private Gtk.DrawingArea drawing_area;
 
     public EditorView (Image image) {
         this.image = image;
+        scroll_x = -image.width / 2;
+        scroll_y = -image.height / 2;
     }
     
     public void create () {
@@ -23,13 +36,15 @@ public class EditorView : Gtk.Box {
 
     private void create_path_view () {
         list_box = new Gtk.ListBox ();
-        image.create_path_rows (list_box);
+        image.create_path_rows (list_box, () => {
+            updated = true;
+        });
         this.add (list_box);
     }
 
     private void create_drawing_area () {
-        var drawing_area = new Gtk.DrawingArea ();
-        drawing_area.set_size_request (200, 200);
+        drawing_area = new Gtk.DrawingArea ();
+        drawing_area.set_size_request (400, 400);
         drawing_area.add_events (Gdk.EventMask.BUTTON_RELEASE_MASK);
         drawing_area.add_events (Gdk.EventMask.BUTTON_PRESS_MASK);
         drawing_area.add_events (Gdk.EventMask.BUTTON_MOTION_MASK);
@@ -77,20 +92,31 @@ public class EditorView : Gtk.Box {
             return false;
         });
         drawing_area.button_press_event.connect ((event) => {
+            if (image.button_press (event)) {
+                image_handling = true;
+                return false;
+            }
             scrolling = true;
             base_x = ((int)event.x)-scroll_x;
             base_y = ((int)event.y)-scroll_y;
             return false;
         });
         drawing_area.motion_notify_event.connect ((event) => {
+            if (image_handling) {
+                image.motion (event);
+            }
             if (scrolling) {
                 scroll_x = ((int)event.x)-base_x;
                 scroll_y = ((int)event.y)-base_y;
+                updated = true;
             }
-            drawing_area.queue_draw_area(0, 0, width, height);
             return false;
         });
         drawing_area.button_release_event.connect ((event) => {
+            if (image_handling) {
+                image.button_release (event);
+                image_handling = false;
+            }
             scrolling = false;
             return false;
         });

@@ -20,9 +20,9 @@ public class Image {
         this.paths = paths;
     }
 
-    public void create_path_rows (Gtk.ListBox list_box) {
+    public void create_path_rows (Gtk.ListBox list_box, PathRow.UpdateFunc update_func) {
         foreach (Path path in paths) {
-            var path_row = new PathRow (this, path);
+            var path_row = new PathRow (this, path, update_func);
             list_box.add (path_row);
         }
     }
@@ -31,5 +31,17 @@ public class Image {
         foreach (Path path in paths) {
             path.draw (cr);
         }
+    }
+
+    public bool button_press (Gdk.EventButton e) {
+        return false;
+    }
+
+    public bool motion (Gdk.EventMotion e) {
+        return false;
+    }
+
+    public bool button_release (Gdk.EventButton e) {
+        return false;
     }
 }

@@ -2,13 +2,15 @@ public class PathRow : Gtk.ListBoxRow {
     private Image image;
     private Path _path;
 
-    public PathRow (Image image, Path path) {
+    public delegate void UpdateFunc ();
+
+    public PathRow (Image image, Path path, UpdateFunc update_func) {
         this.image = image;
         this._path = path;
-        create ();
+        create (update_func);
     }
 
-    private void create () {
+    private void create (UpdateFunc update_func) {
         var layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
         var view = new Gtk.DrawingArea ();
         var visibility = new Gtk.CheckButton ();
@@ -36,17 +38,17 @@ public class PathRow : Gtk.ListBoxRow {
         visibility.active = true;
         visibility.toggled.connect (() => {
             _path.visible = !_path.visible;
-            // TODO: Queue redraw everywhere.
+            update_func ();
         });
 
         fill.color_set.connect (() => {
             _path.fill = fill.get_rgba ();
-            // TODO: Queue redraw everywhere.
+            update_func ();
         });
 
         stroke.color_set.connect (() => {
             _path.stroke = stroke.get_rgba ();
-            // TODO: Queue redraw everywhere.
+            update_func ();
         });
     }
 }
