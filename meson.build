@@ -5,11 +5,11 @@ cc = meson.get_compiler('c')
 executable(
     meson.project_name(),
     'src/Application.vala',
-    'src/EditorView.vala',
-    'src/Image.vala',
-    'src/Path.vala',
-    'src/Segment.vala',
-    'src/PathRow.vala',
+    'src/widgets/EditorView.vala',
+    'src/widgets/PathRow.vala',
+    'src/data/Image.vala',
+    'src/data/Path.vala',
+    'src/data/Segment.vala',
     dependencies: [
         dependency('gtk+-3.0'),
         dependency('granite'),
