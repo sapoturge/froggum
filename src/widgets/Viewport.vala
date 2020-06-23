@@ -6,8 +6,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double zoom = 1;
     private int width = 0;
     private int height = 0;
-    private bool scrolling = false;
-    private bool dragging = false;
 
     private Gdk.RGBA background;
 
@@ -76,6 +74,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         image.update.connect (() => {
             queue_draw_area (0, 0, width, height);
         });
+        scroll_x = -image.width / 2;
+        scroll_y = -image.height / 2;
     }
 
     private double scale_x (double x) {
@@ -154,10 +154,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     public bool get_border (out Gtk.Border border) {
-        border.top = 0;
-        border.bottom = 0;
-        border.left = 0;
-        border.right = 0;
+        border = {0, 0, 0, 0};
         return true;
     }
 }

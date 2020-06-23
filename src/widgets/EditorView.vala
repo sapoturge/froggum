@@ -1,14 +1,4 @@
 public class EditorView : Gtk.Box {
-    private int scroll_x;
-    private int scroll_y;
-    private int base_x;
-    private int base_y;
-    private int zoom = 1;
-    private int width = 0;
-    private int height = 0;
-    private bool scrolling = false;
-    private bool image_handling = false;
-
     private Image image;
 
     private Gtk.ListBox list_box;
