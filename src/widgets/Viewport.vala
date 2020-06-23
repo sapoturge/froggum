@@ -73,7 +73,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     public Viewport(Image image) {
         this.image = image;
-        print ("%d, %d\n", image.width, image.height);
+        image.update.connect (() => {
+            queue_draw_area (0, 0, width, height);
+        });
     }
 
     private double scale_x (double x) {

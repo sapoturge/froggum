@@ -1,4 +1,4 @@
-public class Image {
+public class Image : Object {
     private File file;
 
     public int width { get; private set; }
@@ -10,10 +10,10 @@ public class Image {
         }
     }
 
-    public EditorView.UpdateFunc update_func { private get; set; }
+    public signal void update ();
 
-    private Path[] paths { get; private set; }
-    private Path selected_path;
+    public Path[] paths { get; private set; }
+    public Path selected_path;
 
     public Image (string filename, int width, int height, Path[] paths = {}) {
         if (filename == "Untitled") {
@@ -22,11 +22,14 @@ public class Image {
         this.height = height;
         this.paths = paths;
         this.selected_path = null;
+        foreach (Path path in paths) {
+            path.update.connect (() => { update (); });
+        }
     }
 
     public void create_path_rows (Gtk.ListBox list_box) {
         foreach (Path path in paths) {
-            var path_row = new PathRow (this, path, update_func);
+            var path_row = new PathRow (this, path);
             list_box.add (path_row);
         }
     }
@@ -51,7 +54,6 @@ public class Image {
            path.draw_handles (cr);
            if (data[(width * (int)y + (int)x) * 4 + 3] != 0) {
                selected_path = path;
-               update_func ();
                return true;
            }
         }

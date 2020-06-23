@@ -11,27 +11,11 @@ public class EditorView : Gtk.Box {
 
     private Image image;
 
-    private bool updated {
-        get {
-            return false;
-        }
-        set {
-            viewport.queue_draw_area(0, 0, width, height);
-        }
-    }
-
     private Gtk.ListBox list_box;
     private Viewport viewport;
 
-    public delegate void UpdateFunc ();
-
     public EditorView (Image image) {
         this.image = image;
-        scroll_x = -image.width / 2;
-        scroll_y = -image.height / 2;
-        image.update_func = () => {
-            updated = true;
-        };
     }
     
     public void create () {

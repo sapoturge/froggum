@@ -1,20 +1,34 @@
 public class PathRow : Gtk.ListBoxRow {
     private Image image;
     private Path _path;
+    private int view_width;
+    private int view_height;
 
-    public PathRow (Image image, Path path, EditorView.UpdateFunc update_func) {
+    private Gtk.DrawingArea view;
+    private Gtk.Label title;
+    private Gtk.ColorButton fill;
+    private Gtk.ColorButton stroke;
+
+    public PathRow (Image image, Path path) {
         this.image = image;
         this._path = path;
-        create (update_func);
+        view.set_size_request (image.width, image.height);
+        _path.update.connect (() => {
+            view.queue_draw_area (0, 0, view_width, view_height);
+        });
+        title.label = _path.title;
+        _path.bind_property ("title", title, "label", BindingFlags.DEFAULT);
+        fill.rgba = _path.fill;
+        stroke.rgba = _path.stroke;
     }
 
-    private void create (EditorView.UpdateFunc update_func) {
+    construct {
         var layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-        var view = new Gtk.DrawingArea ();
+        view = new Gtk.DrawingArea ();
         var visibility = new Gtk.CheckButton ();
-        var title = new Gtk.Label (_path.title);
-        var fill = new Gtk.ColorButton.with_rgba (_path.fill);
-        var stroke = new Gtk.ColorButton.with_rgba (_path.stroke);
+        title = new Gtk.Label ("");
+        fill = new Gtk.ColorButton ();
+        stroke = new Gtk.ColorButton ();
 
         layout.pack_start (view, false, false, 0);
         layout.pack_start (visibility, false, false, 0);
@@ -23,30 +37,30 @@ public class PathRow : Gtk.ListBoxRow {
         layout.pack_start (stroke, false, false, 0);
         add (layout);
 
-        view.set_size_request (image.width, image.height);
         view.valign = Gtk.Align.CENTER;
-        _path.bind_property ("title", title, "label", BindingFlags.DEFAULT);
         view.draw.connect ((cr) => {
             _path.draw (cr);
             return false;
         });
+        view.size_allocate.connect ((alloc) => {
+            view_width = alloc.width;
+            view_height = alloc.height;
+        });
 
-        // Placeholder; will be replaced with icons eventually.
-        // visibility.label = "V";
         visibility.active = true;
         visibility.toggled.connect (() => {
             _path.visible = !_path.visible;
-            update_func ();
+            _path.update ();
         });
 
         fill.color_set.connect (() => {
             _path.fill = fill.get_rgba ();
-            update_func ();
+            _path.update ();
         });
 
         stroke.color_set.connect (() => {
             _path.stroke = stroke.get_rgba ();
-            update_func ();
+            _path.update ();
         });
     }
 }

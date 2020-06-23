@@ -8,6 +8,8 @@ public class Path : Object {
 
     public bool visible { get; set; }
 
+    public signal void update ();
+
     public Path (Segment[] segments = {},
                  Gdk.RGBA fill = {0, 0, 0, 0},
                  Gdk.RGBA stroke = {0, 0, 0, 0},
