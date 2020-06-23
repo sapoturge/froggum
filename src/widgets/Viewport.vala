@@ -7,6 +7,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private int width = 0;
     private int height = 0;
 
+    private bool scrolling = false;
+
     private Gdk.RGBA background;
 
     private Image _image;
@@ -136,44 +138,29 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for clicking on a control handle
             // Check for clicking on a segment
             // Assume dragging
+            scrolling = true;
+            base_x = (int) event.x - scroll_x;
+            base_y = (int) event.y - scroll_y;
+            return false;
         });
 
         motion_notify_event.connect ((event) => {
             // Drag control handle
             // Drag entire segment?
             // Scroll
+            if (scrolling) {
+                scroll_x = (int) event.x - base_x;
+                scroll_y = (int) event.y - base_y;
+                queue_draw_area (0, 0, width, height);
+            }
+            return false;
         });
 
         button_release_event.connect ((event) => {
             // Stop scrolling, dragging, etc.
+            scrolling = false;
             return false;
         });
-
-        /* // From EditorView, working scroll code and such.
-        drawing_area.button_press_event.connect ((event) => {
-            var scaled_x = (event.x - width / 2 + scroll_x) / zoom;
-            var scaled_y = (event.y - height / 2 + scroll_y) / zoom;
-            if (image.button_press (scaled_x, scaled_y, zoom)) {
-                image_handling = true;
-                return false;
-            }
-            scrolling = true;
-            base_x = ((int)event.x)-scroll_x;
-            base_y = ((int)event.y)-scroll_y;
-            return false;
-        });
-        drawing_area.motion_notify_event.connect ((event) => {
-            if (image_handling) {
-                image.motion (event);
-            }
-            if (scrolling) {
-                scroll_x = ((int)event.x)-base_x;
-                scroll_y = ((int)event.y)-base_y;
-                updated = true;
-            }
-            return false;
-        });
-        */
 
         scroll_event.connect ((event) => {
             if (event.direction == Gdk.ScrollDirection.UP) {
