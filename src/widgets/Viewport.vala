@@ -9,10 +9,24 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private Gdk.RGBA background;
 
-    private Image image;
+    private Image _image;
     private Gtk.Adjustment horizontal;
     private Gtk.Adjustment vertical;
 
+    public Image image {
+        get {
+            return _image;
+        }
+        set {
+            _image = value;
+            _image.update.connect (() => {
+                queue_draw_area (0, 0, width, height);
+            });
+            scroll_x = -_image.width / 2;
+            scroll_y = -_image.height / 2;
+        }
+    }
+            
     public Gtk.Adjustment hadjustment {
         get {
             return horizontal;
@@ -69,13 +83,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    public Viewport(Image image) {
+    public Viewport () {}
+
+    public Viewport.with_image (Image image) {
         this.image = image;
-        image.update.connect (() => {
-            queue_draw_area (0, 0, width, height);
-        });
-        scroll_x = -image.width / 2;
-        scroll_y = -image.height / 2;
     }
 
     private double scale_x (double x) {
@@ -137,6 +148,32 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Stop scrolling, dragging, etc.
             return false;
         });
+
+        /* // From EditorView, working scroll code and such.
+        drawing_area.button_press_event.connect ((event) => {
+            var scaled_x = (event.x - width / 2 + scroll_x) / zoom;
+            var scaled_y = (event.y - height / 2 + scroll_y) / zoom;
+            if (image.button_press (scaled_x, scaled_y, zoom)) {
+                image_handling = true;
+                return false;
+            }
+            scrolling = true;
+            base_x = ((int)event.x)-scroll_x;
+            base_y = ((int)event.y)-scroll_y;
+            return false;
+        });
+        drawing_area.motion_notify_event.connect ((event) => {
+            if (image_handling) {
+                image.motion (event);
+            }
+            if (scrolling) {
+                scroll_x = ((int)event.x)-base_x;
+                scroll_y = ((int)event.y)-base_y;
+                updated = true;
+            }
+            return false;
+        });
+        */
 
         scroll_event.connect ((event) => {
             if (event.direction == Gdk.ScrollDirection.UP) {

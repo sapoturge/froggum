@@ -1,4 +1,4 @@
-public class Image : Object {
+public class Image : Object, ListModel {
     private File file;
 
     public int width { get; private set; }
@@ -12,7 +12,7 @@ public class Image : Object {
 
     public signal void update ();
 
-    public Path[] paths { get; private set; }
+    private Path[] paths;
     public Path selected_path;
 
     public Image (string filename, int width, int height, Path[] paths = {}) {
@@ -27,11 +27,19 @@ public class Image : Object {
         }
     }
 
-    public void create_path_rows (Gtk.ListBox list_box) {
-        foreach (Path path in paths) {
-            var path_row = new PathRow (this, path);
-            list_box.add (path_row);
+    public Object? get_item (uint position) {
+        if (position < paths.length) {
+            return paths[position];
         }
+        return null;
+    }
+
+    public Type get_item_type () {
+        return typeof (Path);
+    }
+
+    public uint get_n_items () {
+        return paths.length;
     }
 
     public void draw (Cairo.Context cr) {

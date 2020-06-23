@@ -26,7 +26,6 @@ public class SvgApp : Gtk.Application {
         }, {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1});
         var image = new Image ("Untitled", 16, 16, {path});
         var editor = new EditorView (image);
-        editor.create ();
         editor.expand = true;
         layout.expand = true;
 
