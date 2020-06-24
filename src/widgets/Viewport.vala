@@ -1,9 +1,9 @@
 public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
-    private int scroll_x;
-    private int scroll_y;
+    private int _scroll_x;
+    private int _scroll_y;
     private int base_x;
     private int base_y;
-    private double zoom = 1;
+    private double _zoom = 1;
     private int width = 0;
     private int height = 0;
 
@@ -29,6 +29,37 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
             
+    private int scroll_x {
+        get {
+            return _scroll_x;
+        }
+        set {
+            _scroll_x = value;
+            horizontal.value = -double.min (scroll_x + width / 2, 0);
+        }
+    }
+
+    private int scroll_y {
+        get {
+            return _scroll_y;
+        }
+        set {
+            _scroll_y = value;
+            vertical.value = -double.min (scroll_y + height / 2, 0);
+        }
+    }
+
+    private double zoom {
+        get {
+            return _zoom;
+        }
+        set {
+            _zoom = value;
+            hadjustment.upper = image.width * _zoom;
+            vertical.upper = image.height * _zoom;
+        }
+    }
+
     public Gtk.Adjustment hadjustment {
         get {
             return horizontal;
@@ -40,13 +71,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Set values
             if (image != null) {
-                horizontal.lower = scale_x (0) / image.width;
-                horizontal.value = scale_x (width/2) / image.width;
-                horizontal.upper = scale_x (width) / image.width;
-                horizontal.page_size = image.width;
+                horizontal.lower = 0;
+                horizontal.upper = image.width * zoom;
+                // horizontal.value = scale_x (0);
+                horizontal.page_size = width;
+                horizontal.page_increment = 1;
+                horizontal.step_increment = 1;
             }
             // Bind events
-            
+            horizontal.value_changed.connect (() => {
+                _scroll_x = -((int) horizontal.value + width / 2);
+            });
         }
     }
     public Gtk.Adjustment vadjustment {
@@ -60,12 +95,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Set values
             if (image != null) {
-                vertical.lower = scale_y (0) / image.height;
-                vertical.value = scale_y (height / 2) / image.height;
-                vertical.upper = scale_y (height) / image.height;
-                vertical.page_size = image.height;
+                vertical.lower = 0;
+                // vertical.value = scale_y (0);
+                vertical.upper = image.height;
+                vertical.page_size = height;
+                vertical.page_increment = 1;
+                vertical.step_increment = 1;
             }
             // Bind events
+            vertical.value_changed.connect (() => {
+                _scroll_y = -((int) vertical.value + height / 2);
+            });
         }
     }
 
@@ -92,11 +132,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private double scale_x (double x) {
-        return (x - width / 2 + scroll_x) / zoom;
+        return (x - width / 2 - scroll_x) / zoom;
     }
 
     private double scale_y (double y) {
-        return (y - height / 2 + scroll_y) / zoom;
+        return (y - height / 2 - scroll_y) / zoom;
     }
 
     construct {
@@ -130,6 +170,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         size_allocate.connect ((alloc) => {
             width = alloc.width;
             height = alloc.height;
+            
+            horizontal.page_size = width;
+            vertical.page_size = height;
+
+            // Recalculate values.
+            scroll_x = scroll_x;
+            scroll_y = scroll_y;
         });
         
         button_press_event.connect ((event) => {
