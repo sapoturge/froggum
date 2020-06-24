@@ -142,6 +142,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     construct {
         background = {0.7, 0.7, 0.7, 1.0};
 
+        set_size_request (320, 320);
+
         add_events (Gdk.EventMask.BUTTON_RELEASE_MASK |
                     Gdk.EventMask.BUTTON_PRESS_MASK |
                     Gdk.EventMask.BUTTON_MOTION_MASK |

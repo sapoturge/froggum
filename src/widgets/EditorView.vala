@@ -17,7 +17,6 @@ public class EditorView : Gtk.Box {
         pack_start (list_box, false, false, 0);
 
         viewport = new Viewport ();
-        viewport.set_size_request (2000, 2000);
         var scrolled = new Gtk.ScrolledWindow (null, null);
         scrolled.add (viewport);
         scrolled.hscrollbar_policy = Gtk.PolicyType.ALWAYS;

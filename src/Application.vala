@@ -10,6 +10,10 @@ public class SvgApp : Gtk.Application {
         var main_window = new Gtk.ApplicationWindow (this);
         main_window.title = "Untitled";
 
+        // TODO: This should be made a setting.
+        main_window.maximize ();
+        main_window.set_default_size (640, 480);
+
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "icon:minimize,maximize,close";
         header.show_close_button = true;
