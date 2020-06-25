@@ -9,6 +9,9 @@ public class EditorView : Gtk.Box {
         list_box.bind_model (image, (path) => {
             return new PathRow (image, (Path) path);
         });
+        list_box.row_activated.connect ((row) => {
+            ((PathRow) row).get_path ().select (true);
+        });
         viewport.image = image;
     }
     

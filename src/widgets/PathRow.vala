@@ -22,6 +22,10 @@ public class PathRow : Gtk.ListBoxRow {
         stroke.rgba = _path.stroke;
     }
 
+    public Path get_path () {
+        return _path;
+    }
+
     construct {
         var layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
         view = new Gtk.DrawingArea ();

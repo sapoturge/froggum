@@ -12,8 +12,10 @@ public class Image : Object, ListModel {
 
     public signal void update ();
 
+    public signal void path_selected (Path? path);
+
     private Path[] paths;
-    public Path selected_path;
+    private Path selected_path;
 
     public Image (string filename, int width, int height, Path[] paths = {}) {
         if (filename == "Untitled") {
@@ -24,6 +26,16 @@ public class Image : Object, ListModel {
         this.selected_path = null;
         foreach (Path path in paths) {
             path.update.connect (() => { update (); });
+            path.select.connect ((selected) => {
+                if (path != selected_path) {
+                    selected_path.select (false);
+                    selected_path = path;
+                    path_selected (path);
+                } else if (selected == false) {
+                    selected_path = null;
+                    path_selected (null);
+                }
+            });
         }
     }
 

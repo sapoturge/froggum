@@ -9,6 +9,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private bool scrolling = false;
 
+    private Path? selected_path;
+
     private Gdk.RGBA background;
 
     private Image _image;
@@ -23,6 +25,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _image = value;
             _image.update.connect (() => {
                 queue_draw_area (0, 0, width, height);
+            });
+            _image.path_selected.connect ((path) => {
+                selected_path = path;
             });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
@@ -73,7 +78,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             if (image != null) {
                 horizontal.lower = 0;
                 horizontal.upper = image.width * zoom;
-                // horizontal.value = scale_x (0);
                 horizontal.page_size = width;
                 horizontal.page_increment = 1;
                 horizontal.step_increment = 1;
@@ -84,6 +88,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             });
         }
     }
+
     public Gtk.Adjustment vadjustment {
         get {
             return vertical;
@@ -96,7 +101,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Set values
             if (image != null) {
                 vertical.lower = 0;
-                // vertical.value = scale_y (0);
                 vertical.upper = image.height;
                 vertical.page_size = height;
                 vertical.page_increment = 1;
@@ -164,6 +168,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Draw Grid
 
             // Draw Control Handles
+            if (selected_path != null) {
+                selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1});
+            }
 
             cr.restore();
             return false;
