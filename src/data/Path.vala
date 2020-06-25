@@ -21,6 +21,9 @@ public class Path : Object {
         this.stroke = stroke;
         this.title = title;
         visible = true;
+        foreach (Segment s in segments) {
+            s.notify.connect (() => { update (); });
+        }
     }
 
     public void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null) {

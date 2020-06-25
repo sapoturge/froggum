@@ -6,18 +6,18 @@ public enum SegmentType {
     ARC
 }
 
-public class Segment {
+public class Segment : Object {
     public SegmentType segment_type; 
 
     // End points, used for all but CLOSE segments
-    public double x;
-    public double y;
+    public double x { get; set; }
+    public double y { get; set; }
 
     // Control points, used for CURVE segments
-    public double x1;
-    public double y1;
-    public double x2;
-    public double y2;
+    public double x1 { get; set; }
+    public double y1 { get; set; }
+    public double x2 { get; set; }
+    public double y2 { get; set; }
 
     // TODO: Arc control points
 

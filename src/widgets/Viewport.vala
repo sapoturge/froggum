@@ -17,6 +17,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Gtk.Adjustment horizontal;
     private Gtk.Adjustment vertical;
 
+    public double control_x { get; set; }
+    public double control_y { get; set; }
+    private Binding x_binding;
+    private Binding y_binding;
+
     public Image image {
         get {
             return _image;
@@ -210,6 +215,22 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             var x = scale_x (event.x);
             var y = scale_y (event.y);
             // Check for clicking on a control handle
+            if (selected_path != null) {
+                foreach (Segment s in selected_path.segments) {
+                    switch (s.segment_type) {
+                        case SegmentType.MOVE:
+                        case SegmentType.LINE:
+                            if ((x - s.x).abs () <= 4 / zoom && (y - s.y).abs () <= 4 / zoom) {
+                                x_binding = bind_property ("control_x", s, "x", BindingFlags.DEFAULT);
+                                y_binding = bind_property ("control_y", s, "y", BindingFlags.DEFAULT);
+                                control_x = x;
+                                control_y = y;
+                                return false;
+                            }
+                            break;
+                    }
+                }
+            }
             // Check for clicking on a segment
             // Assume dragging
             scrolling = true;
@@ -219,7 +240,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         });
 
         motion_notify_event.connect ((event) => {
-            // Drag control handle
+            // Drag control handle (only changes if actually dragging something.)
+            control_x = scale_x (event.x);
+            control_y = scale_y (event.y);
             // Drag entire segment?
             // Scroll
             if (scrolling) {
@@ -232,6 +255,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         button_release_event.connect ((event) => {
             // Stop scrolling, dragging, etc.
+            x_binding.unbind ();
+            y_binding.unbind ();
             scrolling = false;
             return false;
         });
