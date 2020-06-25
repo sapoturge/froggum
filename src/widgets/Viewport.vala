@@ -170,6 +170,24 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Draw Control Handles
             if (selected_path != null) {
                 selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1});
+                
+                foreach (Segment s in selected_path.segments) {
+                    switch (s.segment_type) {
+                        case SegmentType.MOVE:
+                        case SegmentType.LINE:
+                            cr.arc (s.x, s.y, 4 / zoom, 0, 3.14159265 * 2);
+                            cr.set_source_rgba (1, 0, 0, 0.9);
+                            cr.fill ();
+                        case SegmentType.CLOSE:
+                            break;
+                        case SegmentType.CURVE:
+                            // TODO: Draw handles for Curve
+                            break;
+                        case SegmentType.ARC:
+                            // TODO: Draw Handles for Arc
+                            break;
+                     }
+                }
             }
 
             cr.restore();

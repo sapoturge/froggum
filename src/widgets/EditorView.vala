@@ -10,7 +10,7 @@ public class EditorView : Gtk.Box {
             return new PathRow (image, (Path) path);
         });
         list_box.row_activated.connect ((row) => {
-            ((PathRow) row).get_path ().select (true);
+            ((PathRow) row).path.select (true);
         });
         viewport.image = image;
     }

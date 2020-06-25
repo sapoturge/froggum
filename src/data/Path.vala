@@ -1,5 +1,5 @@
 public class Path : Object {
-    private Segment[] segments;
+    public Segment[] segments;
 
     public Gdk.RGBA fill { get; set; }
     public Gdk.RGBA stroke { get; set; }

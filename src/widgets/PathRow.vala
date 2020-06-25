@@ -1,6 +1,5 @@
 public class PathRow : Gtk.ListBoxRow {
     private Image image;
-    private Path _path;
     private int view_width;
     private int view_height;
 
@@ -9,21 +8,19 @@ public class PathRow : Gtk.ListBoxRow {
     private Gtk.ColorButton fill;
     private Gtk.ColorButton stroke;
 
+    public new Path path { get; private set; }
+
     public PathRow (Image image, Path path) {
         this.image = image;
-        this._path = path;
+        this.path = path;
         view.set_size_request (image.width, image.height);
-        _path.update.connect (() => {
+        path.update.connect (() => {
             view.queue_draw_area (0, 0, view_width, view_height);
         });
-        title.label = _path.title;
-        _path.bind_property ("title", title, "label", BindingFlags.DEFAULT);
-        fill.rgba = _path.fill;
-        stroke.rgba = _path.stroke;
-    }
-
-    public Path get_path () {
-        return _path;
+        title.label = path.title;
+        path.bind_property ("title", title, "label", BindingFlags.DEFAULT);
+        fill.rgba = path.fill;
+        stroke.rgba = path.stroke;
     }
 
     construct {
@@ -43,7 +40,7 @@ public class PathRow : Gtk.ListBoxRow {
 
         view.valign = Gtk.Align.CENTER;
         view.draw.connect ((cr) => {
-            _path.draw (cr);
+            path.draw (cr);
             return false;
         });
         view.size_allocate.connect ((alloc) => {
@@ -53,18 +50,18 @@ public class PathRow : Gtk.ListBoxRow {
 
         visibility.active = true;
         visibility.toggled.connect (() => {
-            _path.visible = !_path.visible;
-            _path.update ();
+            path.visible = !_path.visible;
+            path.update ();
         });
 
         fill.color_set.connect (() => {
-            _path.fill = fill.get_rgba ();
-            _path.update ();
+            path.fill = fill.get_rgba ();
+            path.update ();
         });
 
         stroke.color_set.connect (() => {
-            _path.stroke = stroke.get_rgba ();
-            _path.update ();
+            path.stroke = stroke.get_rgba ();
+            path.update ();
         });
     }
 }

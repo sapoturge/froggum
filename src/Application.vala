@@ -22,11 +22,11 @@ public class SvgApp : Gtk.Application {
 
         var layout = new Granite.Widgets.DynamicNotebook ();
         var path = new Path ({
-            new MoveSegment (1.5, 1.5),
-            new LineSegment (14.5, 1.5),
-            new LineSegment (14.5, 14.5),
-            new LineSegment (1.5, 14.5),
-            new ClosePathSegment ()
+            new Segment.move (1.5, 1.5),
+            new Segment.line (14.5, 1.5),
+            new Segment.line (14.5, 14.5),
+            new Segment.line (1.5, 14.5),
+            new Segment.close ()
         }, {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1});
         var image = new Image ("Untitled", 16, 16, {path});
         var editor = new EditorView (image);
