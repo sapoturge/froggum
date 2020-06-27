@@ -176,17 +176,30 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             if (selected_path != null) {
                 selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1});
                 
+                var last_x = 0.0;
+                var last_y = 0.0;
                 foreach (Segment s in selected_path.segments) {
                     switch (s.segment_type) {
+                        case SegmentType.CURVE:
+                            cr.move_to (last_x, last_y);
+                            cr.line_to (s.x1, s.y1);
+                            cr.line_to (s.x2, s.y2);
+                            cr.line_to (s.x, s.y);
+                            cr.set_source_rgba (0, 0.5, 1, 0.8);
+                            cr.stroke ();
+                            cr.arc (s.x1, s.y1, 4 / zoom, 0, 3.14159265 * 2);
+                            cr.new_sub_path ();
+                            cr.arc (s.x2, s.y2, 4 / zoom, 0, 3.14159265 * 2);
+                            cr.new_sub_path ();
+                            // Intentional fall-through
                         case SegmentType.MOVE:
                         case SegmentType.LINE:
                             cr.arc (s.x, s.y, 4 / zoom, 0, 3.14159265 * 2);
                             cr.set_source_rgba (1, 0, 0, 0.9);
                             cr.fill ();
+                            last_x = s.x;
+                            last_y = s.y;
                         case SegmentType.CLOSE:
-                            break;
-                        case SegmentType.CURVE:
-                            // TODO: Draw handles for Curve
                             break;
                         case SegmentType.ARC:
                             // TODO: Draw Handles for Arc
@@ -218,6 +231,22 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             if (selected_path != null) {
                 foreach (Segment s in selected_path.segments) {
                     switch (s.segment_type) {
+                        case SegmentType.CURVE:
+                            if ((x - s.x1).abs () <= 4 / zoom && (y - s.y1).abs () <= 4 / zoom) {
+                                x_binding = bind_property ("control_x", s, "x1", BindingFlags.DEFAULT);
+                                y_binding = bind_property ("control_y", s, "y1", BindingFlags.DEFAULT);
+                                control_x = x;
+                                control_y = y;
+                                return false;
+                            }
+                            if ((x - s.x2).abs () <= 4 / zoom && (y - s.y2).abs () <= 4 / zoom) {
+                                x_binding = bind_property ("control_x", s, "x2", BindingFlags.DEFAULT);
+                                y_binding = bind_property ("control_y", s, "y2", BindingFlags.DEFAULT);
+                                control_x = x;
+                                control_y = y;
+                                return false;
+                            }
+                            // Intentional fall-through
                         case SegmentType.MOVE:
                         case SegmentType.LINE:
                             if ((x - s.x).abs () <= 4 / zoom && (y - s.y).abs () <= 4 / zoom) {

@@ -45,7 +45,7 @@ public class SvgApp : Gtk.Application {
         var path = new Path ({
             new Segment.move (1.5, 1.5),
             new Segment.line (14.5, 1.5),
-            new Segment.line (14.5, 14.5),
+            new Segment.curve (8, 4, 8, 12, 14.5, 14.5),
             new Segment.line (1.5, 14.5),
             new Segment.close ()
         }, {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1});

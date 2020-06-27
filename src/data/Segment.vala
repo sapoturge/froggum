@@ -39,7 +39,7 @@ public class Segment : Object {
         this.y = y;
     }
 
-    public Segment.curve (double x, double y, double x1, double y1,double x2, double y2) {
+    public Segment.curve (double x1, double y1, double x2, double y2, double x, double y) {
         segment_type = CURVE;
         this.x = x;
         this.y = y;
