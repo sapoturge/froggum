@@ -1,5 +1,5 @@
 public class Image : Object, ListModel {
-    private File file;
+    private File _file;
 
     public int width { get; private set; }
     public int height { get; private set; }
@@ -37,6 +37,18 @@ public class Image : Object, ListModel {
                 }
             });
         }
+        // TODO: Better autosave.
+        update.connect (() => { save.begin(); });
+    }
+
+    public File file {
+        get {
+            return _file;
+        }
+        set {
+            _file = value;
+            save.begin ();
+        }
     }
 
     public Object? get_item (uint position) {
@@ -58,39 +70,46 @@ public class Image : Object, ListModel {
         foreach (Path path in paths) {
             path.draw (cr);
         }
-        if (selected_path != null) {
-            selected_path.draw_handles (cr);
+    }
+
+    private async void save () {
+        if (file == null) {
+            return;
         }
-    }
-
-    public bool button_press (double x, double y, int scale) {
-        var test_surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
-        unowned var data = test_surf.get_data ();
-        var cr = new Cairo.Context (test_surf);
-        foreach (Path path in paths) {
-           cr.set_source_rgba (0, 0, 0, 0);
-           cr.set_operator (Cairo.Operator.SOURCE);
-           cr.paint ();
-           path.draw_handles (cr);
-           if (data[(width * (int)y + (int)x) * 4 + 3] != 0) {
-               selected_path = path;
-               return true;
-           }
-        }
-        // TODO: There should be a way to deselect, but clicking off once
-        // doesn't work
-        //if (selected_path != null) {
-        //    selected_path = null;
-        //    update_func ();
-        //}
-        return false;
-    }
-
-    public bool motion (Gdk.EventMotion e) {
-        return false;
-    }
-
-    public bool button_release (Gdk.EventButton e) {
-        return false;
+        var stream = yield file.replace_async (null, true, FileCreateFlags.NONE);
+        size_t written = 0;
+        try {
+            yield stream.write_all_async ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n".data, 0, null, out written);
+            yield stream.write_all_async ("<svg version=\"1.1\" width=\"%d\" height=\"%d\">\n".printf (width, height).data, 0, null, out written);
+            foreach (Path path in paths) {
+                yield stream.write_all_async ("<path style=\"fill:#".data, 0, null, out written);
+                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.fill.red * 255),
+                                                         (uint) (path.fill.green * 255),
+                                                         (uint) (path.fill.blue * 255)).data, 0, null, out written);
+                yield stream.write_all_async (";stroke:#".data, 0, null, out written);
+                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.stroke.red * 255),
+                                                         (uint) (path.stroke.green * 255),
+                                                         (uint) (path.stroke.blue * 255)).data, 0, null, out written);
+                yield stream.write_all_async (";fill-opacity:%f;stroke-opacity:%f".printf (path.fill.alpha, path.stroke.alpha).data, 0, null, out written);
+                yield stream.write_all_async ("\" d=\"".data, 0, null, out written);
+                foreach (Segment s in path.segments) {
+                    switch (s.segment_type) {
+                        case SegmentType.MOVE:
+                            yield stream.write_all_async ("M %f,%f ".printf (s.x, s.y).data, 0, null, out written);
+                            break;
+                        case SegmentType.LINE:
+                            yield stream.write_all_async ("L %f,%f ".printf (s.x, s.y).data, 0, null, out written);
+                            break;
+                        case SegmentType.CLOSE:
+                            yield stream.write_all_async ("Z".data, 0, null, out written);
+                            break;
+                        // TODO: Write curves and arcs.
+                    }
+                }
+                yield stream.write_all_async ("\" />\n".data, 0, null, out written);
+            }
+            yield stream.write_all_async ("</svg>\n".data, 0, null, out written);
+       } catch (IOError e) {
+       }
     }
 }

@@ -1,5 +1,5 @@
 public class EditorView : Gtk.Box {
-    private Image image;
+    public Image image { get; private set; }
 
     private Gtk.ListBox list_box;
     private Viewport viewport;
