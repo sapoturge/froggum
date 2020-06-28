@@ -17,6 +17,11 @@ public class PathRow : Gtk.ListBoxRow {
         path.update.connect (() => {
             view.queue_draw_area (0, 0, view_width, view_height);
         });
+        path.select.connect ((selected) => {
+            if (selected && !is_selected ()) {
+                activate ();
+            }
+        });
         title.label = path.title;
         path.bind_property ("title", title, "label", BindingFlags.DEFAULT);
         fill.rgba = path.fill;

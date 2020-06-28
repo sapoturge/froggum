@@ -174,8 +174,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             // Draw Control Handles
             if (selected_path != null) {
-                selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1});
+                selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
                 
+                cr.set_line_width (1 / zoom);
                 var last_x = 0.0;
                 var last_y = 0.0;
                 foreach (Segment s in selected_path.segments) {
@@ -187,19 +188,21 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.line_to (s.x, s.y);
                             cr.set_source_rgba (0, 0.5, 1, 0.8);
                             cr.stroke ();
-                            cr.arc (s.x1, s.y1, 4 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.x1, s.y1, 6 / zoom, 0, 3.14159265 * 2);
                             cr.new_sub_path ();
-                            cr.arc (s.x2, s.y2, 4 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.x2, s.y2, 6 / zoom, 0, 3.14159265 * 2);
                             cr.new_sub_path ();
                             // Intentional fall-through
                         case SegmentType.MOVE:
                         case SegmentType.LINE:
-                            cr.arc (s.x, s.y, 4 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.x, s.y, 6 / zoom, 0, 3.14159265 * 2);
                             cr.set_source_rgba (1, 0, 0, 0.9);
                             cr.fill ();
                             last_x = s.x;
                             last_y = s.y;
+                            break;
                         case SegmentType.CLOSE:
+                            // Close segments have nothing to edit.
                             break;
                         case SegmentType.ARC:
                             // TODO: Draw Handles for Arc
@@ -225,21 +228,41 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         });
         
         button_press_event.connect ((event) => {
+            Path path = null;
+            Segment segment = null;
+            var clicked = clicked_path ((int) event.x, (int) event.y, out path, out segment);
             var x = scale_x (event.x);
             var y = scale_y (event.y);
+            // Check for right-clicking on a segment
+            if (event.button == 3) {
+                if (clicked) {
+                    path.select (true);
+                }
+                show_context_menu (segment, event);
+                return false;
+            }
+            // Check for double-clicking on a path
+            if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
+                if (clicked) {
+                    path.select (true);
+                } else {
+                    selected_path.select (false);
+                }
+                return false;
+            }
             // Check for clicking on a control handle
             if (selected_path != null) {
                 foreach (Segment s in selected_path.segments) {
                     switch (s.segment_type) {
                         case SegmentType.CURVE:
-                            if ((x - s.x1).abs () <= 4 / zoom && (y - s.y1).abs () <= 4 / zoom) {
+                            if ((x - s.x1).abs () <= 6 / zoom && (y - s.y1).abs () <= 6 / zoom) {
                                 x_binding = bind_property ("control_x", s, "x1", BindingFlags.DEFAULT);
                                 y_binding = bind_property ("control_y", s, "y1", BindingFlags.DEFAULT);
                                 control_x = x;
                                 control_y = y;
                                 return false;
                             }
-                            if ((x - s.x2).abs () <= 4 / zoom && (y - s.y2).abs () <= 4 / zoom) {
+                            if ((x - s.x2).abs () <= 6 / zoom && (y - s.y2).abs () <= 6 / zoom) {
                                 x_binding = bind_property ("control_x", s, "x2", BindingFlags.DEFAULT);
                                 y_binding = bind_property ("control_y", s, "y2", BindingFlags.DEFAULT);
                                 control_x = x;
@@ -249,7 +272,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             // Intentional fall-through
                         case SegmentType.MOVE:
                         case SegmentType.LINE:
-                            if ((x - s.x).abs () <= 4 / zoom && (y - s.y).abs () <= 4 / zoom) {
+                            if ((x - s.x).abs () <= 6 / zoom && (y - s.y).abs () <= 6 / zoom) {
                                 x_binding = bind_property ("control_x", s, "x", BindingFlags.DEFAULT);
                                 y_binding = bind_property ("control_y", s, "y", BindingFlags.DEFAULT);
                                 control_x = x;
@@ -260,7 +283,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     }
                 }
             }
-            // Check for clicking on a segment
             // Assume dragging
             scrolling = true;
             base_x = (int) event.x - scroll_x;
@@ -308,5 +330,101 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     public bool get_border (out Gtk.Border border) {
         border = {0, 0, 0, 0};
         return true;
+    }
+
+    private bool clicked_path (int x, int y, out Path? path, out Segment? segment) {
+        var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
+        unowned var data = surface.get_data ();
+        var cr = new Cairo.Context (surface);
+        cr.translate (width / 2, height / 2);
+        cr.translate (scroll_x, scroll_y);
+        cr.scale (zoom, zoom);
+        cr.set_line_width (6 / zoom);
+        cr.set_source_rgba (1, 1, 1, 1);
+        foreach (Path _path in image.paths) {
+            foreach (Segment _segment in _path.segments) {
+                _segment.do_command (cr);
+                cr.stroke_preserve ();
+                // Check alpha of clicked pixel
+                if (data [y * width * 4 + x * 4 + 3] > 0) {
+                    path = _path;
+                    segment = _segment;
+                    return true;
+                }
+            }
+            cr.new_path ();
+        }
+        path = null;
+        segment = null;
+        return false;
+    }
+        
+    private void show_context_menu (Segment? segment, Gdk.EventButton event) {
+        // Menu contents:
+        // + Delete Path
+        // ---
+        // + Delete Segment
+        // + Change segment to:
+        //    + Line
+        //    + Curve
+        //    + Arc
+        // + Flip Arc
+        var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+
+        var delete_path = new Gtk.Button ();
+        delete_path.label = "Delete Path";
+        delete_path.clicked.connect (() => {
+            // TODO: Delete Path.
+        });
+        menu_layout.pack_start (delete_path, false, false, 0);
+
+        if (segment != null) {
+            var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
+            menu_layout.pack_start (separator, false, false, 0);
+
+            var delete_segment = new Gtk.Button ();
+            delete_segment.label = "Delete Segment";
+            delete_segment.clicked.connect (() => {
+                // TODO: Delete segment.
+            });
+            menu_layout.pack_start (delete_segment, false, false, 0);
+
+            var switch_mode = new Gtk.Label ("Change segment to:");
+            menu_layout.pack_start (switch_mode, false, false, 0);
+
+            var line_mode = new Gtk.RadioButton.with_label (null, "Line");
+            line_mode.toggled.connect (() => {
+                if (line_mode.get_active ()) {
+                    segment.segment_type = LINE;
+                }
+            });
+            menu_layout.pack_start (line_mode, false, false, 0);
+
+            var curve_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, "Curve");
+            curve_mode.toggled.connect (() => {
+                if (curve_mode.get_active ()) {
+                    segment.segment_type = CURVE;
+                }
+            });
+            menu_layout.pack_start (curve_mode, false, false, 0);
+
+            switch (segment.segment_type) {
+                case LINE:
+                    line_mode.active = true;
+                    break;
+                case CURVE:
+                    curve_mode.active = true;
+                    break;
+            }
+        }
+
+        menu_layout.show_all ();
+
+        var menu = new Gtk.Popover (this);
+        menu.add (menu_layout);
+
+        menu.pointing_to = {(int) event.x - 5, (int) event.y - 5, 10, 10};
+
+        menu.popup ();
     }
 }
