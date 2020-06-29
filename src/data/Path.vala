@@ -21,8 +21,9 @@ public class Path : Object {
         this.stroke = stroke;
         this.title = title;
         visible = true;
-        foreach (Segment s in segments) {
-            s.notify.connect (() => { update (); });
+        for (int i = 0; i < segments.length; i++) {
+            segments[i].notify.connect (() => { update (); });
+            segments[i].bind_property ("end", segments[(i + 1) % segments.length], "start", BindingFlags.BIDIRECTIONAL | BindingFlags.SYNC_CREATE);
         }
         select.connect (() => { update(); });
     }
@@ -32,9 +33,11 @@ public class Path : Object {
             return;
         }
         cr.set_line_width (width);
+        cr.move_to (segments[0].start.x, segments[0].start.y);
         foreach (Segment s in segments) {
             s.do_command (cr);
         }
+        cr.close_path ();
         if (fill == null) {
             fill = this.fill;
         }

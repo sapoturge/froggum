@@ -92,21 +92,16 @@ public class Image : Object, ListModel {
                                                          (uint) (path.stroke.blue * 255)).data, 0, null, out written);
                 yield stream.write_all_async (";fill-opacity:%f;stroke-opacity:%f".printf (path.fill.alpha, path.stroke.alpha).data, 0, null, out written);
                 yield stream.write_all_async ("\" d=\"".data, 0, null, out written);
+                yield stream.write_all_async ("M %f,%f ".printf (path.segments[0].start.x, path.segments[0].start.y).data, 0, null, out written);
                 foreach (Segment s in path.segments) {
                     switch (s.segment_type) {
-                        case SegmentType.MOVE:
-                            yield stream.write_all_async ("M %f,%f ".printf (s.x, s.y).data, 0, null, out written);
-                            break;
                         case SegmentType.LINE:
-                            yield stream.write_all_async ("L %f,%f ".printf (s.x, s.y).data, 0, null, out written);
-                            break;
-                        case SegmentType.CLOSE:
-                            yield stream.write_all_async ("Z".data, 0, null, out written);
+                            yield stream.write_all_async ("L %f,%f ".printf (s.end.x, s.end.y).data, 0, null, out written);
                             break;
                         // TODO: Write curves and arcs.
                     }
                 }
-                yield stream.write_all_async ("\" />\n".data, 0, null, out written);
+                yield stream.write_all_async ("Z\" />\n".data, 0, null, out written);
             }
             yield stream.write_all_async ("</svg>\n".data, 0, null, out written);
        } catch (IOError e) {

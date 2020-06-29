@@ -17,10 +17,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Gtk.Adjustment horizontal;
     private Gtk.Adjustment vertical;
 
-    public double control_x { get; set; }
-    public double control_y { get; set; }
-    private Binding x_binding;
-    private Binding y_binding;
+    public Point control_point { get; set; }
+    private Binding point_binding;
 
     public Image image {
         get {
@@ -183,29 +181,31 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     switch (s.segment_type) {
                         case SegmentType.CURVE:
                             cr.move_to (last_x, last_y);
-                            cr.line_to (s.x1, s.y1);
-                            cr.line_to (s.x2, s.y2);
-                            cr.line_to (s.x, s.y);
+                            cr.line_to (s.p1.x, s.p1.y);
+                            cr.line_to (s.p2.x, s.p2.y);
+                            cr.line_to (s.end.x, s.end.y);
                             cr.set_source_rgba (0, 0.5, 1, 0.8);
                             cr.stroke ();
-                            cr.arc (s.x1, s.y1, 6 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.p1.x, s.p1.y, 6 / zoom, 0, 3.14159265 * 2);
                             cr.new_sub_path ();
-                            cr.arc (s.x2, s.y2, 6 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.p2.x, s.p2.y, 6 / zoom, 0, 3.14159265 * 2);
                             cr.new_sub_path ();
                             // Intentional fall-through
-                        case SegmentType.MOVE:
                         case SegmentType.LINE:
-                            cr.arc (s.x, s.y, 6 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.end.x, s.end.y, 6 / zoom, 0, 3.14159265 * 2);
                             cr.set_source_rgba (1, 0, 0, 0.9);
                             cr.fill ();
-                            last_x = s.x;
-                            last_y = s.y;
-                            break;
-                        case SegmentType.CLOSE:
-                            // Close segments have nothing to edit.
+                            last_x = s.end.x;
+                            last_y = s.end.y;
                             break;
                         case SegmentType.ARC:
-                            // TODO: Draw Handles for Arc
+                            cr.move_to (s.topleft.x, s.topleft.y);
+                            cr.line_to (s.topright.x, s.topright.y);
+                            cr.line_to (s.bottomright.x, s.bottomright.y);
+                            cr.line_to (s.bottomleft.x, s.bottomleft.y);
+                            cr.close_path ();
+                            cr.set_source_rgba (0, 0.5, 1, 0.8);
+                            cr.stroke ();
                             break;
                      }
                 }
@@ -255,28 +255,21 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 foreach (Segment s in selected_path.segments) {
                     switch (s.segment_type) {
                         case SegmentType.CURVE:
-                            if ((x - s.x1).abs () <= 6 / zoom && (y - s.y1).abs () <= 6 / zoom) {
-                                x_binding = bind_property ("control_x", s, "x1", BindingFlags.DEFAULT);
-                                y_binding = bind_property ("control_y", s, "y1", BindingFlags.DEFAULT);
-                                control_x = x;
-                                control_y = y;
+                            if ((x - s.p1.x).abs () <= 6 / zoom && (y - s.p1.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "p1", BindingFlags.DEFAULT);
+                                control_point = {x, y};
                                 return false;
                             }
-                            if ((x - s.x2).abs () <= 6 / zoom && (y - s.y2).abs () <= 6 / zoom) {
-                                x_binding = bind_property ("control_x", s, "x2", BindingFlags.DEFAULT);
-                                y_binding = bind_property ("control_y", s, "y2", BindingFlags.DEFAULT);
-                                control_x = x;
-                                control_y = y;
+                            if ((x - s.p2.x).abs () <= 6 / zoom && (y - s.p2.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "p2", BindingFlags.DEFAULT);
+                                control_point = {x, y};
                                 return false;
                             }
                             // Intentional fall-through
-                        case SegmentType.MOVE:
                         case SegmentType.LINE:
-                            if ((x - s.x).abs () <= 6 / zoom && (y - s.y).abs () <= 6 / zoom) {
-                                x_binding = bind_property ("control_x", s, "x", BindingFlags.DEFAULT);
-                                y_binding = bind_property ("control_y", s, "y", BindingFlags.DEFAULT);
-                                control_x = x;
-                                control_y = y;
+                            if ((x - s.end.x).abs () <= 6 / zoom && (y - s.end.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "end", BindingFlags.DEFAULT);
+                                control_point = {x, y};
                                 return false;
                             }
                             break;
@@ -292,8 +285,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         motion_notify_event.connect ((event) => {
             // Drag control handle (only changes if actually dragging something.)
-            control_x = scale_x (event.x);
-            control_y = scale_y (event.y);
+            control_point = {scale_x (event.x), scale_y (event.y)};
             // Drag entire segment?
             // Scroll
             if (scrolling) {
@@ -306,8 +298,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         button_release_event.connect ((event) => {
             // Stop scrolling, dragging, etc.
-            x_binding.unbind ();
-            y_binding.unbind ();
+            point_binding.unbind ();
             scrolling = false;
             return false;
         });
@@ -407,6 +398,16 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 }
             });
             menu_layout.pack_start (curve_mode, false, false, 0);
+
+            /*
+            var arc_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, "Arc");
+            arc_mode.toggled.connect (() => {
+                if (arc_mode.get_active ()) {
+                    segment.segment_type = ARC;
+                }
+            });
+            menu_layout.pack_start (arc_mode, false, false, 0);
+            */
 
             switch (segment.segment_type) {
                 case LINE:

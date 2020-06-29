@@ -43,11 +43,10 @@ public class SvgApp : Gtk.Application {
         main_window.set_titlebar (header);
 
         var path = new Path ({
-            new Segment.move (1.5, 1.5),
             new Segment.line (14.5, 1.5),
             new Segment.curve (8, 4, 8, 12, 14.5, 14.5),
             new Segment.line (1.5, 14.5),
-            new Segment.close ()
+            new Segment.line (1.5, 1.5)
         }, {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1});
         var image = new Image ("Untitled", 16, 16, {path});
         var editor = new EditorView (image);
