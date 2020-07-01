@@ -226,6 +226,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.new_sub_path ();
                             cr.arc (s.topleft.x, s.topleft.y, 6 / zoom, 0, Math.PI * 2);
                             cr.new_sub_path ();
+                            cr.arc (s.topright.x, s.topright.y, 6 / zoom, 0, Math.PI * 2);
+                            cr.new_sub_path ();
+                            cr.arc (s.bottomleft.x, s.bottomleft.y, 6 / zoom, 0, Math.PI * 2);
+                            cr.new_sub_path ();
+                            cr.arc (s.bottomright.x, s.bottomright.y, 6 / zoom, 0, Math.PI * 2);
+                            cr.new_sub_path ();
                             break;
                      }
                      cr.arc (s.end.x, s.end.y, 6 / zoom, 0, 3.14159265 * 2);
@@ -304,6 +310,21 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             }
                             if ((x - s.topleft.x).abs () <= 6 / zoom && (y - s.topleft.y).abs () <= 6 / zoom) {
                                 point_binding = bind_property ("control_point", s, "topleft", BindingFlags.DEFAULT);
+                                control_point = {x, y};
+                                return false;
+                            }
+                            if ((x - s.topright.x).abs () <= 6 / zoom && (y - s.topright.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "topright", BindingFlags.DEFAULT);
+                                control_point = {x, y};
+                                return false;
+                            }
+                            if ((x - s.bottomleft.x).abs () <= 6 / zoom && (y - s.bottomleft.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "bottomleft", BindingFlags.DEFAULT);
+                                control_point = {x, y};
+                                return false;
+                            }
+                            if ((x - s.bottomright.x).abs () <= 6 / zoom && (y - s.bottomright.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "bottomright", BindingFlags.DEFAULT);
                                 control_point = {x, y};
                                 return false;
                             }

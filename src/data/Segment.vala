@@ -83,6 +83,15 @@ public class Segment : Object {
             return {c.x + Math.cos (angle) * rx + Math.sin (angle) * ry,
                     c.y - Math.cos (angle) * ry + Math.sin (angle) * rx};
         }
+        set {
+            c = {(value.x + bottomleft.x) / 2, (value.y + bottomleft.y) / 2};
+            var a = Math.atan2 (value.y - c.y, value.x - c.x);
+            var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
+            rx = d * Math.cos (angle - a);
+            ry = d * Math.sin (angle - a);
+            start = start;
+            end = end;
+        }
     }
 
     public Point bottomleft {
@@ -90,12 +99,30 @@ public class Segment : Object {
             return {c.x - Math.cos (angle) * rx - Math.sin (angle) * ry,
                     c.y + Math.cos (angle) * ry - Math.sin (angle) * rx};
         }
+        set {
+            c = {(value.x + topright.x) / 2, (value.y + topright.y) / 2};
+            var a = Math.atan2 (value.y - c.y, value.x - c.x);
+            var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
+            rx = d * Math.cos (Math.PI + angle - a);
+            ry = d * Math.sin (Math.PI + angle - a);
+            start = start;
+            end = end;
+        }
     }
     
     public Point bottomright {
         get {
             return {c.x + Math.cos (angle) * rx - Math.sin (angle) * ry,
                     c.y + Math.cos (angle) * ry + Math.sin (angle) * rx};
+        }
+        set {
+            c = {(value.x + topleft.x) / 2, (value.y + topleft.y) / 2};
+            var a = Math.atan2 (value.y - c.y, value.x - c.x);
+            var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
+            rx = d * Math.cos (a - angle);
+            ry = d * Math.sin (a - angle);
+            start = start;
+            end = end;
         }
     }
 
