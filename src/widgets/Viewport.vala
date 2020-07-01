@@ -169,6 +169,26 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             image.draw (cr);
 
             // Draw Grid
+            if (zoom > 4) {
+                cr.move_to (0, 0);
+                cr.line_to (image.width, 0);
+                cr.line_to (image.width, image.height);
+                cr.line_to (0, image.height);
+                cr.close_path ();
+                cr.set_source_rgba (0.2, 0.2, 0.2, 0.5);
+                cr.set_line_width (4 / zoom);
+                cr.stroke ();
+                for (int i = 1; i < image.width; i++) {
+                    cr.move_to (i, 0);
+                    cr.line_to (i, image.height);
+                }
+                for (int i = 1; i < image.height; i++) {
+                    cr.move_to (0, i);
+                    cr.line_to (image.width, i);
+                }
+                cr.set_line_width (2 / zoom);
+                cr.stroke ();
+            }
 
             // Draw Control Handles
             if (selected_path != null) {
@@ -300,7 +320,15 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         motion_notify_event.connect ((event) => {
             // Drag control handle (only changes if actually dragging something.)
-            control_point = {scale_x (event.x), scale_y (event.y)};
+            var new_x = scale_x (event.x);
+            var new_y = scale_y (event.y);
+            if ((new_x * 2 - Math.round (new_x * 2)).abs () < 6 / zoom) {
+                new_x = Math.round (new_x * 2) / 2;
+            }
+            if ((new_y * 2 - Math.round (new_y * 2)).abs () < 6 / zoom) {
+                new_y = Math.round (new_y * 2) / 2;
+            }
+            control_point = {new_x, new_y};
             // Drag entire segment?
             // Scroll
             if (scrolling) {
