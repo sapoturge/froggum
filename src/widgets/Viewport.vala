@@ -190,13 +190,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.new_sub_path ();
                             cr.arc (s.p2.x, s.p2.y, 6 / zoom, 0, 3.14159265 * 2);
                             cr.new_sub_path ();
-                            // Intentional fall-through
+                            break;
                         case SegmentType.LINE:
-                            cr.arc (s.end.x, s.end.y, 6 / zoom, 0, 3.14159265 * 2);
-                            cr.set_source_rgba (1, 0, 0, 0.9);
-                            cr.fill ();
-                            last_x = s.end.x;
-                            last_y = s.end.y;
+                            // Lines have no additional controls.
                             break;
                         case SegmentType.ARC:
                             cr.move_to (s.topleft.x, s.topleft.y);
@@ -206,8 +202,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.close_path ();
                             cr.set_source_rgba (0, 0.5, 1, 0.8);
                             cr.stroke ();
+                            cr.arc (s.controller.x, s.controller.y, 6 / zoom, 0, 3.14159265 * 2);
+                            cr.new_sub_path ();
+                            cr.arc (s.topleft.x, s.topleft.y, 6 / zoom, 0, Math.PI * 2);
+                            cr.new_sub_path ();
                             break;
                      }
+                     cr.arc (s.end.x, s.end.y, 6 / zoom, 0, 3.14159265 * 2);
+                     cr.set_source_rgba (1, 0, 0, 0.9);
+                     cr.fill ();
+                     last_x = s.end.x;
+                     last_y = s.end.y;
                 }
             }
 
@@ -253,6 +258,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for clicking on a control handle
             if (selected_path != null) {
                 foreach (Segment s in selected_path.segments) {
+                    if ((x - s.end.x).abs () <= 6 / zoom && (y - s.end.y).abs () <= 6 / zoom) {
+                        point_binding = bind_property ("control_point", s, "end", BindingFlags.DEFAULT);
+                        control_point = {x, y};
+                        return false;
+                    }
                     switch (s.segment_type) {
                         case SegmentType.CURVE:
                             if ((x - s.p1.x).abs () <= 6 / zoom && (y - s.p1.y).abs () <= 6 / zoom) {
@@ -265,10 +275,15 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                                 control_point = {x, y};
                                 return false;
                             }
-                            // Intentional fall-through
-                        case SegmentType.LINE:
-                            if ((x - s.end.x).abs () <= 6 / zoom && (y - s.end.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "end", BindingFlags.DEFAULT);
+                            break;
+                        case SegmentType.ARC:
+                            if ((x - s.controller.x).abs () <= 6 / zoom && (y - s.controller.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "controller", BindingFlags.DEFAULT);
+                                control_point = {x, y};
+                                return false;
+                            }
+                            if ((x - s.topleft.x).abs () <= 6 / zoom && (y - s.topleft.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control_point", s, "topleft", BindingFlags.DEFAULT);
                                 control_point = {x, y};
                                 return false;
                             }
@@ -399,7 +414,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             });
             menu_layout.pack_start (curve_mode, false, false, 0);
 
-            /*
             var arc_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, "Arc");
             arc_mode.toggled.connect (() => {
                 if (arc_mode.get_active ()) {
@@ -407,7 +421,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 }
             });
             menu_layout.pack_start (arc_mode, false, false, 0);
-            */
 
             switch (segment.segment_type) {
                 case LINE:
