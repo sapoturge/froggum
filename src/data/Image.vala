@@ -92,13 +92,32 @@ public class Image : Object, ListModel {
                                                          (uint) (path.stroke.blue * 255)).data, 0, null, out written);
                 yield stream.write_all_async (";fill-opacity:%f;stroke-opacity:%f".printf (path.fill.alpha, path.stroke.alpha).data, 0, null, out written);
                 yield stream.write_all_async ("\" d=\"".data, 0, null, out written);
-                yield stream.write_all_async ("M %f,%f ".printf (path.segments[0].start.x, path.segments[0].start.y).data, 0, null, out written);
+                yield stream.write_all_async ("M %f %f ".printf (path.segments[0].start.x, path.segments[0].start.y).data, 0, null, out written);
                 foreach (Segment s in path.segments) {
                     switch (s.segment_type) {
                         case SegmentType.LINE:
-                            yield stream.write_all_async ("L %f,%f ".printf (s.end.x, s.end.y).data, 0, null, out written);
+                            yield stream.write_all_async ("L %f %f ".printf (s.end.x, s.end.y).data, 0, null, out written);
                             break;
-                        // TODO: Write curves and arcs.
+                        case SegmentType.CURVE:
+                            yield stream.write_all_async ("C %f %f %f %f %f %f".printf (s.p1.x, s.p1.y, s.p2.x, s.p2.y, s.end.x, s.end.y).data, 0, null, out written);
+                            break;
+                        case SegmentType.ARC:
+                            var start = s.start_angle;
+                            var end = s.end_angle;
+                            int large_arc;
+                            int sweep;
+                            if (s.reverse) {
+                                sweep = 0;
+                            } else {
+                                sweep = 1;
+                            }
+                            if (end - start > Math.PI) {
+                                large_arc = 1 - sweep;
+                            } else {
+                                large_arc = sweep;
+                            }
+                            yield stream.write_all_async ("A %f %f %f %d %d %f %f".printf (s.rx, s.ry, s.angle, large_arc, sweep, s.end.x, s.end.y).data, 0, null, out written);
+                            break;
                     }
                 }
                 yield stream.write_all_async ("Z\" />\n".data, 0, null, out written);

@@ -58,8 +58,8 @@ public class Segment : Object {
     public double angle { get; set; }
     public bool reverse { get; set; }
     // Easier to use and update than just points
-    private double start_angle;
-    private double end_angle;
+    public double start_angle;
+    public double end_angle;
 
     // Control points for ARC segments
     public Point topleft {
