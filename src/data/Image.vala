@@ -76,9 +76,9 @@ public class Image : Object, ListModel {
         if (file == null) {
             return;
         }
-        var stream = yield file.replace_async (null, true, FileCreateFlags.NONE);
-        size_t written = 0;
         try {
+            var stream = yield file.replace_async (null, true, FileCreateFlags.NONE);
+            size_t written = 0;
             yield stream.write_all_async ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n".data, 0, null, out written);
             yield stream.write_all_async ("<svg version=\"1.1\" width=\"%d\" height=\"%d\">\n".printf (width, height).data, 0, null, out written);
             foreach (Path path in paths) {
@@ -123,7 +123,7 @@ public class Image : Object, ListModel {
                 yield stream.write_all_async ("Z\" />\n".data, 0, null, out written);
             }
             yield stream.write_all_async ("</svg>\n".data, 0, null, out written);
-       } catch (IOError e) {
+       } catch (Error e) {
        }
     }
 }
