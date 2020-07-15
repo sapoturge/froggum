@@ -5,9 +5,10 @@ public enum SegmentType {
 }
 
 public class Segment : Object {
-    private static ParamSpec start_property;
-
     public SegmentType segment_type { get; set; }
+
+    public Segment prev;
+    public Segment next;
     
     // End points, used for all segments
     private Point _start;
@@ -18,14 +19,14 @@ public class Segment : Object {
         }
         set {
             if (segment_type == ARC) {
-                var a = Math.atan2 (value.y - c.y, value.x - c.x) - angle;
-                var r_x = rx * Math.cos (a);
-                var r_y = ry * Math.sin (a);
-                value.x = c.x + Math.cos (angle) * r_x - Math.sin (angle) * r_y;
-                value.y = c.y + Math.cos (angle) * r_y + Math.sin (angle) * r_x;
-                start_angle = a;
+                value = closest (value, out start_angle);
             }
-            _start = value;
+            if (value != _start) {
+                _start = value;
+                if (prev != null && prev.end != value) {
+                    prev.end = value;
+                }
+            }
         }
     }
             
@@ -35,14 +36,13 @@ public class Segment : Object {
         }
         set {
             if (segment_type == ARC) {
-                var a = Math.atan2 (value.y - c.y, value.x - c.x) - angle;
-                var r_x = rx * Math.cos (a);
-                var r_y = ry * Math.sin (a);
-                _end = {c.x + Math.cos (angle) * r_x - Math.sin (angle) * r_y,
-                        c.y + Math.cos (angle) * r_y + Math.sin (angle) * r_x};
-                end_angle = a;
-            } else {
+                value = closest (value, out end_angle);
+            }
+            if (value != _end) {
                 _end = value;
+                if (next != null && next.start != value) {
+                    next.start = value;
+                }
             }
         }
     }
@@ -73,8 +73,8 @@ public class Segment : Object {
             var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
             rx = d * Math.cos (Math.PI + a - angle);
             ry = d * Math.sin (Math.PI + a - angle);
-            start = start;
-            end = end;
+            start = point_from_angle(start_angle);
+            end = point_from_angle(end_angle);
         }
     }
 
@@ -89,8 +89,8 @@ public class Segment : Object {
             var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
             rx = d * Math.cos (angle - a);
             ry = d * Math.sin (angle - a);
-            start = start;
-            end = end;
+            start = point_from_angle(start_angle);
+            end = point_from_angle(end_angle);
         }
     }
 
@@ -105,8 +105,8 @@ public class Segment : Object {
             var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
             rx = d * Math.cos (Math.PI + angle - a);
             ry = d * Math.sin (Math.PI + angle - a);
-            start = start;
-            end = end;
+            start = point_from_angle(start_angle);
+            end = point_from_angle(end_angle);
         }
     }
     
@@ -118,31 +118,26 @@ public class Segment : Object {
         set {
             c = {(value.x + topleft.x) / 2, (value.y + topleft.y) / 2};
             var a = Math.atan2 (value.y - c.y, value.x - c.x);
-            var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
+            var d = Math.hypot (value.x - c.x, value.y - c.y);
             rx = d * Math.cos (a - angle);
             ry = d * Math.sin (a - angle);
-            start = start;
-            end = end;
+            start = point_from_angle(start_angle);
+            end = point_from_angle(end_angle);
         }
     }
 
     public Point controller {
         get {
-            return {c.x + Math.cos (angle) * (ry + 5),
-                    c.y + Math.sin (angle) * (ry + 5)};
+            return {c.x + Math.cos (angle) * (rx + 5),
+                    c.y + Math.sin (angle) * (rx + 5)};
         }
         set {
             angle = Math.atan2 (value.y - c.y, value.x - c.x);
+            start = point_from_angle(start_angle);
+            end = point_from_angle(end_angle);
         }
     }
             
-    static construct {
-        Type segment_type = typeof (Segment);
-        var cls = (ObjectClass) segment_type.class_ref ();
-        start_property = cls.find_property ("start");
-        print ("%s\n", start_property.get_nick ());
-    }
-
     // Constructors
     public Segment.line (double x, double y) {
         segment_type = LINE;
@@ -177,10 +172,9 @@ public class Segment : Object {
             case ARC:
                 cr.save ();
                 cr.translate (c.x, c.y);
-                cr.scale (rx, ry);
                 cr.rotate (angle);
-                // var start_angle = Math.atan2 (start.y - c.y, start.x - c.x) - angle;
-                // var end_angle = Math.atan2 (end.y - c.y, end.x - c.x) - angle;
+                cr.scale (rx, ry);
+                print ("%f\n", angle);
                 if (reverse) {
                     cr.arc_negative (0, 0, 1, start_angle, end_angle);
                 } else {
@@ -189,5 +183,60 @@ public class Segment : Object {
                 cr.restore ();
                 break;
         }
+    }
+
+    private Point closest (Point original, out double p_angle) {
+        // Logic copied from https://stackoverflow.com/questions/22959698/distance-from-given-point-to-given-ellipse
+        var dx = original.x - c.x;
+        var dy = original.y - c.y;
+        var an = Math.atan2 (dy, dx);
+        var d = Math.hypot (dx, dy);
+        var px = Math.cos (an - angle) * d;
+        var py = Math.sin (an - angle) * d;
+
+        var tx = 0.707;
+        var ty = 0.707;
+
+        var a = rx;
+        var b = ry;
+
+        for (int i = 0; i < 3; i++) {
+            var x = a * tx;
+            var y = b * ty;
+
+            var ex = (a * a - b * b) * Math.pow (tx, 3) / a;
+            var ey = (b * b - a * a) * Math.pow (ty, 3) / b;
+
+            var r_x = x - ex;
+            var r_y = y - ey;
+
+            var qx = px - ex;
+            var qy = py - ey;
+
+            var r = Math.hypot (r_y, r_x);
+            var q = Math.hypot (qy, qx);
+
+            // tx = double.min (1, double.max (0, (qx * r / q + ex) / a));
+            // ty = double.min (1, double.max (0, (qy * r / q + ey) / b));
+            tx = (qx * r / q + ex) / a;
+            ty = (qy * r / q + ey) / b;
+            var t = Math.hypot (ty, tx);
+            tx /= t;
+            ty /= t;
+        }
+        px = Math.copysign (a * tx, px);
+        py = Math.copysign (b * ty, py);
+        var sx = px / rx;
+        var sy = py / ry;
+        p_angle = Math.atan2 (sy, sx);
+        return {c.x + Math.cos (angle) * px - Math.sin (angle) * py,
+                c.y + Math.cos (angle) * py + Math.sin (angle) * px};
+    }
+
+    private Point point_from_angle (double a) {
+        var dx = Math.cos (a);
+        var dy = Math.sin (a);
+        return {c.x + Math.cos (angle) * dx * rx - Math.sin (angle) * dy * ry,
+                c.y + Math.cos (angle) * dy * ry + Math.sin (angle) * dx * rx};
     }
 }

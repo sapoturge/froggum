@@ -23,7 +23,9 @@ public class Path : Object {
         visible = true;
         for (int i = 0; i < segments.length; i++) {
             segments[i].notify.connect (() => { update (); });
-            segments[i].bind_property ("end", segments[(i + 1) % segments.length], "start", BindingFlags.BIDIRECTIONAL | BindingFlags.SYNC_CREATE);
+            segments[i].next = segments[(i + 1) % segments.length];
+            segments[(i + 1) % segments.length].prev = segments[i];
+            segments[i].next.start = segments[i].end;
         }
         select.connect (() => { update(); });
     }
