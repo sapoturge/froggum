@@ -1,11 +1,39 @@
 public enum SegmentType {
+    NONE,
     LINE,
     CURVE,
     ARC
 }
 
 public class Segment : Object {
-    public SegmentType segment_type { get; set; }
+    private SegmentType _segment_type = NONE;
+    public SegmentType segment_type {
+        get {
+            return _segment_type;
+        }
+        set {
+            if (_segment_type == NONE || _segment_type == value) {
+                _segment_type = value;
+                return;
+            }
+            _segment_type = value;
+            if (_segment_type == CURVE) {
+                var dx = end.x - start.x;
+                var dy = end.y - start.y;
+                p1 = {start.x + dx / 4, start.y + dy / 4};
+                p2 = {end.x - dx / 4, end.y - dy / 4};
+            } else if (_segment_type == ARC) {
+                var dx = end.x - start.x;
+                var dy = end.y - start.y;
+                c = {start.x + dx / 2, start.y + dy / 2};
+                angle = Math.PI - Math.atan2 (dy, dx);
+                start_angle = 0;
+                end_angle = Math.PI;
+                rx = Math.hypot (dy, dx) / 2;
+                ry = rx / 2;
+            }
+        }
+    }
 
     public Segment prev;
     public Segment next;
