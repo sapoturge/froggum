@@ -174,7 +174,6 @@ public class Segment : Object {
                 cr.translate (c.x, c.y);
                 cr.rotate (angle);
                 cr.scale (rx, ry);
-                print ("%f\n", angle);
                 if (reverse) {
                     cr.arc_negative (0, 0, 1, start_angle, end_angle);
                 } else {
