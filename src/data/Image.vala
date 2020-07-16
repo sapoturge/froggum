@@ -72,6 +72,9 @@ public class Image : Object, ListModel {
         }
     }
 
+    public void split_segment (Segment segment) {
+    }
+
     private async void save () {
         if (file == null) {
             return;
@@ -92,8 +95,11 @@ public class Image : Object, ListModel {
                                                          (uint) (path.stroke.blue * 255)).data, 0, null, out written);
                 yield stream.write_all_async (";fill-opacity:%f;stroke-opacity:%f".printf (path.fill.alpha, path.stroke.alpha).data, 0, null, out written);
                 yield stream.write_all_async ("\" d=\"".data, 0, null, out written);
-                yield stream.write_all_async ("M %f %f ".printf (path.segments[0].start.x, path.segments[0].start.y).data, 0, null, out written);
-                foreach (Segment s in path.segments) {
+                yield stream.write_all_async ("M %f %f ".printf (path.root_segment.start.x, path.root_segment.start.y).data, 0, null, out written);
+                var s = path.root_segment;
+                var first = true;
+                while (first || s != path.root_segment) {
+                    first = false;
                     switch (s.segment_type) {
                         case SegmentType.LINE:
                             yield stream.write_all_async ("L %f %f ".printf (s.end.x, s.end.y).data, 0, null, out written);
@@ -119,6 +125,7 @@ public class Image : Object, ListModel {
                             yield stream.write_all_async ("A %f %f %f %d %d %f %f".printf (s.rx, s.ry, s.angle, large_arc, sweep, s.end.x, s.end.y).data, 0, null, out written);
                             break;
                     }
+                    s = s.next;
                 }
                 yield stream.write_all_async ("Z\" />\n".data, 0, null, out written);
             }

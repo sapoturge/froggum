@@ -189,6 +189,35 @@ public class Segment : Object {
         this.reverse = reverse;
     }
 
+    public void split (out Segment first, out Segment last) {
+        if (segment_type == LINE) {
+            Point center = {(start.x + end.x) / 2, (start.y + end.y) / 2};
+            first = new Segment.line (center.x, center.y);
+            last = new Segment.line (end.x, end.y);
+        } else if (segment_type == CURVE) {
+            Point q1 = {(start.x + p1.x) / 2, (start.y + p1.y) / 2};
+            Point q2 = {(p1.x + p2.x) / 2, (p1.y + p2.y) / 2};
+            Point q3 = {(p2.x + end.x) / 2, (p2.y + end.y) / 2};
+            Point r1 = {(q1.x + q2.x) / 2, (q1.y + q2.y) / 2};
+            Point r2 = {(q2.x + q3.x) / 2, (q2.y + q3.y) / 2};
+            Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
+            first = new Segment.curve (q1.x, q1.y, r1.x, r1.y, s.x, s.y);
+            last = new Segment.curve (r2.x, r2.y, q3.x, q3.y, end.x, end.y);
+        } else if (segment_type == ARC) {
+            // ARC segments don't work very well together.
+            first = this;
+            last = new Segment.line (end.x, end.y);
+        }
+        prev.next = first;
+        first.prev = prev;
+        first.next = last;
+        last.prev = first;
+        last.next = next;
+        next.prev = last;
+        first.start = prev.end;
+        last.start = first.end;
+    }
+
     public void do_command (Cairo.Context cr) {
         switch (segment_type) {
             case LINE:

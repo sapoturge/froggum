@@ -1,5 +1,5 @@
 public class Path : Object {
-    public Segment[] segments;
+    public Segment root_segment;
 
     public Gdk.RGBA fill { get; set; }
     public Gdk.RGBA stroke { get; set; }
@@ -16,7 +16,7 @@ public class Path : Object {
                  Gdk.RGBA fill = {0, 0, 0, 0},
                  Gdk.RGBA stroke = {0, 0, 0, 0},
                  string title = "Path") {
-        this.segments = segments;
+        this.root_segment = segments[0];
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
@@ -30,14 +30,29 @@ public class Path : Object {
         select.connect (() => { update(); });
     }
 
+    public void split_segment (Segment segment) {
+        Segment first;
+        Segment last;
+        segment.split (out first, out last);
+        first.notify.connect (() => { update (); });
+        last.notify.connect (() => { update (); });
+        if (segment == root_segment) {
+            root_segment = first;
+        }
+    }
+
     public void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         if (!visible && !always_draw) {
             return;
         }
         cr.set_line_width (width);
-        cr.move_to (segments[0].start.x, segments[0].start.y);
-        foreach (Segment s in segments) {
-            s.do_command (cr);
+        cr.move_to (root_segment.start.x, root_segment.start.y);
+        var segment = root_segment;
+        var first = true;
+        while (first || segment != root_segment) {
+            first = false;
+            segment.do_command (cr);
+            segment = segment.next;
         }
         cr.close_path ();
         if (fill == null) {

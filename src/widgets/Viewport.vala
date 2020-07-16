@@ -195,12 +195,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
                 
                 cr.set_line_width (1 / zoom);
-                var last_x = 0.0;
-                var last_y = 0.0;
-                foreach (Segment s in selected_path.segments) {
+                var s = selected_path.root_segment;
+                var first = true;
+                while (first || s != selected_path.root_segment) {
+                    first = false;
                     switch (s.segment_type) {
                         case SegmentType.CURVE:
-                            cr.move_to (last_x, last_y);
+                            cr.move_to (s.start.x, s.start.y);
                             cr.line_to (s.p1.x, s.p1.y);
                             cr.line_to (s.p2.x, s.p2.y);
                             cr.line_to (s.end.x, s.end.y);
@@ -233,12 +234,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.arc (s.bottomright.x, s.bottomright.y, 6 / zoom, 0, Math.PI * 2);
                             cr.new_sub_path ();
                             break;
-                     }
-                     cr.arc (s.end.x, s.end.y, 6 / zoom, 0, 3.14159265 * 2);
-                     cr.set_source_rgba (1, 0, 0, 0.9);
-                     cr.fill ();
-                     last_x = s.end.x;
-                     last_y = s.end.y;
+                    }
+                    cr.arc (s.end.x, s.end.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.set_source_rgba (1, 0, 0, 0.9);
+                    cr.fill ();
+                    s = s.next;
                 }
             }
 
@@ -283,7 +283,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Check for clicking on a control handle
             if (selected_path != null) {
-                foreach (Segment s in selected_path.segments) {
+                var s = selected_path.root_segment;
+                var first = true;
+                while (first || s != selected_path.root_segment) {
+                    first = false;
                     if ((x - s.end.x).abs () <= 6 / zoom && (y - s.end.y).abs () <= 6 / zoom) {
                         point_binding = bind_property ("control_point", s, "end", BindingFlags.DEFAULT);
                         control_point = {x, y};
@@ -330,6 +333,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             }
                             break;
                     }
+                    s = s.next;
                 }
             }
             // Assume dragging
@@ -397,17 +401,21 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         cr.set_line_width (6 / zoom);
         cr.set_source_rgba (1, 1, 1, 1);
         foreach (Path _path in image.paths) {
-            foreach (Segment _segment in _path.segments) {
+            var _segment = _path.root_segment;
+            var first = true;
+            while (first || _segment != _path.root_segment) {
+                first = false;
+                cr.move_to (_segment.start.x, _segment.start.y);
                 _segment.do_command (cr);
-                cr.stroke_preserve ();
+                cr.stroke ();
                 // Check alpha of clicked pixel
                 if (data [y * width * 4 + x * 4 + 3] > 0) {
                     path = _path;
                     segment = _segment;
                     return true;
                 }
+                _segment = _segment.next;
             }
-            cr.new_path ();
         }
         path = null;
         segment = null;
@@ -424,6 +432,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         //    + Curve
         //    + Arc
         // + Flip Arc
+        // + Split Path
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
         var delete_path = new Gtk.Button ();
@@ -443,6 +452,25 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 // TODO: Delete segment.
             });
             menu_layout.pack_start (delete_segment, false, false, 0);
+
+            var split_segment = new Gtk.Button ();
+            split_segment.label = "Split Segment";
+            split_segment.clicked.connect (() => {
+                 selected_path.split_segment (segment);
+            });
+            menu_layout.pack_start (split_segment, false, false, 0);
+
+            if (segment.segment_type == ARC) {
+                var flip_arc = new Gtk.Button ();
+                flip_arc.label = "Flip Arc";
+                flip_arc.clicked.connect (() => {
+                    segment.reverse = !segment.reverse;
+                });
+                menu_layout.pack_start (flip_arc, false, false, 0);
+            }
+
+            var separator2 = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
+            menu_layout.pack_start (separator2, false, false, 0);
 
             var switch_mode = new Gtk.Label ("Change segment to:");
             menu_layout.pack_start (switch_mode, false, false, 0);
@@ -477,6 +505,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     break;
                 case CURVE:
                     curve_mode.active = true;
+                    break;
+                case ARC:
+                    arc_mode.active = true;
                     break;
             }
         }
