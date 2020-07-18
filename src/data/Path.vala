@@ -30,6 +30,16 @@ public class Path : Object {
         select.connect (() => { update(); });
     }
 
+    public Path copy () {
+        Segment[] new_segments = { root_segment.copy () };
+        var current_segment = root_segment.next;
+        while (current_segment != root_segment) {
+            new_segments += current_segment.copy ();
+            current_segment = current_segment.next;
+        }
+        return new Path (new_segments, fill, stroke, title);
+    }
+
     public void split_segment (Segment segment) {
         Segment first;
         Segment last;

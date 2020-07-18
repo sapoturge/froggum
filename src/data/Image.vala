@@ -17,6 +17,7 @@ public class Image : Object, ListModel {
     private Path[] paths;
 
     private Path selected_path;
+    private Path last_selected_path;
 
     public Image (string filename, int width, int height, Path[] paths = {}) {
         if (filename == "Untitled") {
@@ -30,6 +31,7 @@ public class Image : Object, ListModel {
             path.select.connect ((selected) => {
                 if (path != selected_path) {
                     selected_path.select (false);
+                    last_selected_path = path;
                     selected_path = path;
                     path_selected (path);
                 } else if (selected == false) {
@@ -89,6 +91,7 @@ public class Image : Object, ListModel {
         path.select.connect ((selected) => {
             if (path != selected_path) {
                 selected_path.select (false);
+                last_selected_path = path;
                 selected_path = path;
                 path_selected (path);
             } else if (selected == false) {
@@ -99,6 +102,83 @@ public class Image : Object, ListModel {
         paths += path;
         items_changed (paths.length - 1, 0, 1);
         paths[paths.length - 1].select (true);
+        update ();
+    }
+
+    public void duplicate_path () {
+        var path = last_selected_path.copy ();
+        path.update.connect (() => { update (); });
+        path.select.connect ((selected) => {
+            if (path != selected_path) {
+                selected_path.select (false);
+                last_selected_path = path;
+                selected_path = path;
+                path_selected (path);
+            } else if (selected == false) {
+                selected_path = null;
+                path_selected (null);
+            }
+        });
+        paths += path;
+        items_changed (paths.length - 1, 0, 1);
+        paths[paths.length - 1].select (true);
+        update ();
+    }
+
+    public void path_up () {
+        int i;
+        for (i = 0; i < paths.length - 1; i++) {
+            if (paths[i] == last_selected_path) {
+                break;
+            }
+        }
+        if (i == paths.length - 1) {
+            return;
+        }
+        paths[i] = paths[i + 1];
+        paths[i+1] = last_selected_path;
+        items_changed (i, 2, 2);
+        last_selected_path.select (true);
+        last_selected_path.select (false);
+    }
+
+    public void path_down () {
+        int i;
+        for (i = 1; i < paths.length; i++) {
+            if (paths[i] == last_selected_path) {
+                break;
+            }
+        }
+        if (i == paths.length) {
+            return;
+        }
+        paths[i] = paths[i-1];
+        paths[i-1] = last_selected_path;
+        items_changed (i-1, 2, 2);
+        last_selected_path.select (true);
+        last_selected_path.select (false);
+    }
+
+    public void delete_path () {
+        int i;
+        for (i = 0; i < paths.length; i++) {
+            if (paths[i] == last_selected_path) {
+                break;
+            }
+        }
+        if (selected_path != null) {
+            selected_path.select (false);
+        }
+        for (var j = i; j < paths.length; j++) {
+            paths[j-1] = paths[j];
+        }
+        paths[paths.length - 1] = null;
+        items_changed (i, 1, 0);
+        if (i > 0) {
+            paths[i - 1].select (true);
+        } else {
+            paths[1].select (true);
+        }
     }
 
     private async void save () {

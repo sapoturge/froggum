@@ -189,6 +189,19 @@ public class Segment : Object {
         this.reverse = reverse;
     }
 
+    public Segment copy () {
+        switch (segment_type) {
+            case LINE:
+                return new Segment.line (end.x, end.y);
+            case CURVE:
+                return new Segment.curve (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+            case ARC:
+                return new Segment.arc (end.x, end.y, c.x, c.y, rx, ry, angle, reverse);
+        }
+        return null;
+    }
+
+
     public void split (out Segment first, out Segment last) {
         if (segment_type == LINE) {
             Point center = {(start.x + end.x) / 2, (start.y + end.y) / 2};
