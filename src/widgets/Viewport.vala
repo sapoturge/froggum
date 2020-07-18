@@ -400,7 +400,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         cr.scale (zoom, zoom);
         cr.set_line_width (6 / zoom);
         cr.set_source_rgba (1, 1, 1, 1);
-        foreach (Path _path in image.paths) {
+        foreach (Path _path in image.get_paths ()) {
             var _segment = _path.root_segment;
             var first = true;
             while (first || _segment != _path.root_segment) {

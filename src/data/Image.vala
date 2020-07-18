@@ -14,7 +14,8 @@ public class Image : Object, ListModel {
 
     public signal void path_selected (Path? path);
 
-    public Path[] paths;
+    private Path[] paths;
+
     private Path selected_path;
 
     public Image (string filename, int width, int height, Path[] paths = {}) {
@@ -72,7 +73,32 @@ public class Image : Object, ListModel {
         }
     }
 
-    public void split_segment (Segment segment) {
+    public Path[] get_paths () {
+        return paths;
+    }
+
+    public void new_path () {
+        var path = new Path ({ new Segment.line (width - 1.5, 1.5),
+                               new Segment.line (width - 1.5, height - 1.5),
+                               new Segment.line (1.5, height - 1.5),
+                               new Segment.line (1.5, 1.5)},
+                             {0.33, 0.33, 0.33, 1},
+                             {0.66, 0.66, 0.66, 1},
+                             "New Path");
+        path.update.connect (() => { update (); });
+        path.select.connect ((selected) => {
+            if (path != selected_path) {
+                selected_path.select (false);
+                selected_path = path;
+                path_selected (path);
+            } else if (selected == false) {
+                selected_path = null;
+                path_selected (null);
+            }
+        });
+        paths += path;
+        items_changed (paths.length - 1, 0, 1);
+        paths[paths.length - 1].select (true);
     }
 
     private async void save () {
