@@ -1,0 +1,21 @@
+Features to be implemented:
+ * Opening files 
+    This is absolutely necessary.
+
+ * Dragging entire paths
+    This is incredibly convenient, especially when copying a path to another place without grid help.
+
+ * More grid levels / custom grid
+    Useful, but not absolutely necessary.
+
+ * Gradients
+    Necessary.
+
+ * Transparency
+    Necessary.
+
+ * Custom image sizes
+    Basically done, just needs a way to choose the size.
+
+ * Rulers
+    Useful, especially at larger sizes.
