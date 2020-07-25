@@ -49,6 +49,7 @@ public class Path : Object {
         if (segment == root_segment) {
             root_segment = first;
         }
+        update ();
     }
 
     public void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {

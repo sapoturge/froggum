@@ -31,8 +31,6 @@ Bugs to be fixed:
     Delete Path (toolbar)
     Open (new tab)
 
- * Split Segment doesn't update path / redraw
-
  * Any control on context menu should close
 
 
