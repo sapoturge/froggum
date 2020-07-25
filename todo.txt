@@ -19,3 +19,20 @@ Features to be implemented:
 
  * Rulers
     Useful, especially at larger sizes.
+
+ * Status bar
+    Shows current pointer position; width, height, angle of arc segments; etc.
+    Useful, not necessary.
+
+Bugs to be fixed:
+ * Useless buttons:
+    Delete Path (context menu)
+    Delete Segment (context menu)
+    Delete Path (toolbar)
+    Open (new tab)
+
+ * Split Segment doesn't update path / redraw
+
+ * Any control on context menu should close
+
+
