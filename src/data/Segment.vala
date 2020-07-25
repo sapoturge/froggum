@@ -26,7 +26,7 @@ public class Segment : Object {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
                 c = {start.x + dx / 2, start.y + dy / 2};
-                angle = Math.PI - Math.atan2 (dy, dx);
+                angle = Math.PI + Math.atan2 (dy, dx);
                 start_angle = 0;
                 end_angle = Math.PI;
                 rx = Math.hypot (dy, dx) / 2;
