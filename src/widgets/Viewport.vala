@@ -433,12 +433,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         //    + Arc
         // + Flip Arc
         // + Split Path
+        var menu = new Gtk.Popover (this);
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
         var delete_path = new Gtk.Button ();
         delete_path.label = "Delete Path";
         delete_path.clicked.connect (() => {
             // TODO: Delete Path.
+            menu.popdown ();
         });
         menu_layout.pack_start (delete_path, false, false, 0);
 
@@ -450,6 +452,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             delete_segment.label = "Delete Segment";
             delete_segment.clicked.connect (() => {
                 // TODO: Delete segment.
+                menu.popdown ();
             });
             menu_layout.pack_start (delete_segment, false, false, 0);
 
@@ -457,6 +460,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             split_segment.label = "Split Segment";
             split_segment.clicked.connect (() => {
                  selected_path.split_segment (segment);
+                 menu.popdown ();
             });
             menu_layout.pack_start (split_segment, false, false, 0);
 
@@ -465,6 +469,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 flip_arc.label = "Flip Arc";
                 flip_arc.clicked.connect (() => {
                     segment.reverse = !segment.reverse;
+                    menu.popdown ();
                 });
                 menu_layout.pack_start (flip_arc, false, false, 0);
             }
@@ -479,6 +484,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             line_mode.toggled.connect (() => {
                 if (line_mode.get_active ()) {
                     segment.segment_type = LINE;
+                    menu.popdown ();
                 }
             });
             menu_layout.pack_start (line_mode, false, false, 0);
@@ -487,6 +493,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             curve_mode.toggled.connect (() => {
                 if (curve_mode.get_active ()) {
                     segment.segment_type = CURVE;
+                    menu.popdown ();
                 }
             });
             menu_layout.pack_start (curve_mode, false, false, 0);
@@ -495,6 +502,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             arc_mode.toggled.connect (() => {
                 if (arc_mode.get_active ()) {
                     segment.segment_type = ARC;
+                    menu.popdown ();
                 }
             });
             menu_layout.pack_start (arc_mode, false, false, 0);
@@ -514,7 +522,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         menu_layout.show_all ();
 
-        var menu = new Gtk.Popover (this);
         menu.add (menu_layout);
 
         menu.pointing_to = {(int) event.x - 5, (int) event.y - 5, 10, 10};

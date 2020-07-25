@@ -31,6 +31,6 @@ Bugs to be fixed:
     Delete Path (toolbar)
     Open (new tab)
 
- * Any control on context menu should close
+ * Crashes when trying to split arc segment.
 
 
