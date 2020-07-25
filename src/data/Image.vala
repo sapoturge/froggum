@@ -173,6 +173,7 @@ public class Image : Object, ListModel {
             paths[j-1] = paths[j];
         }
         paths[paths.length - 1] = null;
+        // TODO: actually reduce the length of paths.
         items_changed (i, 1, 0);
         if (i > 0) {
             paths[i - 1].select (true);

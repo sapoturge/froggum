@@ -336,6 +336,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     s = s.next;
                 }
             }
+            // Check for clicking on a path (not control handle)
+            if (clicked && path == selected_path) {
+                selected_path.start_dragging ({x, y});
+                point_binding = bind_property ("control_point", selected_path, "reference", BindingFlags.DEFAULT);
+                control_point = {x, y};
+                return false;
+            }
             // Assume dragging
             scrolling = true;
             base_x = (int) event.x - scroll_x;
@@ -400,21 +407,25 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         cr.scale (zoom, zoom);
         cr.set_line_width (6 / zoom);
         cr.set_source_rgba (1, 1, 1, 1);
-        foreach (Path _path in image.get_paths ()) {
-            var _segment = _path.root_segment;
-            var first = true;
-            while (first || _segment != _path.root_segment) {
-                first = false;
-                cr.move_to (_segment.start.x, _segment.start.y);
-                _segment.do_command (cr);
-                cr.stroke ();
-                // Check alpha of clicked pixel
-                if (data [y * width * 4 + x * 4 + 3] > 0) {
-                    path = _path;
-                    segment = _segment;
-                    return true;
+        var paths = image.get_paths ();
+        for (int i = paths.length - 1; i >= 0; i--) {
+            var _path = paths[i];
+            if (_path.visible) {
+                var _segment = _path.root_segment;
+                var first = true;
+                while (first || _segment != _path.root_segment) {
+                    first = false;
+                    cr.move_to (_segment.start.x, _segment.start.y);
+                    _segment.do_command (cr);
+                    cr.stroke ();
+                    // Check alpha of clicked pixel
+                    if (data [y * width * 4 + x * 4 + 3] > 0) {
+                        path = _path;
+                        segment = _segment;
+                        return true;
+                    }
+                    _segment = _segment.next;
                 }
-                _segment = _segment.next;
             }
         }
         path = null;

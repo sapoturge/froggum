@@ -8,6 +8,40 @@ public class Path : Object {
 
     public bool visible { get; set; }
 
+    private Point last_reference;
+
+    public Point reference {
+        set {
+            var dx = value.x - last_reference.x;
+            var dy = value.y - last_reference.y;
+            var segment = root_segment;
+            var first = true;
+            while (first || segment != root_segment) {
+                first = false;
+                if (segment.segment_type == ARC) {
+                    segment.topleft = {segment.topleft.x + dx, segment.topleft.y + dy};
+                    segment.bottomright = {segment.bottomright.x + dx, segment.bottomright.y + dy};
+                }
+                segment = segment.next;
+            }
+            first = true;
+            while (first || segment != root_segment) {
+                first = false;
+                if (segment.segment_type != ARC) {
+                    if (segment.next.segment_type != ARC) {
+                        segment.end = {segment.end.x + dx, segment.end.y + dy};
+                    }
+                    if (segment.segment_type == CURVE) {
+                        segment.p1 = {segment.p1.x + dx, segment.p1.y + dy};
+                        segment.p2 = {segment.p2.x + dx, segment.p2.y + dy};
+                    }
+                }
+                segment = segment.next;
+            }
+            last_reference = value;
+        }
+    }
+
     public signal void update ();
 
     public signal void select (bool selected);
@@ -82,5 +116,9 @@ public class Path : Object {
                             stroke.blue,
                             stroke.alpha);
         cr.stroke ();
+    }
+
+    public void start_dragging (Point start_location) {
+        last_reference = start_location;
     }
 }
