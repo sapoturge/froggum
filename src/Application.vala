@@ -43,7 +43,7 @@ public class SvgApp : Gtk.Application {
         main_window.set_titlebar (header);
 
         layout.new_tab_requested.connect (() => {
-             var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+             var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
              var tab = new Granite.Widgets.Tab ("New Image", null, inner_layout);
 
              var title = new Gtk.Label ("Create a new icon:");
@@ -84,24 +84,52 @@ public class SvgApp : Gtk.Application {
                  new_image (128, 128, tab);
              });
 
+             var standard_grid = new Gtk.Grid ();
+             standard_grid.row_spacing = 4;
+             standard_grid.column_spacing = 4;
+             standard_grid.attach (n16, 0, 0, 1, 1);
+             standard_grid.attach (n24, 1, 0, 1, 1);
+             standard_grid.attach (n32, 2, 0, 1, 1);
+             standard_grid.attach (n48, 0, 1, 1, 1);
+             standard_grid.attach (n64, 1, 1, 1, 1);
+             standard_grid.attach (n128, 2, 1, 1, 1);
+             standard_grid.column_homogeneous = true;
+
+             var custom_width = new Gtk.SpinButton.with_range (1, 2048, 1);
+             var custom_height = new Gtk.SpinButton.with_range (1, 2018, 1);
+
              var ncustom = new Gtk.Button ();
-             ncustom.label = "Custom";
+             ncustom.label = "Custom:";
              ncustom.clicked.connect (() => {
-                 // TODO: Allow picking sizes.
-                 new_image (50, 50, tab);
+                 new_image ((int) custom_width.value, (int) custom_height.value, tab);
              });
 
-             var grid = new Gtk.Grid ();
-             grid.attach (title, 0, 0, 3, 1);
-             grid.attach (n16, 0, 2, 1, 1);
-             grid.attach (n24, 1, 2, 1, 1);
-             grid.attach (n32, 2, 2, 1, 1);
-             grid.attach (n48, 0, 3, 1, 1);
-             grid.attach (n64, 1, 3, 1, 1);
-             grid.attach (n128, 2, 3, 1, 1);
-             grid.attach (ncustom, 0, 4, 3, 1);
+             var custom_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
+             custom_box.pack_start (ncustom, true, true);
+             custom_box.pack_start (new Gtk.Label("Width:"), false, false);
+             custom_box.pack_start (custom_width, false, false);
+             custom_box.pack_start (new Gtk.Label ("Height:"), false, false);
+             custom_box.pack_start (custom_height, false, false);
 
-             inner_layout.pack_start (grid, false, false);
+             var new_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
+             new_side.pack_start (title, false, false);
+             new_side.pack_start (standard_grid, false, false);
+             new_side.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false);
+             new_side.pack_start (custom_box, false, false);
+
+             var open_button = new Gtk.Button ();
+             open_button.label = "Open";
+
+             var open_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
+             open_side.pack_start (open_button);
+             open_side.valign = Gtk.Align.CENTER;
+
+             inner_layout.pack_start (new_side, false, false);
+             inner_layout.pack_start (new Gtk.Separator (Gtk.Orientation.VERTICAL), false, false);
+             inner_layout.pack_start (open_side, false, false);
+
+             inner_layout.halign = Gtk.Align.CENTER;
+             inner_layout.valign = Gtk.Align.CENTER;
 
              layout.insert_tab (tab, 0);
              layout.show_all ();
