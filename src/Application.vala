@@ -145,12 +145,8 @@ public class SvgApp : Gtk.Application {
     }
 
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {
-        var path = new Path ({
-            new Segment.line (width - 1.5, 1.5),
-            new Segment.line (width - 1.5, height - 1.5),
-            new Segment.line (1.5, height - 1.5),
-            new Segment.line (1.5, 1.5)
-        }, {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1});
+        var path = new Path.from_string ("M 1.5 1.5 L 8 1.5 C 8 5 11 8 14.5 8 A 6.5 6.5 0 1 1 1.5 8 L 1.5 1.5 Z",
+                                         {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1}, "Path");
         var image = new Image ("Untitled", width, height, {path});
         var editor = new EditorView (image);
         editor.expand = true;

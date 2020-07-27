@@ -181,12 +181,12 @@ public class Segment : Object {
 
     public Segment.arc (double x, double y, double xc, double yc, double rx, double ry, double angle, bool reverse) {
         segment_type = ARC;
-        this.end = {x, y};
         this.c = {xc, yc};
         this.rx = rx;
         this.ry = ry;
         this.angle = angle;
         this.reverse = reverse;
+        this.end = {x, y};
     }
 
     public Segment copy () {

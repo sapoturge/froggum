@@ -64,6 +64,76 @@ public class Path : Object {
         select.connect (() => { update(); });
     }
 
+    public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {
+        var segments = new Segment[] {};
+        int i = skip_whitespace (description, 0);
+        double start_x = 0;
+        double start_y = 0;
+        double current_x = 0;
+        double current_y = 0;
+        while (i < description.length) {
+            if (description[i] == 'M') {
+                i += 1;
+                i = skip_whitespace (description, i);
+                start_x = get_number (description, ref i);
+                start_y = get_number (description, ref i);
+                current_x = start_x;
+                current_y = start_y;
+            } else if (description[i] == 'L') {
+                i += 1;
+                i = skip_whitespace (description, i);
+                var x = get_number (description, ref i);
+                var y = get_number (description, ref i);
+                segments += new Segment.line (x, y);
+                current_x = x;
+                current_y = y;
+            } else if (description[i] == 'C') {
+                i += 1;
+                i = skip_whitespace (description, i);
+                var x1 = get_number (description, ref i);
+                var y1 = get_number (description, ref i);
+                var x2 = get_number (description, ref i);
+                var y2 = get_number (description, ref i);
+                var x = get_number (description, ref i);
+                var y = get_number (description, ref i);
+                segments += new Segment.curve (x1, y1, x2, y2, x, y);
+                current_x = x;
+                current_y = y;
+            } else if (description[i] == 'A') {
+                i += 1;
+                i = skip_whitespace (description, i);
+                var rx = get_number (description, ref i);
+                var ry = get_number (description, ref i);
+                var angle = get_number (description, ref i);
+                var large_arc = get_number (description, ref i);
+                var sweep = get_number (description, ref i);
+                var x = get_number (description, ref i);
+                var y = get_number (description, ref i);
+                var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
+                var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
+                var coefficient = Math.sqrt ((rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1) / (rx * rx * y1 * y1 + ry * ry * x1 * x1));
+                if (large_arc == sweep) {
+                    coefficient = -coefficient;
+                }
+                var cx1 = coefficient * rx * y1 / ry;
+                var cy1 = -coefficient * ry * x1 / rx;
+                var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
+                var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
+                segments += new Segment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
+                current_x = x;
+                current_y = y;
+            } else if (description[i] == 'Z') {
+                // Ends the path, back to the beginning.
+                segments += new Segment.line (start_x, start_y);
+                i += 1;
+            } else {
+                i += 1;
+                i = skip_whitespace (description, i);
+            }
+        }
+        this (segments, fill, stroke, title);
+    }
+        
     public Path copy () {
         Segment[] new_segments = { root_segment.copy () };
         var current_segment = root_segment.next;
@@ -120,5 +190,39 @@ public class Path : Object {
 
     public void start_dragging (Point start_location) {
         last_reference = start_location;
+    }
+
+    private static int skip_whitespace (string source, int start) {
+        while (start < source.length && source[start] == ' ' || source[start] == '\t' || source[start] == '\n') {
+            start += 1;
+        }
+        return start;
+    }
+
+    private static double get_number (string source, ref int start) {
+        double result = 0;
+        var negative = false;
+        if (source[start] == '-') {
+            negative = true;
+        }
+        while (start < source.length && source[start] >= '0' && source[start] <= '9') {
+            result *= 10;
+            result += source[start] - '0';
+            start += 1;
+        }
+        if (source[start] == '.') {
+            start += 1;
+            var power = -1;
+            while (start < source.length && '0' <= source[start] && source[start] <= '9') {
+                result += Math.pow (10, power) * (source[start] - '0');
+                power -= 1;
+                start += 1;
+            }
+        }
+        if (negative) {
+            result = -result;
+        }
+        start = skip_whitespace (source, start);
+        return result;
     }
 }

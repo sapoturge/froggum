@@ -28,6 +28,8 @@ Bugs to be fixed:
     Delete Path (toolbar)
     Open (new tab)
 
+    Edit name of path (sidebar)
+
  * Crashes when trying to split arc segment.
 
 
