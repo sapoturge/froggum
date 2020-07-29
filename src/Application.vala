@@ -119,6 +119,9 @@ public class SvgApp : Gtk.Application {
 
              var open_button = new Gtk.Button ();
              open_button.label = "Open";
+             open_button.clicked.connect (() => {
+                 open_image (tab);
+             });
 
              var open_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
              open_side.pack_start (open_button);
@@ -147,12 +150,24 @@ public class SvgApp : Gtk.Application {
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {
         var path = new Path.from_string ("M 1.5 1.5 L 8 1.5 C 8 5 11 8 14.5 8 A 6.5 6.5 0 1 1 1.5 8 L 1.5 1.5 Z",
                                          {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1}, "Path");
-        var image = new Image ("Untitled", width, height, {path});
+        var image = new Image (width, height, {path});
         var editor = new EditorView (image);
         editor.expand = true;
 
         tab.page = editor;
         tab.show_all ();
+    }
+
+    private void open_image (Granite.Widgets.Tab tab) {
+        var dialog = new Gtk.FileChooserNative ("Open Icon", null, Gtk.FileChooserAction.OPEN, "Open", "Cancel");
+        if (dialog.run () == Gtk.ResponseType.ACCEPT) {
+            var file = dialog.get_file ();
+            var image = new Image.load (file);
+            var editor = new EditorView (image);
+            editor.expand = true;
+            tab.page = editor;
+            tab.show_all ();
+        }
     }
 
     public static int main (string[] args) {

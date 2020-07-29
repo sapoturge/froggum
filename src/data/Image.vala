@@ -19,13 +19,12 @@ public class Image : Object, ListModel {
     private Path selected_path;
     private Path last_selected_path;
 
-    public Image (string filename, int width, int height, Path[] paths = {}) {
-        if (filename == "Untitled") {
-        }
-        this.width = width;
-        this.height = height;
-        this.paths = paths;
-        this.selected_path = null;
+    // Used when loading files
+    private uint8[] buffer = new uint8[1024];
+    private size_t index = 1024;
+    private size_t end_of_buffer = 1024;
+
+    private void setup_signals () {
         foreach (Path path in paths) {
             path.update.connect (() => { update (); });
             path.select.connect ((selected) => {
@@ -42,6 +41,104 @@ public class Image : Object, ListModel {
         }
         // TODO: Better autosave.
         update.connect (() => { save.begin(); });
+    }
+
+    public Image (int width, int height, Path[] paths = {}) {
+        this.width = width;
+        this.height = height;
+        this.paths = paths;
+        this.selected_path = null;
+        setup_signals ();
+    }
+
+    public Image.load (File file) {
+        this._file = file;
+        var stream = file.read ();
+        var tag = get_tag (stream);
+        this.paths = {};
+        while (tag != null) {
+            // Better methods certainly exist, for when I can access them.
+            if (tag.has_prefix ("svg ")) {
+                this.width = get_property (tag, "width").to_int ();
+                this.height = get_property (tag, "height").to_int ();
+            } else if (tag.has_prefix ("path ")) {
+                var style = get_property (tag, "style");
+                var styles = style.split (";");
+                int fill_red = 0;
+                int fill_green = 0;
+                int fill_blue = 0;
+                float fill_alpha = 0;
+                int stroke_red = 0;
+                int stroke_green = 0;
+                int stroke_blue = 0;
+                float stroke_alpha = 0;
+                foreach (string s in styles) {
+                    if (s.has_prefix ("fill:#")) {
+                        var color = s.substring (6);
+                        var r = color.substring (0, color.length / 3);
+                        var g = color.substring (r.length, r.length);
+                        var b = color.substring (r.length * 2, r.length);
+                        r.scanf ("%x", &fill_red);
+                        g.scanf ("%x", &fill_green);
+                        b.scanf ("%x", &fill_blue);
+                    } else if (s.has_prefix ("stroke:#")) {
+                        var color = s.substring (8);
+                        var r = color.substring (0, color.length / 3);
+                        var g = color.substring (r.length, r.length);
+                        var b = color.substring (r.length * 2, r.length);
+                        r.scanf ("%x", &stroke_red);
+                        g.scanf ("%x", &stroke_green);
+                        b.scanf ("%x", &stroke_blue);
+                    } else if (s.has_prefix ("fill-opacity:")) {
+                        var op = s.substring (13);
+                        op.scanf ("%f", &fill_alpha);
+                    } else if (s.has_prefix ("stroke-opacity:")) {
+                        var op = s.substring (15);
+                        op.scanf ("%f", &stroke_alpha);
+                    }
+                }
+                Gdk.RGBA fill = {fill_red / 255.0, fill_green / 255.0, fill_blue / 255.0, fill_alpha};
+                Gdk.RGBA stroke = {stroke_red / 255.0, stroke_green / 255.0, stroke_blue / 255.0, stroke_alpha};
+                var data = get_property (tag, "d");
+                paths += new Path.from_string (data, fill, stroke, "Path");
+            }
+            tag = get_tag (stream);
+        }
+        setup_signals ();
+    }
+
+    private string? get_tag (InputStream stream) {
+        var content = new uint8[] {};
+        var found_tag = false;
+        // Exits internally on end of file or end of tag.
+        while (true) {
+            if (index == end_of_buffer) {
+                if (index == 1024) {
+                    index = -1;
+                    stream.read_all (buffer, out end_of_buffer);
+                } else {
+                    return null;
+                }
+            } else if (found_tag) {
+                if (buffer[index] == '>') {
+                    return (string) content;
+                } else {
+                    content += buffer[index];
+                }
+            } else {
+                if (buffer[index] == '<') {
+                    found_tag = true;
+                }
+            }
+            index += 1;
+        }
+    }
+
+    private string get_property (string tag, string property) {
+        var start_index = tag.index_of (" =".splice (1, 1, property));
+        var real_start = tag.index_of_char ('"', start_index) + 1;
+        var real_end = tag.index_of_char ('"', real_start);
+        return tag.substring (real_start, real_end - real_start);
     }
 
     public File file {
