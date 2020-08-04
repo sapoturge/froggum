@@ -460,7 +460,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             menu_layout.pack_start (separator, false, false, 0);
 
             var delete_segment = new Gtk.Button ();
-            delete_segment.label = "Delete Segment";
+            delete_segment.label = _("Delete Segment");
             delete_segment.clicked.connect (() => {
                 // TODO: Delete segment.
                 menu.popdown ();
@@ -468,7 +468,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             menu_layout.pack_start (delete_segment, false, false, 0);
 
             var split_segment = new Gtk.Button ();
-            split_segment.label = "Split Segment";
+            split_segment.label = _("Split Segment");
             split_segment.clicked.connect (() => {
                  selected_path.split_segment (segment);
                  menu.popdown ();
@@ -477,7 +477,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             if (segment.segment_type == ARC) {
                 var flip_arc = new Gtk.Button ();
-                flip_arc.label = "Flip Arc";
+                flip_arc.label = _("Flip Arc");
                 flip_arc.clicked.connect (() => {
                     segment.reverse = !segment.reverse;
                     menu.popdown ();
@@ -488,10 +488,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             var separator2 = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             menu_layout.pack_start (separator2, false, false, 0);
 
-            var switch_mode = new Gtk.Label ("Change segment to:");
+            var switch_mode = new Gtk.Label (_("Change segment to:"));
             menu_layout.pack_start (switch_mode, false, false, 0);
 
-            var line_mode = new Gtk.RadioButton.with_label (null, "Line");
+            var line_mode = new Gtk.RadioButton.with_label (null, _("Line"));
             line_mode.toggled.connect (() => {
                 if (line_mode.get_active ()) {
                     segment.segment_type = LINE;
@@ -500,7 +500,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             });
             menu_layout.pack_start (line_mode, false, false, 0);
 
-            var curve_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, "Curve");
+            var curve_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, _("Curve"));
             curve_mode.toggled.connect (() => {
                 if (curve_mode.get_active ()) {
                     segment.segment_type = CURVE;
@@ -509,7 +509,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             });
             menu_layout.pack_start (curve_mode, false, false, 0);
 
-            var arc_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, "Arc");
+            var arc_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, _("Arc"));
             arc_mode.toggled.connect (() => {
                 if (arc_mode.get_active ()) {
                     segment.segment_type = ARC;

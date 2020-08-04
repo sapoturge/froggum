@@ -21,35 +21,35 @@ public class EditorView : Gtk.Box {
         list_box = new Gtk.ListBox ();
 
         var new_path = new Gtk.Button.from_icon_name ("list-add-symbolic");
-        new_path.tooltip_text = "New path";
+        new_path.tooltip_text = _("New path");
         new_path.relief = NONE;
         new_path.clicked.connect (() => {
             image.new_path ();
         });
 
         var duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
-        duplicate_path.tooltip_text = "Duplicate path";
+        duplicate_path.tooltip_text = _("Duplicate path");
         duplicate_path.relief = NONE;
         duplicate_path.clicked.connect (() => {
             image.duplicate_path ();
         });
 
         var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
-        path_up.tooltip_text = "Move path up";
+        path_up.tooltip_text = _("Move path up");
         path_up.relief = NONE;
         path_up.clicked.connect (() => {
             image.path_up ();
         });
 
         var path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
-        path_down.tooltip_text = "Move path down";
+        path_down.tooltip_text = _("Move path down");
         path_down.relief = NONE;
         path_down.clicked.connect (() => {
             image.path_down ();
         });
 
         var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
-        delete_path.tooltip_text = "Delete path";
+        delete_path.tooltip_text = _("Delete path");
         delete_path.relief = NONE;
         delete_path.clicked.connect (() => {
             image.delete_path ();

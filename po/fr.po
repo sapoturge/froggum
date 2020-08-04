@@ -1,0 +1,167 @@
+# French translations for com.github.sapoturge.svg_editor package.
+# Copyright (C) 2020 THE com.github.sapoturge.svg_editor'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the com.github.sapoturge.svg_editor package.
+# Automatically generated, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: com.github.sapoturge.svg_editor\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-04 17:20-0600\n"
+"PO-Revision-Date: 2020-08-04 17:20-0600\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/Application.vala:11
+msgid "Untitled"
+msgstr ""
+
+#: src/Application.vala:20 data/com.github.sapoturge.svg_editor.desktop.in:3
+#: data/com.github.sapoturge.svg_editor.appdata.xml.in:6
+msgid "Froggum"
+msgstr ""
+
+#: src/Application.vala:25
+msgid "Save as new file"
+msgstr ""
+
+#: src/Application.vala:28
+msgid "Save As"
+msgstr ""
+
+#: src/Application.vala:29
+msgid "Untitled Image"
+msgstr ""
+
+#: src/Application.vala:48
+msgid "New Image"
+msgstr ""
+
+#: src/Application.vala:50
+msgid "Create a new icon:"
+msgstr ""
+
+#: src/Application.vala:53
+msgid "16 × 16"
+msgstr ""
+
+#: src/Application.vala:59
+msgid "24 × 24"
+msgstr ""
+
+#: src/Application.vala:65
+msgid "32 × 32"
+msgstr ""
+
+#: src/Application.vala:71
+msgid "48 × 48"
+msgstr ""
+
+#: src/Application.vala:77
+msgid "64 × 64"
+msgstr ""
+
+#: src/Application.vala:83
+msgid "128 × 128"
+msgstr ""
+
+#: src/Application.vala:103
+msgid "Custom:"
+msgstr ""
+
+#: src/Application.vala:122 src/Application.vala:163
+msgid "Open"
+msgstr ""
+
+#: src/Application.vala:153
+msgid "Path"
+msgstr ""
+
+#: src/Application.vala:163
+msgid "Open Icon"
+msgstr ""
+
+#: src/Application.vala:163
+msgid "Cancel"
+msgstr ""
+
+#: src/widgets/EditorView.vala:24
+msgid "New path"
+msgstr ""
+
+#: src/widgets/EditorView.vala:31
+msgid "Duplicate path"
+msgstr ""
+
+#: src/widgets/EditorView.vala:38
+msgid "Move path up"
+msgstr ""
+
+#: src/widgets/EditorView.vala:45
+msgid "Move path down"
+msgstr ""
+
+#: src/widgets/EditorView.vala:52
+msgid "Delete path"
+msgstr ""
+
+#: src/widgets/Viewport.vala:463
+msgid "Delete Segment"
+msgstr ""
+
+#: src/widgets/Viewport.vala:471
+msgid "Split Segment"
+msgstr ""
+
+#: src/widgets/Viewport.vala:480
+msgid "Flip Arc"
+msgstr ""
+
+#: src/widgets/Viewport.vala:491
+msgid "Change segment to:"
+msgstr ""
+
+#: src/widgets/Viewport.vala:494
+msgid "Line"
+msgstr ""
+
+#: src/widgets/Viewport.vala:503
+msgid "Curve"
+msgstr ""
+
+#: src/widgets/Viewport.vala:512
+msgid "Arc"
+msgstr ""
+
+#: src/widgets/PathRow.vala:57
+msgid "Visibility"
+msgstr ""
+
+#: src/widgets/PathRow.vala:63
+msgid "Fill color"
+msgstr ""
+
+#: src/widgets/PathRow.vala:69
+msgid "Stroke color"
+msgstr ""
+
+#: data/com.github.sapoturge.svg_editor.desktop.in:4
+msgid "SVG Editor"
+msgstr ""
+
+#: data/com.github.sapoturge.svg_editor.desktop.in:5
+msgid "Create Icons"
+msgstr ""
+
+#: data/com.github.sapoturge.svg_editor.appdata.xml.in:7
+msgid "Precise App Editor"
+msgstr ""
+
+#: data/com.github.sapoturge.svg_editor.appdata.xml.in:9
+msgid "A simple SVG editor designed for making Elementary OS app icons."
+msgstr ""

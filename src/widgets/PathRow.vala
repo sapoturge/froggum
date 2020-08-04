@@ -54,19 +54,19 @@ public class PathRow : Gtk.ListBoxRow {
         });
 
         visibility.active = true;
-        visibility.tooltip_text = "Visibility";
+        visibility.tooltip_text = _("Visibility");
         visibility.state_set.connect ((state) => {
             path.visible = state;
             path.update ();
         });
 
-        fill.tooltip_text = "Fill color";
+        fill.tooltip_text = _("Fill color");
         fill.color_set.connect (() => {
             path.fill = fill.get_rgba ();
             path.update ();
         });
 
-        stroke.tooltip_text = "Stroke color";
+        stroke.tooltip_text = _("Stroke color");
         stroke.color_set.connect (() => {
             path.stroke = stroke.get_rgba ();
             path.update ();

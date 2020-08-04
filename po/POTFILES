@@ -1,0 +1,6 @@
+src/Application.vala
+src/widgets/EditorView.vala
+src/widgets/Viewport.vala
+src/widgets/PathRow.vala
+data/com.github.sapoturge.svg_editor.desktop.in
+data/com.github.sapoturge.svg_editor.appdata.xml.in
