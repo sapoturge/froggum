@@ -21,8 +21,9 @@ public class SvgApp : Gtk.Application {
         
         var layout = new Granite.Widgets.DynamicNotebook ();
 
-        var save_button = new Gtk.Button ();
-        save_button.label = "Save As";
+        var save_button = new Gtk.Button.from_icon_name ("document-save-as");
+        save_button.tooltip_text = "Save as new file";
+        save_button.relief = Gtk.ReliefStyle.NONE;
         save_button.clicked.connect (() => {
             var file_chooser = new Gtk.FileChooserNative ("Save As", main_window, Gtk.FileChooserAction.SAVE, null, null);
             file_chooser.set_current_name ("Untitled Image");

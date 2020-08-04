@@ -31,7 +31,7 @@ public class PathRow : Gtk.ListBoxRow {
     construct {
         var layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
         view = new Gtk.DrawingArea ();
-        var visibility = new Gtk.CheckButton ();
+        var visibility = new Gtk.Switch ();
         title = new Gtk.Label ("");
         fill = new Gtk.ColorButton ();
         stroke = new Gtk.ColorButton ();
@@ -54,16 +54,19 @@ public class PathRow : Gtk.ListBoxRow {
         });
 
         visibility.active = true;
-        visibility.toggled.connect (() => {
-            path.visible = !_path.visible;
+        visibility.tooltip_text = "Visibility";
+        visibility.state_set.connect ((state) => {
+            path.visible = state;
             path.update ();
         });
 
+        fill.tooltip_text = "Fill color";
         fill.color_set.connect (() => {
             path.fill = fill.get_rgba ();
             path.update ();
         });
 
+        stroke.tooltip_text = "Stroke color";
         stroke.color_set.connect (() => {
             path.stroke = stroke.get_rgba ();
             path.update ();
