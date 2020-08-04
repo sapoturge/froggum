@@ -14,7 +14,7 @@ public class Image : Object, ListModel {
 
     public signal void path_selected (Path? path);
 
-    private Path[] paths;
+    private Array<Path> paths;
 
     private Path selected_path;
     private Path last_selected_path;
@@ -25,10 +25,11 @@ public class Image : Object, ListModel {
     private size_t end_of_buffer = 1024;
 
     private void setup_signals () {
-        foreach (Path path in paths) {
+        for (int i = 0; i < paths.length; i++) {
+            var path = paths.index (i);
             path.update.connect (() => { update (); });
             path.select.connect ((selected) => {
-                if (path != selected_path) {
+                if (selected && path != selected_path) {
                     selected_path.select (false);
                     last_selected_path = path;
                     selected_path = path;
@@ -46,7 +47,8 @@ public class Image : Object, ListModel {
     public Image (int width, int height, Path[] paths = {}) {
         this.width = width;
         this.height = height;
-        this.paths = paths;
+        this.paths = new Array<Path> ();
+        this.paths.append_vals(paths, paths.length);
         this.selected_path = null;
         setup_signals ();
     }
@@ -55,7 +57,7 @@ public class Image : Object, ListModel {
         this._file = file;
         var stream = file.read ();
         var tag = get_tag (stream);
-        this.paths = {};
+        this.paths = new Array<Path> ();
         while (tag != null) {
             // Better methods certainly exist, for when I can access them.
             if (tag.has_prefix ("svg ")) {
@@ -100,7 +102,7 @@ public class Image : Object, ListModel {
                 Gdk.RGBA fill = {fill_red / 255.0, fill_green / 255.0, fill_blue / 255.0, fill_alpha};
                 Gdk.RGBA stroke = {stroke_red / 255.0, stroke_green / 255.0, stroke_blue / 255.0, stroke_alpha};
                 var data = get_property (tag, "d");
-                paths += new Path.from_string (data, fill, stroke, "Path");
+                paths.append_val(new Path.from_string (data, fill, stroke, "Path"));
             }
             tag = get_tag (stream);
         }
@@ -153,7 +155,7 @@ public class Image : Object, ListModel {
 
     public Object? get_item (uint position) {
         if (position < paths.length) {
-            return paths[position];
+            return paths.index(paths.length-position-1);
         }
         return null;
     }
@@ -167,13 +169,13 @@ public class Image : Object, ListModel {
     }
 
     public void draw (Cairo.Context cr) {
-        foreach (Path path in paths) {
-            path.draw (cr);
+        for (int i = 0; i < paths.length; i++) {
+            paths.index (i).draw (cr);
         }
     }
 
     public Path[] get_paths () {
-        return paths;
+        return paths.data;
     }
 
     public void new_path () {
@@ -181,8 +183,8 @@ public class Image : Object, ListModel {
                                new Segment.line (width - 1.5, height - 1.5),
                                new Segment.line (1.5, height - 1.5),
                                new Segment.line (1.5, 1.5)},
-                             {0.33, 0.33, 0.33, 1},
                              {0.66, 0.66, 0.66, 1},
+                             {0.33, 0.33, 0.33, 1},
                              "New Path");
         path.update.connect (() => { update (); });
         path.select.connect ((selected) => {
@@ -196,9 +198,9 @@ public class Image : Object, ListModel {
                 path_selected (null);
             }
         });
-        paths += path;
-        items_changed (paths.length - 1, 0, 1);
-        paths[paths.length - 1].select (true);
+        paths.append_val (path);
+        items_changed (0, 0, 1);
+        path.select (true);
         update ();
     }
 
@@ -216,25 +218,24 @@ public class Image : Object, ListModel {
                 path_selected (null);
             }
         });
-        paths += path;
-        items_changed (paths.length - 1, 0, 1);
-        paths[paths.length - 1].select (true);
+        paths.append_val (path);
+        items_changed (0, 0, 1);
+        path.select (true);
         update ();
     }
 
     public void path_up () {
         int i;
         for (i = 0; i < paths.length - 1; i++) {
-            if (paths[i] == last_selected_path) {
+            if (paths.index (i) == last_selected_path) {
                 break;
             }
         }
         if (i == paths.length - 1) {
             return;
         }
-        paths[i] = paths[i + 1];
-        paths[i+1] = last_selected_path;
-        items_changed (i, 2, 2);
+        paths.insert_val (i + 1, paths.remove_index (i));
+        items_changed (paths.length - i - 2, 2, 2);
         last_selected_path.select (true);
         last_selected_path.select (false);
     }
@@ -242,16 +243,15 @@ public class Image : Object, ListModel {
     public void path_down () {
         int i;
         for (i = 1; i < paths.length; i++) {
-            if (paths[i] == last_selected_path) {
+            if (paths.index (i) == last_selected_path) {
                 break;
             }
         }
         if (i == paths.length) {
             return;
         }
-        paths[i] = paths[i-1];
-        paths[i-1] = last_selected_path;
-        items_changed (i-1, 2, 2);
+        paths.insert_val (i - 1, paths.remove_index (i));
+        items_changed (paths.length - i - 1, 2, 2);
         last_selected_path.select (true);
         last_selected_path.select (false);
     }
@@ -259,23 +259,19 @@ public class Image : Object, ListModel {
     public void delete_path () {
         int i;
         for (i = 0; i < paths.length; i++) {
-            if (paths[i] == last_selected_path) {
+            if (paths.index (i) == last_selected_path) {
                 break;
             }
         }
         if (selected_path != null) {
             selected_path.select (false);
         }
-        for (var j = i; j < paths.length; j++) {
-            paths[j-1] = paths[j];
-        }
-        paths[paths.length - 1] = null;
-        // TODO: actually reduce the length of paths.
-        items_changed (i, 1, 0);
+        paths.remove_index (i);
+        items_changed (paths.length - i, 1, 0);
         if (i > 0) {
-            paths[i - 1].select (true);
+            paths.index (i - 1).select (true);
         } else {
-            paths[1].select (true);
+            paths.index (0).select (true);
         }
     }
 
@@ -288,7 +284,8 @@ public class Image : Object, ListModel {
             size_t written = 0;
             yield stream.write_all_async ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n".data, 0, null, out written);
             yield stream.write_all_async ("<svg version=\"1.1\" width=\"%d\" height=\"%d\">\n".printf (width, height).data, 0, null, out written);
-            foreach (Path path in paths) {
+            for (int i = 0; i < paths.length; i++) {
+                var path = paths.index (i);
                 yield stream.write_all_async ("<path style=\"fill:#".data, 0, null, out written);
                 yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.fill.red * 255),
                                                          (uint) (path.fill.green * 255),

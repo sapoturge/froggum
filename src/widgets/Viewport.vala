@@ -450,7 +450,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var delete_path = new Gtk.Button ();
         delete_path.label = "Delete Path";
         delete_path.clicked.connect (() => {
-            // TODO: Delete Path.
+            image.delete_path ();
             menu.popdown ();
         });
         menu_layout.pack_start (delete_path, false, false, 0);

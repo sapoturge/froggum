@@ -1,7 +1,4 @@
 Features to be implemented:
- * Opening files 
-    This is absolutely necessary.
-
  * More grid levels / custom grid
     Useful, but not absolutely necessary.
 
@@ -23,13 +20,12 @@ Features to be implemented:
 
 Bugs to be fixed:
  * Useless buttons:
-    Delete Path (context menu)
     Delete Segment (context menu)
-    Delete Path (toolbar)
-    Open (new tab)
 
     Edit name of path (sidebar)
 
  * Crashes when trying to split arc segment.
 
-
+ * Open method is terrible
+    Use a real xml reader, and save everything from the original file.
+    Will be very important once gradients are added.
