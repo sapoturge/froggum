@@ -1,4 +1,4 @@
-project('com.github.sapoturge.svg_editor', 'vala', 'c')
+project('com.github.sapoturge.froggum', 'vala', 'c')
 
 i18n = import('i18n')
 
