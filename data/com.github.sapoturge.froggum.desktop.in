@@ -1,10 +1,11 @@
 [Desktop Entry]
 Name=Froggum
 GenericName=SVG Editor
-Comment=Create Icons
+Comment=Create app icons
 Categories=Graphics;Development;
-Exec=com.github.sapoturge.svg_editor
-Icon=custom_icon_I_need_to_make
+Exec=com.github.sapoturge.froggum
+Icon=com.github.sapoturge.froggum
 Terminal=false
 Type=Application
+MineType=image/svg-xml;
 

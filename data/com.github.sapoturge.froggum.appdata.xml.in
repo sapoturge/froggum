@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2020 John Hiatt -->
 <component type="desktop">
-  <id>com.github.sapoturge.svg_editor</id>
+  <id>com.github.sapoturge.froggum</id>
   <metadata-license>MIT</metadata-license>
   <name>Froggum</name>
   <summary>Precise App Editor</summary>
   <description>
-    <p>A simple SVG editor designed for making Elementary OS app icons.</p>
+    <p>A simple SVG editor designed for making elementary OS app icons.</p>
   </description>
+  <custom>
+    <value key="x-appcenter-color-primary">#11640f</value>
+    <value key="x-appcenter-color-primary-text">#ebba1c</value>
+  </custom>
 </component>
