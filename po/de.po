@@ -1,14 +1,14 @@
-# German translations for com.github.sapoturge.svg_editor package.
-# Copyright (C) 2020 THE com.github.sapoturge.svg_editor'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the com.github.sapoturge.svg_editor package.
+# German translations for com.github.sapoturge.froggum package.
+# Copyright (C) 2020 THE com.github.sapoturge.froggum'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the com.github.sapoturge.froggum package.
 # Automatically generated, 2020.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: com.github.sapoturge.svg_editor\n"
+"Project-Id-Version: com.github.sapoturge.froggum\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-04 17:20-0600\n"
-"PO-Revision-Date: 2020-08-04 17:20-0600\n"
+"POT-Creation-Date: 2020-08-05 13:05-0600\n"
+"PO-Revision-Date: 2020-08-05 13:05-0600\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -21,8 +21,8 @@ msgstr ""
 msgid "Untitled"
 msgstr ""
 
-#: src/Application.vala:20 data/com.github.sapoturge.svg_editor.desktop.in:3
-#: data/com.github.sapoturge.svg_editor.appdata.xml.in:6
+#: src/Application.vala:20 data/com.github.sapoturge.froggum.desktop.in:3
+#: data/com.github.sapoturge.froggum.appdata.xml.in:6
 msgid "Froggum"
 msgstr ""
 
@@ -90,23 +90,23 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/widgets/EditorView.vala:24
+#: src/widgets/EditorView.vala:28
 msgid "New path"
 msgstr ""
 
-#: src/widgets/EditorView.vala:31
+#: src/widgets/EditorView.vala:35
 msgid "Duplicate path"
 msgstr ""
 
-#: src/widgets/EditorView.vala:38
+#: src/widgets/EditorView.vala:42
 msgid "Move path up"
 msgstr ""
 
-#: src/widgets/EditorView.vala:45
+#: src/widgets/EditorView.vala:49
 msgid "Move path down"
 msgstr ""
 
-#: src/widgets/EditorView.vala:52
+#: src/widgets/EditorView.vala:56
 msgid "Delete path"
 msgstr ""
 
@@ -150,18 +150,18 @@ msgstr ""
 msgid "Stroke color"
 msgstr ""
 
-#: data/com.github.sapoturge.svg_editor.desktop.in:4
+#: data/com.github.sapoturge.froggum.desktop.in:4
 msgid "SVG Editor"
 msgstr ""
 
-#: data/com.github.sapoturge.svg_editor.desktop.in:5
-msgid "Create Icons"
+#: data/com.github.sapoturge.froggum.desktop.in:5
+msgid "Create app icons"
 msgstr ""
 
-#: data/com.github.sapoturge.svg_editor.appdata.xml.in:7
+#: data/com.github.sapoturge.froggum.appdata.xml.in:7
 msgid "Precise App Editor"
 msgstr ""
 
-#: data/com.github.sapoturge.svg_editor.appdata.xml.in:9
-msgid "A simple SVG editor designed for making Elementary OS app icons."
+#: data/com.github.sapoturge.froggum.appdata.xml.in:9
+msgid "A simple SVG editor designed for making elementary OS app icons."
 msgstr ""

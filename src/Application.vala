@@ -1,7 +1,7 @@
 public class SvgApp : Gtk.Application {
     public SvgApp () {
         Object (
-            application_id: "com.github.sapoturge.svg_editor",
+            application_id: "com.github.sapoturge.froggum",
             flags: ApplicationFlags.FLAGS_NONE
         );
     }
