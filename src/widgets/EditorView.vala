@@ -20,6 +20,10 @@ public class EditorView : Gtk.Box {
     construct {
         list_box = new Gtk.ListBox ();
 
+        var list_box_scroll = new Gtk.ScrolledWindow (null, null);
+        list_box_scroll.propagate_natural_width = true;
+        list_box_scroll.add (list_box);
+
         var new_path = new Gtk.Button.from_icon_name ("list-add-symbolic");
         new_path.tooltip_text = _("New path");
         new_path.relief = NONE;
@@ -63,7 +67,7 @@ public class EditorView : Gtk.Box {
         task_bar.pack_start (delete_path);
         
         var side_bar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        side_bar.pack_start (list_box, false, false, 0);
+        side_bar.pack_start (list_box_scroll, true, true, 0);
         side_bar.pack_end (task_bar, false, false, 0);
 
         viewport = new Viewport ();
