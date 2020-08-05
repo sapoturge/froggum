@@ -400,7 +400,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private bool clicked_path (int x, int y, out Path? path, out Segment? segment) {
         var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
-        unowned var data = surface.get_data ();
+        unowned uchar[] data = surface.get_data ();
         var cr = new Cairo.Context (surface);
         cr.translate (width / 2, height / 2);
         cr.translate (scroll_x, scroll_y);
@@ -410,7 +410,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var paths = image.get_paths ();
         for (int i = paths.length - 1; i >= 0; i--) {
             var _path = paths[i];
-            if (_path.visible) {
+            if (_path.visible || _path == selected_path) {
                 var _segment = _path.root_segment;
                 var first = true;
                 while (first || _segment != _path.root_segment) {
