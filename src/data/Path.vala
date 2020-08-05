@@ -71,6 +71,7 @@ public class Path : Object {
         double start_y = 0;
         double current_x = 0;
         double current_y = 0;
+        var num_segments = 0;
         while (i < description.length) {
             if (description[i] == 'M') {
                 i += 1;
@@ -124,7 +125,9 @@ public class Path : Object {
                 current_y = y;
             } else if (description[i] == 'Z') {
                 // Ends the path, back to the beginning.
-                segments += new Segment.line (start_x, start_y);
+                if (start_x != current_x || start_y != current_y) {
+                    segments += new Segment.line (start_x, start_y);
+                }
                 i += 1;
             } else {
                 i += 1;
