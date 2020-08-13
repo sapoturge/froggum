@@ -1,8 +1,8 @@
 public class Path : Object {
     public Segment root_segment;
 
-    public Pattern fill;
-    public Pattern stroke;
+    public Pattern fill { get; set; }
+    public Pattern stroke { get; set; }
 
     public string title { get; set; }
 

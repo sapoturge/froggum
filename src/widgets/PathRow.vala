@@ -5,8 +5,8 @@ public class PathRow : Gtk.ListBoxRow {
 
     private Gtk.DrawingArea view;
     private Gtk.Entry title;
-    private Gtk.ColorButton fill;
-    private Gtk.ColorButton stroke;
+    private PatternButton fill;
+    private PatternButton stroke;
 
     public new Path path { get; private set; }
 
@@ -24,8 +24,10 @@ public class PathRow : Gtk.ListBoxRow {
         });
         title.text = path.title;
         path.bind_property ("title", title, "text", BindingFlags.BIDIRECTIONAL);
-        fill.rgba = path.fill.base_color;
-        stroke.rgba = path.stroke.base_color;
+        fill.pattern = path.fill;
+        path.bind_property ("fill", fill, "pattern", BindingFlags.BIDIRECTIONAL);
+        stroke.pattern = path.stroke;
+        path.bind_property ("stroke", stroke, "pattern", BindingFlags.BIDIRECTIONAL);
     }
 
     construct {
@@ -33,8 +35,8 @@ public class PathRow : Gtk.ListBoxRow {
         view = new Gtk.DrawingArea ();
         var visibility = new Gtk.Switch ();
         title = new Gtk.Entry ();
-        fill = new Gtk.ColorButton ();
-        stroke = new Gtk.ColorButton ();
+        fill = new PatternButton ();
+        stroke = new PatternButton ();
 
         layout.pack_start (view, false, false, 0);
         layout.pack_start (visibility, false, false, 0);
@@ -63,15 +65,17 @@ public class PathRow : Gtk.ListBoxRow {
         });
 
         fill.tooltip_text = _("Fill color");
+        /* fill.use_alpha = true;
         fill.color_set.connect (() => {
             path.fill.base_color = fill.get_rgba ();
             path.update ();
-        });
+        }); */
 
         stroke.tooltip_text = _("Stroke color");
+        /* stroke.use_alpha = true;
         stroke.color_set.connect (() => {
             path.stroke.base_color = stroke.get_rgba ();
             path.update ();
-        });
+        }); */
     }
 }

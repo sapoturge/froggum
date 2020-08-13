@@ -12,6 +12,7 @@ executable(
     'src/widgets/EditorView.vala',
     'src/widgets/PathRow.vala',
     'src/widgets/Viewport.vala',
+    'src/widgets/PatternButton.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',
