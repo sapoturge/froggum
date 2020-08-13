@@ -7,5 +7,5 @@ Exec=com.github.sapoturge.froggum
 Icon=com.github.sapoturge.froggum
 Terminal=false
 Type=Application
-MineType=image/svg-xml;
+MimeType=image/svg-xml;
 

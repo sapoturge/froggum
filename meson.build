@@ -19,6 +19,7 @@ executable(
     dependencies: [
         dependency('gtk+-3.0'),
         dependency('granite'),
+        dependency('libxml-2.0'),
         cc.find_library('m', required: false)
     ],
     install: true
