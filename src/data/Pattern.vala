@@ -1,19 +1,27 @@
+public enum PatternType {
+    COLOR = 0,
+    GRADIENT = 1
+}
+
 public class Pattern : Object {
     private Cairo.Pattern pattern;
 
-    private Gdk.RGBA _base_color;
-    public Gdk.RGBA base_color {
+    public PatternType pattern_type { get; private set; }
+
+    private Gdk.RGBA _rgba;
+    public Gdk.RGBA rgba {
         get {
-            return _base_color;
+            return _rgba;
         }
         set {
-            _base_color = value;
+            _rgba = value;
+            pattern_type = COLOR;
             pattern = new Cairo.Pattern.rgba (value.red, value.green, value.blue, value.alpha);
         }
     }
 
     public Pattern.color (Gdk.RGBA color) {
-        base_color = color;
+        rgba = color;
     }
 
     public void apply (Cairo.Context cr) {
