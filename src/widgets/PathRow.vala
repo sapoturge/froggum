@@ -24,8 +24,8 @@ public class PathRow : Gtk.ListBoxRow {
         });
         title.text = path.title;
         path.bind_property ("title", title, "text", BindingFlags.BIDIRECTIONAL);
-        fill.rgba = path.fill;
-        stroke.rgba = path.stroke;
+        fill.rgba = path.fill.base_color;
+        stroke.rgba = path.stroke.base_color;
     }
 
     construct {
@@ -64,13 +64,13 @@ public class PathRow : Gtk.ListBoxRow {
 
         fill.tooltip_text = _("Fill color");
         fill.color_set.connect (() => {
-            path.fill = fill.get_rgba ();
+            path.fill.base_color = fill.get_rgba ();
             path.update ();
         });
 
         stroke.tooltip_text = _("Stroke color");
         stroke.color_set.connect (() => {
-            path.stroke = stroke.get_rgba ();
+            path.stroke.base_color = stroke.get_rgba ();
             path.update ();
         });
     }

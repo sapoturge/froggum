@@ -16,6 +16,7 @@ executable(
     'src/data/Path.vala',
     'src/data/Segment.vala',
     'src/data/Point.vala',
+    'src/data/Pattern.vala',
     dependencies: [
         dependency('gtk+-3.0'),
         dependency('granite'),

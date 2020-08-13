@@ -1,8 +1,8 @@
 public class Path : Object {
     public Segment root_segment;
 
-    public Gdk.RGBA fill { get; set; }
-    public Gdk.RGBA stroke { get; set; }
+    public Pattern fill;
+    public Pattern stroke;
 
     public string title { get; set; }
 
@@ -50,6 +50,10 @@ public class Path : Object {
                  Gdk.RGBA fill = {0, 0, 0, 0},
                  Gdk.RGBA stroke = {0, 0, 0, 0},
                  string title = "Path") {
+        this.with_pattern (segments, new Pattern.color (fill), new Pattern.color (stroke), title);
+    }
+
+    public Path.with_pattern (Segment[] segments, Pattern fill, Pattern stroke, string title) {
         this.root_segment = segments[0];
         this.fill = fill;
         this.stroke = stroke;
@@ -63,6 +67,8 @@ public class Path : Object {
         }
         select.connect (() => { update(); });
         notify.connect (() => { update(); });
+        this.fill.notify.connect (() => { update(); });
+        this.stroke.notify.connect (() => { update(); });
     }
 
     public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {
@@ -145,7 +151,7 @@ public class Path : Object {
             new_segments += current_segment.copy ();
             current_segment = current_segment.next;
         }
-        return new Path (new_segments, fill, stroke, title);
+        return new Path.with_pattern (new_segments, fill, stroke, title);
     }
 
     public void split_segment (Segment segment) {
@@ -175,20 +181,22 @@ public class Path : Object {
         }
         cr.close_path ();
         if (fill == null) {
-            fill = this.fill;
+            this.fill.apply (cr);
+        } else {
+            cr.set_source_rgba (fill.red,
+                                fill.green,
+                                fill.blue,
+                                fill.alpha);
         }
-        cr.set_source_rgba (fill.red,
-                            fill.green,
-                            fill.blue,
-                            fill.alpha);
         cr.fill_preserve ();
         if (stroke == null) {
-            stroke = this.stroke;
+            this.stroke.apply (cr);
+        } else {
+            cr.set_source_rgba (stroke.red,
+                                stroke.green,
+                                stroke.blue,
+                                stroke.alpha);
         }
-        cr.set_source_rgba (stroke.red,
-                            stroke.green,
-                            stroke.blue,
-                            stroke.alpha);
         cr.stroke ();
     }
 

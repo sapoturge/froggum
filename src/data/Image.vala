@@ -271,14 +271,14 @@ public class Image : Object, ListModel {
             for (int i = 0; i < paths.length; i++) {
                 var path = paths.index (i);
                 yield stream.write_all_async ("<path id=\"%s\" style=\"fill:#".printf (path.title).data, 0, null, out written);
-                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.fill.red * 255),
-                                                         (uint) (path.fill.green * 255),
-                                                         (uint) (path.fill.blue * 255)).data, 0, null, out written);
+                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.fill.base_color.red * 255),
+                                                         (uint) (path.fill.base_color.green * 255),
+                                                         (uint) (path.fill.base_color.blue * 255)).data, 0, null, out written);
                 yield stream.write_all_async (";stroke:#".data, 0, null, out written);
-                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.stroke.red * 255),
-                                                         (uint) (path.stroke.green * 255),
-                                                         (uint) (path.stroke.blue * 255)).data, 0, null, out written);
-                yield stream.write_all_async (";fill-opacity:%f;stroke-opacity:%f".printf (path.fill.alpha, path.stroke.alpha).data, 0, null, out written);
+                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.stroke.base_color.red * 255),
+                                                         (uint) (path.stroke.base_color.green * 255),
+                                                         (uint) (path.stroke.base_color.blue * 255)).data, 0, null, out written);
+                yield stream.write_all_async (";fill-opacity:%f;stroke-opacity:%f".printf (path.fill.base_color.alpha, path.stroke.base_color.alpha).data, 0, null, out written);
                 yield stream.write_all_async ("\" d=\"".data, 0, null, out written);
                 yield stream.write_all_async ("M %f %f ".printf (path.root_segment.start.x, path.root_segment.start.y).data, 0, null, out written);
                 var s = path.root_segment;
