@@ -62,6 +62,7 @@ public class Path : Object {
             segments[i].next.start = segments[i].end;
         }
         select.connect (() => { update(); });
+        notify.connect (() => { update(); });
     }
 
     public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {

@@ -4,7 +4,7 @@ public class PathRow : Gtk.ListBoxRow {
     private int view_height;
 
     private Gtk.DrawingArea view;
-    private Gtk.Label title;
+    private Gtk.Entry title;
     private Gtk.ColorButton fill;
     private Gtk.ColorButton stroke;
 
@@ -22,8 +22,8 @@ public class PathRow : Gtk.ListBoxRow {
                 activate ();
             }
         });
-        title.label = path.title;
-        path.bind_property ("title", title, "label", BindingFlags.DEFAULT);
+        title.text = path.title;
+        path.bind_property ("title", title, "text", BindingFlags.BIDIRECTIONAL);
         fill.rgba = path.fill;
         stroke.rgba = path.stroke;
     }
@@ -32,7 +32,7 @@ public class PathRow : Gtk.ListBoxRow {
         var layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
         view = new Gtk.DrawingArea ();
         var visibility = new Gtk.Switch ();
-        title = new Gtk.Label ("");
+        title = new Gtk.Entry ();
         fill = new Gtk.ColorButton ();
         stroke = new Gtk.ColorButton ();
 
@@ -52,6 +52,8 @@ public class PathRow : Gtk.ListBoxRow {
             view_width = alloc.width;
             view_height = alloc.height;
         });
+
+        title.has_frame = false;
 
         visibility.active = true;
         visibility.tooltip_text = _("Visibility");

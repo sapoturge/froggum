@@ -76,6 +76,7 @@ public class Image : Object, ListModel {
                 if (iter->name == "path") {
                     Gdk.RGBA fill;
                     Gdk.RGBA stroke;
+                    var name = iter->get_prop ("id");
                     var style = iter->get_prop ("style");
                     if (style != null) {
                         var styles = style.split (";");
@@ -119,7 +120,7 @@ public class Image : Object, ListModel {
                         stroke = {0.33, 0.33, 0.33, 1};
                     }
                     var data = iter->get_prop ("d");
-                    paths.append_val(new Path.from_string (data, fill, stroke, "Path"));
+                    paths.append_val(new Path.from_string (data, fill, stroke, name));
                 }
             }
         }
@@ -269,7 +270,7 @@ public class Image : Object, ListModel {
             yield stream.write_all_async ("<svg version=\"1.1\" width=\"%d\" height=\"%d\">\n".printf (width, height).data, 0, null, out written);
             for (int i = 0; i < paths.length; i++) {
                 var path = paths.index (i);
-                yield stream.write_all_async ("<path style=\"fill:#".data, 0, null, out written);
+                yield stream.write_all_async ("<path id=\"%s\" style=\"fill:#".printf (path.title).data, 0, null, out written);
                 yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.fill.red * 255),
                                                          (uint) (path.fill.green * 255),
                                                          (uint) (path.fill.blue * 255)).data, 0, null, out written);
