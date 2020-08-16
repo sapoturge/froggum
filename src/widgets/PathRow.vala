@@ -25,9 +25,9 @@ public class PathRow : Gtk.ListBoxRow {
         title.text = path.title;
         path.bind_property ("title", title, "text", BindingFlags.BIDIRECTIONAL);
         fill.pattern = path.fill;
-        path.bind_property ("fill", fill, "pattern", BindingFlags.BIDIRECTIONAL);
+        fill.bind_property ("pattern", path, "fill");
         stroke.pattern = path.stroke;
-        path.bind_property ("stroke", stroke, "pattern", BindingFlags.BIDIRECTIONAL);
+        stroke.bind_property ("pattern", path, "stroke");
     }
 
     construct {
