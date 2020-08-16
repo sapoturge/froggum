@@ -1,7 +1,8 @@
 public enum PatternType {
-    COLOR = 0,
-    LINEAR = 1,
-    RADIAL = 2,
+    NONE = 0,
+    COLOR = 1,
+    LINEAR = 2,
+    RADIAL = 3,
 }
 
 public class Pattern : Object {
@@ -32,20 +33,25 @@ public class Pattern : Object {
 
     private Array<Stop> stops;
 
+    public Pattern.none () {
+        pattern_type = NONE;
+    }
+
     public Pattern.color (Gdk.RGBA color) {
+        pattern_type = COLOR;
         rgba = color;
     }
 
     public Pattern.linear (Point start, Point end) {
         this.start = start;
         this.end = end;
-        this.pattern_type = LINEAR;
+        pattern_type = LINEAR;
     }
 
     public Pattern.radial (Point start, Point end) {
         this.start = start;
         this.end = end;
-        this.pattern_type = RADIAL;
+        pattern_type = RADIAL;
     }
 
     construct {
@@ -56,6 +62,8 @@ public class Pattern : Object {
         
     private void refresh_pattern () {
         switch (pattern_type) {
+            case NONE:
+                break;
             case COLOR:
                 pattern = new Cairo.Pattern.rgba (rgba.red, rgba.green, rgba.blue, rgba.alpha);
                 break;
@@ -77,7 +85,9 @@ public class Pattern : Object {
     }
 
     public void apply (Cairo.Context cr) {
-        cr.set_source (pattern);
+        if (pattern_type != PatternType.NONE) {
+            cr.set_source (pattern);
+        }
     }
 }
 

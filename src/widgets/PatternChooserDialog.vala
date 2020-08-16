@@ -31,6 +31,7 @@ public class PatternChooserDialog : Gtk.Dialog {
         }
     }
 
+    private Gtk.RadioButton no_color;
     private Gtk.RadioButton pure_color;
     private Gtk.RadioButton gradient;
 
@@ -39,7 +40,15 @@ public class PatternChooserDialog : Gtk.Dialog {
     private Gtk.Switch linear_radial;
 
     construct {
-        pure_color = new Gtk.RadioButton.with_label (null, "Solid Color");
+        no_color = new Gtk.RadioButton.with_label (null, _("None"));
+        no_color.toggled.connect (() => {
+            if (no_color.active) {
+                pattern.pattern_type = PatternType.NONE;
+                swap_sensitivity (PatternType.NONE);
+            }
+        });
+        
+        pure_color = new Gtk.RadioButton.with_label_from_widget (no_color, _("Solid Color"));
         pure_color.toggled.connect (() => {
             if (pure_color.active) {
                 pattern.pattern_type = PatternType.COLOR;
@@ -53,8 +62,6 @@ public class PatternChooserDialog : Gtk.Dialog {
         color.color_set.connect (() => {
             pattern.rgba = color.rgba;
         });
-
-        var row = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
 
         gradient = new Gtk.RadioButton.with_label_from_widget (pure_color, "Gradient");
         gradient.toggled.connect (() => {
@@ -81,11 +88,13 @@ public class PatternChooserDialog : Gtk.Dialog {
         linear_radial.attach (radial, 2, 0);
 
         var layout = new Gtk.Grid ();
-        layout.attach (pure_color, 0, 0);
-        layout.attach (color, 1, 0);
-        layout.attach (row, 0, 1, 3);
-        layout.attach (gradient, 0, 2);
-        layout.attach (linear_radial, 1, 2);
+        layout.attach (no_color, 0, 0);
+        layout.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 1, 3);
+        layout.attach (pure_color, 0, 2);
+        layout.attach (color, 1, 2);
+        layout.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 3, 3);
+        layout.attach (gradient, 0, 4);
+        layout.attach (linear_radial, 1, 4);
 
         var content_area = get_content_area ();
         content_area.add (layout);
@@ -94,17 +103,20 @@ public class PatternChooserDialog : Gtk.Dialog {
     }
 
     private void swap_sensitivity (PatternType new_type) {
+        linear_radial.sensitive = false;
+        color.sensitive = false;
         switch (new_type) {
             case COLOR:
-                linear_radial.sensitive = false;
                 color.sensitive = true;
                 pure_color.active = true;
                 break;
             case LINEAR:
             case RADIAL:
-                color.sensitive = false;
                 linear_radial.sensitive = true;
                 gradient.active = true;
+                break;
+            case NONE:
+                no_color.active = true;
                 break;
         }
     }
