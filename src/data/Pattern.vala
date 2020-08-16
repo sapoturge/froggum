@@ -63,6 +63,7 @@ public class Pattern : Object {
     private void refresh_pattern () {
         switch (pattern_type) {
             case NONE:
+                pattern = new Cairo.Pattern.rgba (0, 0, 0, 0);
                 break;
             case COLOR:
                 pattern = new Cairo.Pattern.rgba (rgba.red, rgba.green, rgba.blue, rgba.alpha);
@@ -85,9 +86,7 @@ public class Pattern : Object {
     }
 
     public void apply (Cairo.Context cr) {
-        if (pattern_type != PatternType.NONE) {
-            cr.set_source (pattern);
-        }
+        cr.set_source (pattern);
     }
 }
 
