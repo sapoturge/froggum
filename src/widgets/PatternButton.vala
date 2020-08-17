@@ -46,6 +46,7 @@ public class PatternButton : Gtk.Button {
             dialog.pattern = pattern;
             dialog.run ();
             pattern = dialog.pattern;
+            dialog.hide ();
         });
     }
 }

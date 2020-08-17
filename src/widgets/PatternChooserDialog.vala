@@ -87,14 +87,21 @@ public class PatternChooserDialog : Gtk.Dialog {
         linear_radial.attach (this.linear_radial, 1, 0);
         linear_radial.attach (radial, 2, 0);
 
-        var layout = new Gtk.Grid ();
-        layout.attach (no_color, 0, 0);
-        layout.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 1, 3);
-        layout.attach (pure_color, 0, 2);
-        layout.attach (color, 1, 2);
-        layout.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 3, 3);
-        layout.attach (gradient, 0, 4);
-        layout.attach (linear_radial, 1, 4);
+        var color_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+        color_row.pack_start (pure_color, true, true, 0);
+        color_row.pack_end (color, false, false, 0);
+
+        var gradient_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+        gradient_row.pack_start (gradient, true, true, 0);
+        gradient_row.pack_end (linear_radial, false, false, 0);
+
+        var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
+        layout.border_width = 3;
+        layout.pack_start (no_color, false, false, 0);
+        layout.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false, 0);
+        layout.pack_start (color_row, false, false, 0);
+        layout.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false, 0);
+        layout.pack_start (gradient_row, false, false, 0);
 
         var content_area = get_content_area ();
         content_area.add (layout);
