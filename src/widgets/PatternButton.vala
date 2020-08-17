@@ -24,15 +24,18 @@ public class PatternButton : Gtk.Button {
         Pango.Rectangle rect;
         layout.get_pixel_extents (null, out rect);
         viewport.set_size_request (rect.width, rect.height);
-        width = rect.width;
-        height = rect.height;
     }
 
     construct {
         viewport = new Gtk.DrawingArea ();
 
+        viewport.size_allocate.connect ((alloc) => {
+            width = alloc.width;
+            height = alloc.height;
+        });
+
         viewport.draw.connect ((cr) => {
-            pattern.apply (cr);
+            pattern.apply_custom (cr, {0, 0}, {width, height});
             cr.paint ();
         });
 

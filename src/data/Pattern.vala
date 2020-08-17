@@ -88,6 +88,45 @@ public class Pattern : Object {
     public void apply (Cairo.Context cr) {
         cr.set_source (pattern);
     }
+
+    public void apply_custom (Cairo.Context cr, Point start, Point end, PatternType? type=null) {
+        if (type == null) {
+            type = pattern_type;
+        }
+        Cairo.Pattern custom_pattern;
+        switch (type) {
+            case COLOR:
+                custom_pattern = pattern;
+                break;
+            case LINEAR:
+                custom_pattern = new Cairo.Pattern.linear (start.x, start.y, end.x, end.y);
+                for (int i = 0; i < stops.length; i++) {
+                    var s = stops.index (i);
+                    custom_pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
+                }
+                break;
+            case RADIAL:
+                custom_pattern = new Cairo.Pattern.radial (start.x, start.y, 0, start.x, start.y, Math.hypot (end.x - start.x, end.y - start.y));
+                for (int i = 0; i < stops.length; i++) {
+                    var s = stops.index (i);
+                    custom_pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
+                }
+                break;
+            default: // NONE
+                var cx = start.x + (end.x - start.x) / 2;
+                var cy = start.y + (end.y - start.y) / 2;
+                var sx = cx - (end.y - start.y) / 2;
+                var sy = cy - (end.x - start.x) / 2;
+                var ex = cx + (end.y - start.y) / 2;
+                var ey = cy + (end.x - start.x) / 2;
+                custom_pattern = new Cairo.Pattern.linear (sx, sy, ex, ey);
+                custom_pattern.add_color_stop_rgba (0.4, 0, 0, 0, 0);
+                custom_pattern.add_color_stop_rgba (0.5, 1, 0, 0, 1);
+                custom_pattern.add_color_stop_rgba (0.6, 0, 0, 0, 0);
+                break;
+        }
+        cr.set_source (custom_pattern);
+    }
 }
 
 public class Stop : Object {
