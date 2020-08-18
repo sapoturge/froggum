@@ -1,8 +1,27 @@
 public class Path : Object {
     public Segment root_segment;
 
-    public Pattern fill { get; set; }
-    public Pattern stroke { get; set; }
+    private Pattern _fill;
+    public Pattern fill {
+        get {
+            return _fill;
+        }
+        set {
+            _fill = value;
+            fill.notify.connect (() => { update (); });
+        }
+    }
+
+    private Pattern _stroke;
+    public Pattern stroke {
+        get {
+            return _stroke;
+        }
+        set {
+            _stroke = value;
+            stroke.notify.connect (() => { update (); });
+        }
+    }
 
     public string title { get; set; }
 
@@ -67,8 +86,6 @@ public class Path : Object {
         }
         select.connect (() => { update(); });
         notify.connect (() => { update(); });
-        this.fill.notify.connect (() => { update(); });
-        this.stroke.notify.connect (() => { update(); });
     }
 
     public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {
