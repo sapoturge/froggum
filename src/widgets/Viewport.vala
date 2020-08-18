@@ -240,6 +240,62 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     cr.fill ();
                     s = s.next;
                 }
+
+                if (selected_path.fill.pattern_type == PatternType.LINEAR ||
+                    selected_path.fill.pattern_type == PatternType.RADIAL) {
+                    cr.move_to (selected_path.fill.start.x, selected_path.fill.start.y);
+                    cr.line_to (selected_path.fill.end.x, selected_path.fill.end.y);
+                    cr.set_source_rgba (0, 1, 0, 0.9);
+                    cr.stroke ();
+
+                    cr.arc (selected_path.fill.start.x, selected_path.fill.start.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.new_sub_path ();
+                    cr.arc (selected_path.fill.end.x, selected_path.fill.end.y, 6 / zoom, 0, 3.14159265 * 2);
+                 
+                    for (int i = 0; i < selected_path.fill.get_n_items (); i++) {
+                        var stop = (Stop) selected_path.fill.get_item (i);
+                        cr.new_sub_path ();
+                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, 3.14159265 * 2);
+                    }
+
+                    cr.fill ();
+
+                    for (int i = 0; i < selected_path.fill.get_n_items (); i++) {
+                        var stop = (Stop) selected_path.fill.get_item (i);
+                        cr.new_sub_path ();
+                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, 3.14159265 * 2);
+                        cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
+                        cr.fill ();
+                    }
+                }
+
+                if (selected_path.stroke.pattern_type == PatternType.LINEAR ||
+                    selected_path.stroke.pattern_type == PatternType.RADIAL) {
+                    cr.move_to (selected_path.stroke.start.x, selected_path.stroke.start.y);
+                    cr.line_to (selected_path.stroke.end.x, selected_path.stroke.end.y);
+                    cr.set_source_rgba (0, 1, 0, 0.9);
+                    cr.stroke ();
+
+                    cr.arc (selected_path.stroke.start.x, selected_path.stroke.start.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.new_sub_path ();
+                    cr.arc (selected_path.stroke.end.x, selected_path.stroke.end.y, 6 / zoom, 0, 3.14159265 * 2);
+                 
+                    for (int i = 0; i < selected_path.stroke.get_n_items (); i++) {
+                        var stop = (Stop) selected_path.stroke.get_item (i);
+                        cr.new_sub_path ();
+                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, 3.14159265 * 2);
+                    }
+
+                    cr.fill ();
+
+                    for (int i = 0; i < selected_path.stroke.get_n_items (); i++) {
+                        var stop = (Stop) selected_path.stroke.get_item (i);
+                        cr.new_sub_path ();
+                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, 3.14159265 * 2);
+                        cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
+                        cr.fill ();
+                    }
+                }
             }
 
             cr.restore();

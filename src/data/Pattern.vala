@@ -28,8 +28,8 @@ public class Pattern : Object, ListModel {
         }
     }
 
-    public Point start { get; set; }
-    public Point end { get; set; }
+    public Point start { get; set; default = {0, 0}; }
+    public Point end { get; set; default = {5, 5}; }
 
     private Array<Stop> stops;
 
