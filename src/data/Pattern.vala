@@ -5,7 +5,7 @@ public enum PatternType {
     RADIAL = 3,
 }
 
-public class Pattern : Object {
+public class Pattern : Object, ListModel {
     private Cairo.Pattern pattern;
 
     private PatternType _pattern_type;
@@ -58,6 +58,21 @@ public class Pattern : Object {
         stops = new Array<Stop> ();
 
         notify.connect (() => { refresh_pattern (); });
+    }
+
+    public Object? get_item (uint index) {
+        if (index < stops.length) {
+            return stops.index (index);
+        }
+        return null;
+    }
+
+    public Type get_item_type () {
+        return typeof (Stop);
+    }
+
+    public uint get_n_items () {
+        return stops.length;
     }
         
     private void refresh_pattern () {
@@ -119,13 +134,21 @@ public class Pattern : Object {
                 var sy = cy - (end.x - start.x) / 2;
                 var ex = cx + (end.y - start.y) / 2;
                 var ey = cy + (end.x - start.x) / 2;
-                custom_pattern = new Cairo.Pattern.linear (sx, sy, ex, ey);
+                custom_pattern = new Cairo.Pattern.linear (sx, ey, ex, sy);
                 custom_pattern.add_color_stop_rgba (0.4, 0, 0, 0, 0);
-                custom_pattern.add_color_stop_rgba (0.5, 1, 0, 0, 1);
+                custom_pattern.add_color_stop_rgba (0.43, 1, 0, 0, 1);
+                custom_pattern.add_color_stop_rgba (0.57, 1, 0, 0, 1);
                 custom_pattern.add_color_stop_rgba (0.6, 0, 0, 0, 0);
                 break;
         }
         cr.set_source (custom_pattern);
+    }
+
+    public void add_stop (Stop stop) {
+        stops.append_val (stop);
+        bind_property ("start", stop, "start");
+        bind_property ("end", stop, "end");
+        items_changed (stops.length - 1, 0, 1);
     }
 }
 

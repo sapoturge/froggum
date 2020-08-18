@@ -14,6 +14,7 @@ executable(
     'src/widgets/Viewport.vala',
     'src/widgets/PatternButton.vala',
     'src/widgets/PatternChooserDialog.vala',
+    'src/widgets/GradientEditor.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',

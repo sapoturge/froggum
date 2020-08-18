@@ -87,6 +87,9 @@ public class PatternChooserDialog : Gtk.Dialog {
         linear_radial.attach (this.linear_radial, 1, 0);
         linear_radial.attach (radial, 2, 0);
 
+        var editor = new GradientEditor ();
+        bind_property ("pattern", editor, "pattern");
+
         var color_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
         color_row.pack_start (pure_color, true, true, 0);
         color_row.pack_end (color, false, false, 0);
@@ -102,6 +105,7 @@ public class PatternChooserDialog : Gtk.Dialog {
         layout.pack_start (color_row, false, false, 0);
         layout.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false, 0);
         layout.pack_start (gradient_row, false, false, 0);
+        layout.pack_start (editor, false, false, 0);
 
         var content_area = get_content_area ();
         content_area.add (layout);
