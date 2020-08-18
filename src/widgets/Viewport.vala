@@ -391,6 +391,48 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     }
                     s = s.next;
                 }
+
+                if (selected_path.fill.pattern_type == LINEAR || selected_path.fill.pattern_type == RADIAL) {
+                    for (var i = 0; i < selected_path.fill.get_n_items (); i++) {
+                        var stop = (Stop) selected_path.fill.get_item (i);
+                        if ((x - stop.display.x).abs () <= 6 / zoom && (y - stop.display.y).abs () <= 6 / zoom) {
+                            point_binding = bind_property ("control_point", stop, "display");
+                            control_point = {x, y};
+                            return false;
+                        }
+                    }
+                    if ((x - selected_path.fill.start.x).abs () <= 6 / zoom && (y - selected_path.fill.start.y).abs () <= 6 / zoom) {
+                        point_binding = bind_property ("control_point", selected_path.fill, "start");
+                        control_point = {x, y};
+                        return false;
+                    }
+                    if ((x - selected_path.fill.end.x).abs () <= 6 / zoom && (y - selected_path.fill.end.y).abs () <= 6 / zoom) {
+                        point_binding = bind_property ("control_point", selected_path.fill, "end");
+                        control_point = {x, y};
+                        return false;
+                    }
+                }
+
+                if (selected_path.stroke.pattern_type == LINEAR || selected_path.stroke.pattern_type == RADIAL) {
+                    for (var i = 0; i < selected_path.stroke.get_n_items (); i++) {
+                        var stop = (Stop) selected_path.stroke.get_item (i);
+                        if ((x - stop.display.x).abs () <= 6 / zoom && (y - stop.display.y).abs () <= 6 / zoom) {
+                            point_binding = bind_property ("control_point", stop, "display");
+                            control_point = {x, y};
+                            return false;
+                        }
+                    }
+                    if ((x - selected_path.stroke.start.x).abs () <= 6 / zoom && (y - selected_path.stroke.start.y).abs () <= 6 / zoom) {
+                        point_binding = bind_property ("control_point", selected_path.stroke, "start");
+                        control_point = {x, y};
+                        return false;
+                    }
+                    if ((x - selected_path.stroke.end.x).abs () <= 6 / zoom && (y - selected_path.stroke.end.y).abs () <= 6 / zoom) {
+                        point_binding = bind_property ("control_point", selected_path.stroke, "end");
+                        control_point = {x, y};
+                        return false;
+                    }
+                }
             }
             // Check for clicking on a path (not control handle)
             if (clicked && path == selected_path) {
