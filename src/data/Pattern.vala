@@ -8,28 +8,11 @@ public enum PatternType {
 public class Pattern : Object, ListModel {
     private Cairo.Pattern pattern;
 
-    private PatternType _pattern_type;
-    public PatternType pattern_type {
-        get {
-            return _pattern_type;
-        }
-        set {
-            _pattern_type = value;
-        }
-    }
+    public PatternType pattern_type { get; set; }
+    public Gdk.RGBA rgba { get; set; }
 
-    private Gdk.RGBA _rgba;
-    public Gdk.RGBA rgba {
-        get {
-            return _rgba;
-        }
-        set {
-            _rgba = value;
-        }
-    }
-
-    public Point start { get; set; default = {0, 0}; }
-    public Point end { get; set; default = {5, 5}; }
+    public Point start { get; set; }
+    public Point end { get; set; }
 
     private Array<Stop> stops;
 
@@ -56,6 +39,8 @@ public class Pattern : Object, ListModel {
 
     construct {
         stops = new Array<Stop> ();
+        start = {0, 0};
+        end = {5, 5};
 
         notify.connect (() => { refresh_pattern (); });
     }
@@ -74,7 +59,7 @@ public class Pattern : Object, ListModel {
     public uint get_n_items () {
         return stops.length;
     }
-        
+
     private void refresh_pattern () {
         switch (pattern_type) {
             case NONE:
@@ -146,6 +131,8 @@ public class Pattern : Object, ListModel {
 
     public void add_stop (Stop stop) {
         stops.append_val (stop);
+        stop.start = start;
+        stop.end = end;
         bind_property ("start", stop, "start");
         bind_property ("end", stop, "end");
         stop.notify.connect (() => { pattern_type = pattern_type; });

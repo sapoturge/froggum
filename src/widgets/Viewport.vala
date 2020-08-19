@@ -18,6 +18,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Gtk.Adjustment vertical;
 
     public Point control_point { get; set; }
+
     private Binding point_binding;
 
     public Image image {
@@ -27,7 +28,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         set {
             _image = value;
             _image.update.connect (() => {
-                queue_draw_area (0, 0, width, height);
+                queue_draw ();
             });
             _image.path_selected.connect ((path) => {
                 selected_path = path;
@@ -36,7 +37,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             scroll_y = -_image.height / 2;
         }
     }
-            
+
     private int scroll_x {
         get {
             return _scroll_x;
@@ -193,7 +194,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Draw Control Handles
             if (selected_path != null) {
                 selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
-                
+
                 cr.set_line_width (1 / zoom);
                 var s = selected_path.root_segment;
                 var first = true;
@@ -279,7 +280,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     cr.arc (selected_path.stroke.start.x, selected_path.stroke.start.y, 6 / zoom, 0, 3.14159265 * 2);
                     cr.new_sub_path ();
                     cr.arc (selected_path.stroke.end.x, selected_path.stroke.end.y, 6 / zoom, 0, 3.14159265 * 2);
-                 
+
                     for (int i = 0; i < selected_path.stroke.get_n_items (); i++) {
                         var stop = (Stop) selected_path.stroke.get_item (i);
                         cr.new_sub_path ();
@@ -305,7 +306,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         size_allocate.connect ((alloc) => {
             width = alloc.width;
             height = alloc.height;
-            
+
             horizontal.page_size = width;
             vertical.page_size = height;
 
@@ -313,7 +314,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             scroll_x = scroll_x;
             scroll_y = scroll_y;
         });
-        
+
         button_press_event.connect ((event) => {
             Path path = null;
             Segment segment = null;
@@ -342,48 +343,49 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 var s = selected_path.root_segment;
                 var first = true;
                 while (first || s != selected_path.root_segment) {
+                    print ("%f\n", s.end.x);
                     first = false;
                     if ((x - s.end.x).abs () <= 6 / zoom && (y - s.end.y).abs () <= 6 / zoom) {
-                        point_binding = bind_property ("control_point", s, "end", BindingFlags.DEFAULT);
+                        point_binding = bind_property ("control-point", s, "end");
                         control_point = {x, y};
                         return false;
                     }
                     switch (s.segment_type) {
                         case SegmentType.CURVE:
                             if ((x - s.p1.x).abs () <= 6 / zoom && (y - s.p1.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "p1", BindingFlags.DEFAULT);
+                                point_binding = bind_property ("control-point", s, "p1");
                                 control_point = {x, y};
                                 return false;
                             }
                             if ((x - s.p2.x).abs () <= 6 / zoom && (y - s.p2.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "p2", BindingFlags.DEFAULT);
+                                point_binding = bind_property ("control-point", s, "p2");
                                 control_point = {x, y};
                                 return false;
                             }
                             break;
                         case SegmentType.ARC:
                             if ((x - s.controller.x).abs () <= 6 / zoom && (y - s.controller.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "controller", BindingFlags.DEFAULT);
+                                point_binding = bind_property ("control-point", s, "controller");
                                 control_point = {x, y};
                                 return false;
                             }
                             if ((x - s.topleft.x).abs () <= 6 / zoom && (y - s.topleft.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "topleft", BindingFlags.DEFAULT);
+                                point_binding = bind_property ("control-point", s, "topleft");
                                 control_point = {x, y};
                                 return false;
                             }
                             if ((x - s.topright.x).abs () <= 6 / zoom && (y - s.topright.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "topright", BindingFlags.DEFAULT);
+                                point_binding = bind_property ("control-point", s, "topright");
                                 control_point = {x, y};
                                 return false;
                             }
                             if ((x - s.bottomleft.x).abs () <= 6 / zoom && (y - s.bottomleft.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "bottomleft", BindingFlags.DEFAULT);
+                                point_binding = bind_property ("control-point", s, "bottomleft");
                                 control_point = {x, y};
                                 return false;
                             }
                             if ((x - s.bottomright.x).abs () <= 6 / zoom && (y - s.bottomright.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control_point", s, "bottomright", BindingFlags.DEFAULT);
+                                point_binding = bind_property ("control-point", s, "bottomright");
                                 control_point = {x, y};
                                 return false;
                             }
@@ -396,18 +398,18 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     for (var i = 0; i < selected_path.fill.get_n_items (); i++) {
                         var stop = (Stop) selected_path.fill.get_item (i);
                         if ((x - stop.display.x).abs () <= 6 / zoom && (y - stop.display.y).abs () <= 6 / zoom) {
-                            point_binding = bind_property ("control_point", stop, "display");
+                            point_binding = bind_property ("control-point", stop, "display");
                             control_point = {x, y};
                             return false;
                         }
                     }
                     if ((x - selected_path.fill.start.x).abs () <= 6 / zoom && (y - selected_path.fill.start.y).abs () <= 6 / zoom) {
-                        point_binding = bind_property ("control_point", selected_path.fill, "start");
+                        point_binding = bind_property ("control-point", selected_path.fill, "start");
                         control_point = {x, y};
                         return false;
                     }
                     if ((x - selected_path.fill.end.x).abs () <= 6 / zoom && (y - selected_path.fill.end.y).abs () <= 6 / zoom) {
-                        point_binding = bind_property ("control_point", selected_path.fill, "end");
+                        point_binding = bind_property ("control-point", selected_path.fill, "end");
                         control_point = {x, y};
                         return false;
                     }
@@ -417,18 +419,18 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     for (var i = 0; i < selected_path.stroke.get_n_items (); i++) {
                         var stop = (Stop) selected_path.stroke.get_item (i);
                         if ((x - stop.display.x).abs () <= 6 / zoom && (y - stop.display.y).abs () <= 6 / zoom) {
-                            point_binding = bind_property ("control_point", stop, "display");
+                            point_binding = bind_property ("control-point", stop, "display");
                             control_point = {x, y};
                             return false;
                         }
                     }
                     if ((x - selected_path.stroke.start.x).abs () <= 6 / zoom && (y - selected_path.stroke.start.y).abs () <= 6 / zoom) {
-                        point_binding = bind_property ("control_point", selected_path.stroke, "start");
+                        point_binding = bind_property ("control-point", selected_path.stroke, "start");
                         control_point = {x, y};
                         return false;
                     }
                     if ((x - selected_path.stroke.end.x).abs () <= 6 / zoom && (y - selected_path.stroke.end.y).abs () <= 6 / zoom) {
-                        point_binding = bind_property ("control_point", selected_path.stroke, "end");
+                        point_binding = bind_property ("control-point", selected_path.stroke, "end");
                         control_point = {x, y};
                         return false;
                     }
@@ -437,11 +439,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for clicking on a path (not control handle)
             if (clicked && path == selected_path) {
                 selected_path.start_dragging ({x, y});
-                point_binding = bind_property ("control_point", selected_path, "reference", BindingFlags.DEFAULT);
+                point_binding = bind_property ("control-point", selected_path, "reference");
                 control_point = {x, y};
                 return false;
             }
             // Assume dragging
+            print ("Scrolling!\n");
             scrolling = true;
             base_x = (int) event.x - scroll_x;
             base_y = (int) event.y - scroll_y;
@@ -450,28 +453,34 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         motion_notify_event.connect ((event) => {
             // Drag control handle (only changes if actually dragging something.)
-            var new_x = scale_x (event.x);
-            var new_y = scale_y (event.y);
-            if ((new_x * 2 - Math.round (new_x * 2)).abs () < 6 / zoom) {
-                new_x = Math.round (new_x * 2) / 2;
+            if (point_binding != null) {
+                var new_x = scale_x (event.x);
+                var new_y = scale_y (event.y);
+                if ((new_x * 2 - Math.round (new_x * 2)).abs () < 6 / zoom) {
+                    new_x = Math.round (new_x * 2) / 2;
+                }
+                if ((new_y * 2 - Math.round (new_y * 2)).abs () < 6 / zoom) {
+                    new_y = Math.round (new_y * 2) / 2;
+                }
+                control_point = {new_x, new_y};
+                print ("%f, %f\n", new_x, new_y);
             }
-            if ((new_y * 2 - Math.round (new_y * 2)).abs () < 6 / zoom) {
-                new_y = Math.round (new_y * 2) / 2;
-            }
-            control_point = {new_x, new_y};
             // Drag entire segment?
             // Scroll
             if (scrolling) {
                 scroll_x = (int) event.x - base_x;
                 scroll_y = (int) event.y - base_y;
-                queue_draw_area (0, 0, width, height);
+                queue_draw ();
             }
             return false;
         });
 
         button_release_event.connect ((event) => {
             // Stop scrolling, dragging, etc.
-            point_binding.unbind ();
+            if (point_binding != null) {
+                point_binding.unbind ();
+                point_binding = null;
+            }
             scrolling = false;
             return false;
         });
@@ -486,7 +495,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 scroll_x /= 2;
                 scroll_y /= 2;
             }
-            queue_draw_area (0, 0, width, height);
+            queue_draw ();
             return false;
         });
     }
