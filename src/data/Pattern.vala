@@ -137,6 +137,7 @@ public class Pattern : Object, ListModel {
         bind_property ("end", stop, "end");
         stop.notify.connect (() => { pattern_type = pattern_type; });
         items_changed (stops.length - 1, 0, 1);
+        pattern_type = pattern_type;
     }
 }
 

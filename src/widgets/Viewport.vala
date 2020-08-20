@@ -343,7 +343,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 var s = selected_path.root_segment;
                 var first = true;
                 while (first || s != selected_path.root_segment) {
-                    print ("%f\n", s.end.x);
                     first = false;
                     if ((x - s.end.x).abs () <= 6 / zoom && (y - s.end.y).abs () <= 6 / zoom) {
                         point_binding = bind_property ("control-point", s, "end");
@@ -444,7 +443,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 return false;
             }
             // Assume dragging
-            print ("Scrolling!\n");
             scrolling = true;
             base_x = (int) event.x - scroll_x;
             base_y = (int) event.y - scroll_y;
@@ -463,7 +461,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     new_y = Math.round (new_y * 2) / 2;
                 }
                 control_point = {new_x, new_y};
-                print ("%f, %f\n", new_x, new_y);
             }
             // Drag entire segment?
             // Scroll

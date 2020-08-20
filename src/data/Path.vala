@@ -160,6 +160,43 @@ public class Path : Object {
         }
         this (segments, fill, stroke, title);
     }
+    
+    public string to_string () {
+        var data = new string[] {"M %f %f".printf (root_segment.start.x, root_segment.start.y)};
+        var s = root_segment;
+        var first = true;
+        while (first || s != root_segment) {
+            first = false;
+            switch (s.segment_type) {
+                case LINE:
+                    data += "L %f %f".printf (s.end.x, s.end.y);
+                    break;
+                case CURVE:
+                    data += "C %f %f %f %f %f %f".printf (s.p1.x, s.p1.y, s.p2.x, s.p2.y, s.end.x, s.end.y);
+                    break;
+                case ARC:
+                    var start = s.start_angle;
+                    var end = s.end_angle;
+                    int large_arc;
+                    int sweep;
+                    if (s.reverse) {
+                        sweep = 0;
+                    } else {
+                        sweep = 1;
+                    }
+                    if (end - start > Math.PI) {
+                        large_arc = 1 - sweep;
+                    } else {
+                        large_arc = sweep;
+                    }
+                    data += "A %f %f %f %d %d %f %f".printf (s.rx, s.ry, s.angle, large_arc, sweep, s.end.x, s.end.y);
+                    break;
+            }
+            s = s.next;
+        }
+        data += "Z";
+        return string.joinv (" ", data);
+    }
         
     public Path copy () {
         Segment[] new_segments = { root_segment.copy () };
