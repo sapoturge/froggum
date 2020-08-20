@@ -83,12 +83,17 @@ public class Image : Object, ListModel {
         if (root->name == "svg") {
             this.width = int.parse (root->get_prop ("width"));
             this.height = int.parse (root->get_prop ("height"));
+            
+            var patterns = new Gee.HashMap<string, Pattern> ();
 
             for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
                 if (iter->name == "path") {
-                    Gdk.RGBA fill;
-                    Gdk.RGBA stroke;
+                    var fill = new Pattern.none ();
+                    var stroke = new Pattern.none ();
                     var name = iter->get_prop ("id");
+                    if (name == null) {
+                        name = "Path";
+                    }
                     var style = iter->get_prop ("style");
                     if (style != null) {
                         var styles = style.split (";");
@@ -125,18 +130,125 @@ public class Image : Object, ListModel {
                                 op.scanf ("%f", &stroke_alpha);
                             }
                         }
-                        fill = {fill_red / 255.0, fill_green / 255.0, fill_blue / 255.0, fill_alpha};
-                        stroke = {stroke_red / 255.0, stroke_green / 255.0, stroke_blue / 255.0, stroke_alpha};
-                    } else {
-                        fill = {0.66, 0.66, 0.66, 1};
-                        stroke = {0.33, 0.33, 0.33, 1};
+                        fill = new Pattern.color ({fill_red / 255.0, fill_green / 255.0, fill_blue / 255.0, fill_alpha});
+                        stroke = new Pattern.color ({stroke_red / 255.0, stroke_green / 255.0, stroke_blue / 255.0, stroke_alpha});
+                    }
+                    var fill_data = iter->get_prop ("fill");
+                    if (fill_data != null) {
+                        if (fill_data.has_prefix ("url(#")) {
+                            fill = patterns.@get (fill_data.substring (5, fill_data.length - 6));
+                        } else if (fill_data == "none") {
+                            fill = new Pattern.none ();
+                        } else {
+                            fill = new Pattern.color (process_color (fill_data));
+                        }
+                    }
+                    var stroke_data = iter->get_prop ("stroke");
+                    if (stroke_data != null) {
+                        if (stroke_data.has_prefix ("url(#")) {
+                            stroke = patterns.@get (stroke_data.substring (5, stroke_data.length - 6));
+                        } else if (stroke_data == "none") {
+                            stroke = new Pattern.none ();
+                        } else {
+                            stroke = new Pattern.color (process_color (stroke_data));
+                        }
                     }
                     var data = iter->get_prop ("d");
-                    paths.append_val(new Path.from_string (data, fill, stroke, name));
+                    paths.append_val(new Path.from_string_with_pattern (data, fill, stroke, name));
+                } else if (iter->name == "defs") {
+                    for (Xml.Node* def = iter->children; def != null; def = def->next) {
+                        if (def->name == "linearGradient") {
+                            var name = def->get_prop ("id");
+                            var x1 = double.parse (def->get_prop ("x1"));
+                            var y1 = double.parse (def->get_prop ("y1"));
+                            var x2 = double.parse (def->get_prop ("x2"));
+                            var y2 = double.parse (def->get_prop ("y2"));
+                            var pattern = new Pattern.linear ({x1, y1}, {x2, y2});
+                            
+                            for (Xml.Node* stop = def->children; stop != null; stop = stop->next) {
+                                var offset_data = stop->get_prop ("offset");
+                                double offset;
+                                if (offset_data == null) {
+                                    offset = 0;
+                                } else if (offset_data.has_suffix ("%")) {
+                                    offset = double.parse (offset_data.substring (0, offset_data.length - 1)) / 100;
+                                } else {
+                                    offset = double.parse (offset_data);
+                                }
+                                var color = process_color (stop->get_prop ("stop-color"));
+                                var opacity = stop->get_prop ("stop-opacity");
+                                if (opacity != null) {
+                                    if (opacity.has_suffix ("%")) {
+                                        color.alpha = double.parse (opacity.substring (0, opacity.length - 1)) / 100;
+                                    } else {
+                                        color.alpha = double.parse (opacity);
+                                    }
+                                }
+                                pattern.add_stop (new Stop (offset, color));
+                            }
+                            
+                            patterns.@set (name, pattern);
+                        } else if (def->name == "radialGradient") {
+                            var name = def->get_prop ("id");
+                            var cx = double.parse (def->get_prop ("cx"));
+                            var cy = double.parse (def->get_prop ("cy"));
+                            var r = double.parse (def->get_prop ("r"));
+                            var pattern = new Pattern.radial ({cx, cy}, {cx + r, cy});
+                            
+                            for (Xml.Node* stop = def->children; stop != null; stop = stop->next) {
+                                if (stop->name == "stop") {
+                                    var offset_data = stop->get_prop ("offset");
+                                    double offset;
+                                    if (offset_data == null) {
+                                        offset = 0;
+                                    } else if (offset_data.has_suffix ("%")) {
+                                        offset = double.parse (offset_data.substring (0, offset_data.length - 1)) / 100;
+                                    } else {
+                                        offset = double.parse (offset_data);
+                                    }
+                                    var color = process_color (stop->get_prop ("stop-color"));
+                                    var opacity = stop->get_prop ("stop-opacity");
+                                    if (opacity != null) {
+                                        if (opacity.has_suffix ("%")) {
+                                            color.alpha = double.parse (opacity.substring (0, opacity.length - 1)) / 100;
+                                        } else {
+                                            color.alpha = double.parse (opacity);
+                                        }
+                                    }
+                                    pattern.add_stop (new Stop (offset, color));
+                                }
+                            }
+                            
+                            patterns.@set (name, pattern);
+                        }
+                    }
                 }
             }
         }
+        
         setup_signals ();
+    }
+    
+    private Gdk.RGBA process_color (string color) {
+        var rgba = Gdk.RGBA ();
+        if (color.has_prefix ("rgb(")) {
+            var channels = color.substring (4, color.length - 5).split (",");
+            rgba.red = int.parse (channels[0]) / 255;
+            rgba.green = int.parse (channels[1]) / 255;
+            rgba.blue = int.parse (channels[2]) / 255;
+        } else if (color.has_prefix ("rgba(")) {
+            var channels = color.substring (4, color.length - 5).split (",");
+            rgba.red = int.parse (channels[0]) / 255;
+            rgba.green = int.parse (channels[1]) / 255;
+            rgba.blue = int.parse (channels[2]) / 255;
+            rgba.alpha = double.parse (channels[3]);
+        } else if (color.has_prefix ("#")) {
+            var color_length = (color.length - 1) / 3;
+            color.substring (1, color_length).scanf ("%x", &rgba.red);
+            color.substring (1 + color_length, color_length).scanf ("%x", &rgba.green);
+            color.substring (1 + 2 * color_length, color_length).scanf ("%x", &rgba.blue);
+        }
+        return rgba;
     }
 
     public File file {
@@ -271,66 +383,6 @@ public class Image : Object, ListModel {
         }
     }
 
-    private async void save () {
-        if (file == null) {
-            return;
-        }
-        try {
-            var stream = yield file.replace_async (null, true, FileCreateFlags.NONE);
-            size_t written = 0;
-            yield stream.write_all_async ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n".data, 0, null, out written);
-            yield stream.write_all_async ("<svg version=\"1.1\" width=\"%d\" height=\"%d\">\n".printf (width, height).data, 0, null, out written);
-            for (int i = 0; i < paths.length; i++) {
-                var path = paths.index (i);
-                yield stream.write_all_async ("<path id=\"%s\" style=\"fill:#".printf (path.title).data, 0, null, out written);
-                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.fill.rgba.red * 255),
-                                                         (uint) (path.fill.rgba.green * 255),
-                                                         (uint) (path.fill.rgba.blue * 255)).data, 0, null, out written);
-                yield stream.write_all_async (";stroke:#".data, 0, null, out written);
-                yield stream.write_all_async ("%02x%02x%02x".printf ((uint) (path.stroke.rgba.red * 255),
-                                                         (uint) (path.stroke.rgba.green * 255),
-                                                         (uint) (path.stroke.rgba.blue * 255)).data, 0, null, out written);
-                yield stream.write_all_async (";fill-opacity:%f;stroke-opacity:%f".printf (path.fill.rgba.alpha, path.stroke.rgba.alpha).data, 0, null, out written);
-                yield stream.write_all_async ("\" d=\"".data, 0, null, out written);
-                yield stream.write_all_async ("M %f %f ".printf (path.root_segment.start.x, path.root_segment.start.y).data, 0, null, out written);
-                var s = path.root_segment;
-                var first = true;
-                while (first || s != path.root_segment) {
-                    first = false;
-                    switch (s.segment_type) {
-                        case SegmentType.LINE:
-                            yield stream.write_all_async ("L %f %f ".printf (s.end.x, s.end.y).data, 0, null, out written);
-                            break;
-                        case SegmentType.CURVE:
-                            yield stream.write_all_async ("C %f %f %f %f %f %f ".printf (s.p1.x, s.p1.y, s.p2.x, s.p2.y, s.end.x, s.end.y).data, 0, null, out written);
-                            break;
-                        case SegmentType.ARC:
-                            var start = s.start_angle;
-                            var end = s.end_angle;
-                            int large_arc;
-                            int sweep;
-                            if (s.reverse) {
-                                sweep = 0;
-                            } else {
-                                sweep = 1;
-                            }
-                            if (end - start > Math.PI) {
-                                large_arc = 1 - sweep;
-                            } else {
-                                large_arc = sweep;
-                            }
-                            yield stream.write_all_async ("A %f %f %f %d %d %f %f ".printf (s.rx, s.ry, s.angle, large_arc, sweep, s.end.x, s.end.y).data, 0, null, out written);
-                            break;
-                    }
-                    s = s.next;
-                }
-                yield stream.write_all_async ("Z\" />\n".data, 0, null, out written);
-            }
-            yield stream.write_all_async ("</svg>\n".data, 0, null, out written);
-       } catch (Error e) {
-       }
-    }
-    
     private void save_xml () {
         if (file == null) {
             return;
@@ -465,6 +517,7 @@ public class Image : Object, ListModel {
             
             Xml.Node* element = new Xml.Node (null, "path");
             
+            element->new_prop ("id", path.title);
             element->new_prop ("fill", fill);
             element->new_prop ("stroke", stroke);
             element->new_prop ("d", path.to_string ());

@@ -89,6 +89,10 @@ public class Path : Object {
     }
 
     public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {
+        this.from_string_with_pattern (description, new Pattern.color (fill), new Pattern.color (stroke), title);
+    }
+
+    public Path.from_string_with_pattern (string description, Pattern fill, Pattern stroke, string title) {
         var segments = new Segment[] {};
         int i = skip_whitespace (description, 0);
         double start_x = 0;
@@ -158,7 +162,7 @@ public class Path : Object {
                 i = skip_whitespace (description, i);
             }
         }
-        this (segments, fill, stroke, title);
+        this.with_pattern (segments, fill, stroke, title);
     }
     
     public string to_string () {
