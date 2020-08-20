@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/github/sapoturge/froggum/">
+    <file alias="gradient-linear.svg" compressed="true" preprocess="xml-stripblanks">icons/gradient-linear.svg</file>
+    <file alias="gradient-radial.svg" compressed="true" preprocess="xml-stripblanks">icons/gradient-radial.svg</file>
+  </gresource>
+</gresources>

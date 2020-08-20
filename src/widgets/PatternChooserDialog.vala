@@ -36,9 +36,8 @@ public class PatternChooserDialog : Gtk.Dialog {
     private Gtk.RadioButton gradient;
 
     private Gtk.ColorButton color;
-    // private Granite.ModeSwitch linear_radial;
-    private Gtk.Switch linear_radial;
-
+    private Granite.ModeSwitch linear_radial;
+    
     construct {
         no_color = new Gtk.RadioButton.with_label (null, _("None"));
         no_color.toggled.connect (() => {
@@ -71,21 +70,10 @@ public class PatternChooserDialog : Gtk.Dialog {
             }
         });
 
-        /*
-        linear_radial = new Granite.ModeSwitch.from_icon_name ("gradient-linear-symbolic", "gradient-radial-symbolic");
+        linear_radial = new Granite.ModeSwitch.from_icon_name ("gradient-linear", "gradient-radial");
         linear_radial.primary_icon_tooltip_text = _("Linear");
         linear_radial.secondary_icon_tooltip_text = _("Radial");
         linear_radial.bind_property ("active", this, "is_radial");
-        /*/
-        this.linear_radial = new Gtk.Switch ();
-        this.linear_radial.bind_property ("active", this, "is_radial");
-
-        var linear = new Gtk.Label (_("Linear"));
-        var radial = new Gtk.Label (_("Radial"));
-        var linear_radial = new Gtk.Grid ();
-        linear_radial.attach (linear, 0, 0);
-        linear_radial.attach (this.linear_radial, 1, 0);
-        linear_radial.attach (radial, 2, 0);
 
         var editor = new GradientEditor ();
         bind_property ("pattern", editor, "pattern");

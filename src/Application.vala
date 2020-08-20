@@ -7,6 +7,9 @@ public class SvgApp : Gtk.Application {
     }
 
     protected override void activate () {
+        weak Gtk.IconTheme default_theme = Gtk.IconTheme.get_default ();
+        default_theme.add_resource_path ("/com/github/sapoturge/froggum");
+        
         var main_window = new Gtk.ApplicationWindow (this);
         main_window.title = _("Untitled");
 

@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<svg version="1.1" width="16" height="16"><defs><radialGradient id="radialGrad1" cx="8" cy="8" fx="8" fy="8" r="8" fr="0" gradientUnits="userSpaceOnUse"><stop offset="0.125" stop-color="rgb(0,0,0)" stop-opacity="1"/><stop offset="0.875" stop-color="rgb(0,0,0)" stop-opacity="0"/></radialGradient></defs><path fill="url(#radialGrad1)" stroke="none" d="M 1.000000 1.000000 L 15.000000 1.000000 L 15.000000 15.000000 L 1.000000 15.000000 L 1.000000 1.000000 Z"/></svg>

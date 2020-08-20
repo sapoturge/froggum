@@ -1,6 +1,13 @@
 project('com.github.sapoturge.froggum', 'vala', 'c')
 
+gnome = import('gnome')
 i18n = import('i18n')
+
+gresource_froggum = gnome.compile_resources(
+    'gresource_froggum',
+    join_paths('data', meson.project_name() + '.gresource.xml'),
+    source_dir: 'data'
+)
 
 add_global_arguments('-DGETTEXT_PACKAGE="@0@"'.format(meson.project_name()), language:'c')
 
@@ -20,6 +27,7 @@ executable(
     'src/data/Segment.vala',
     'src/data/Point.vala',
     'src/data/Pattern.vala',
+    gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),
         dependency('granite'),
@@ -60,3 +68,5 @@ foreach i : icon_sizes
         install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', i + 'x' + i + '@2', 'apps')
     )
 endforeach
+
+
