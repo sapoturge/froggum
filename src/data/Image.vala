@@ -175,7 +175,7 @@ public class Image : Object, ListModel {
                                 } else {
                                     offset = double.parse (offset_data);
                                 }
-                                var color = process_color (stop->get_prop ("stop-color"));
+                                var color = process_color (stop->get_prop ("stop-color") ?? "#000");
                                 var opacity = stop->get_prop ("stop-opacity");
                                 if (opacity != null) {
                                     if (opacity.has_suffix ("%")) {
@@ -206,7 +206,7 @@ public class Image : Object, ListModel {
                                     } else {
                                         offset = double.parse (offset_data);
                                     }
-                                    var color = process_color (stop->get_prop ("stop-color"));
+                                    var color = process_color (stop->get_prop ("stop-color") ?? "#000");
                                     var opacity = stop->get_prop ("stop-opacity");
                                     if (opacity != null) {
                                         if (opacity.has_suffix ("%")) {
@@ -233,14 +233,14 @@ public class Image : Object, ListModel {
         var rgba = Gdk.RGBA ();
         if (color.has_prefix ("rgb(")) {
             var channels = color.substring (4, color.length - 5).split (",");
-            rgba.red = int.parse (channels[0]) / 255;
-            rgba.green = int.parse (channels[1]) / 255;
-            rgba.blue = int.parse (channels[2]) / 255;
+            rgba.red = int.parse (channels[0]) / 255.0;
+            rgba.green = int.parse (channels[1]) / 255.0;
+            rgba.blue = int.parse (channels[2]) / 255.0;
         } else if (color.has_prefix ("rgba(")) {
-            var channels = color.substring (4, color.length - 5).split (",");
-            rgba.red = int.parse (channels[0]) / 255;
-            rgba.green = int.parse (channels[1]) / 255;
-            rgba.blue = int.parse (channels[2]) / 255;
+            var channels = color.substring (5, color.length - 6).split (",");
+            rgba.red = int.parse (channels[0]) / 255.0;
+            rgba.green = int.parse (channels[1]) / 255.0;
+            rgba.blue = int.parse (channels[2]) / 255.0;
             rgba.alpha = double.parse (channels[3]);
         } else if (color.has_prefix ("#")) {
             var color_length = (color.length - 1) / 3;
@@ -248,6 +248,7 @@ public class Image : Object, ListModel {
             color.substring (1 + color_length, color_length).scanf ("%x", &rgba.green);
             color.substring (1 + 2 * color_length, color_length).scanf ("%x", &rgba.blue);
         }
+        print ("%s: %d %d %d %d\n", color, (int) (rgba.red*255), (int) (rgba.green*255), (int) (rgba.blue*255), (int) (rgba.alpha*255));
         return rgba;
     }
 
@@ -410,7 +411,7 @@ public class Image : Object, ListModel {
                     fill = "none";
                     break;
                 case COLOR:
-                    fill = "rgba(%d,%d,%d,%f)".printf ((int) path.fill.rgba.red*255, (int) path.fill.rgba.green*255, (int) path.fill.rgba.blue*255, path.fill.rgba.alpha);
+                    fill = "rgba(%d,%d,%d,%f)".printf ((int) (path.fill.rgba.red*255), (int) (path.fill.rgba.green*255), (int) (path.fill.rgba.blue*255), path.fill.rgba.alpha);
                     break;
                 case LINEAR:
                     pattern_index++;
@@ -427,7 +428,7 @@ public class Image : Object, ListModel {
                         var stop = (Stop) path.fill.get_item (j);
                         Xml.Node* stop_element = new Xml.Node (null, "stop");
                         stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) stop.rgba.red*255, (int) stop.rgba.green*255, (int) stop.rgba.blue*255));
+                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
                         stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
                         fill_element->add_child (stop_element);
                     }
@@ -451,7 +452,7 @@ public class Image : Object, ListModel {
                         var stop = (Stop) path.fill.get_item (j);
                         Xml.Node* stop_element = new Xml.Node (null, "stop");
                         stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) stop.rgba.red*255, (int) stop.rgba.green*255, (int) stop.rgba.blue*255));
+                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
                         stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
                         fill_element->add_child (stop_element);
                     }
@@ -465,7 +466,7 @@ public class Image : Object, ListModel {
                     stroke = "none";
                     break;
                 case COLOR:
-                    stroke = "rgba(%d,%d,%d,%f)".printf ((int) path.stroke.rgba.red*255, (int) path.stroke.rgba.green*255, (int) path.stroke.rgba.blue*255, path.stroke.rgba.alpha);
+                    stroke = "rgba(%d,%d,%d,%f)".printf ((int) (path.stroke.rgba.red*255), (int) (path.stroke.rgba.green*255), (int) (path.stroke.rgba.blue*255), path.stroke.rgba.alpha);
                     break;
                 case LINEAR:
                     pattern_index++;
@@ -482,7 +483,7 @@ public class Image : Object, ListModel {
                         var stop = (Stop) path.stroke.get_item (j);
                         Xml.Node* stop_element = new Xml.Node (null, "stop");
                         stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) stop.rgba.red*255, (int) stop.rgba.green*255, (int) stop.rgba.blue*255));
+                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
                         stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
                         stroke_element->add_child (stop_element);
                     }
@@ -506,7 +507,7 @@ public class Image : Object, ListModel {
                         var stop = (Stop) path.stroke.get_item (j);
                         Xml.Node* stop_element = new Xml.Node (null, "stop");
                         stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) stop.rgba.red*255, (int) stop.rgba.green*255, (int) stop.rgba.blue*255));
+                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
                         stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
                         stroke_element->add_child (stop_element);
                     }
