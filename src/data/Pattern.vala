@@ -15,6 +15,8 @@ public class Pattern : Object, ListModel {
     public Point end { get; set; }
 
     private Array<Stop> stops;
+    
+    public signal void update ();
 
     public Pattern.none () {
         pattern_type = NONE;
@@ -42,7 +44,8 @@ public class Pattern : Object, ListModel {
         start = {0, 0};
         end = {5, 5};
 
-        notify.connect (() => { refresh_pattern (); });
+        update.connect (() => { refresh_pattern (); });
+        notify.connect (() => { update (); });
     }
 
     public Object? get_item (uint index) {
@@ -135,9 +138,9 @@ public class Pattern : Object, ListModel {
         stop.end = end;
         bind_property ("start", stop, "start");
         bind_property ("end", stop, "end");
-        stop.notify.connect (() => { pattern_type = pattern_type; });
+        stop.notify.connect (() => { update (); });
         items_changed (stops.length - 1, 0, 1);
-        pattern_type = pattern_type;
+        update ();
     }
 }
 

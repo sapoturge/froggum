@@ -248,7 +248,6 @@ public class Image : Object, ListModel {
             color.substring (1 + color_length, color_length).scanf ("%x", &rgba.green);
             color.substring (1 + 2 * color_length, color_length).scanf ("%x", &rgba.blue);
         }
-        print ("%s: %d %d %d %d\n", color, (int) (rgba.red*255), (int) (rgba.green*255), (int) (rgba.blue*255), (int) (rgba.alpha*255));
         return rgba;
     }
 

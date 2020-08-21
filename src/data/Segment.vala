@@ -35,9 +35,24 @@ public class Segment : Object {
         }
     }
 
-    public Segment prev;
-    public Segment next;
-    
+    public Segment prev { get; set; }
+    private Segment _next;
+    private Binding next_binding;
+    public Segment next {
+        get {
+            return _next;
+        }
+        set {
+            if (next_binding != null) {
+                next_binding.unbind ();
+            }
+            
+            _next = value;
+            _next.prev = this;
+            next_binding = bind_property ("end", _next, "start", BindingFlags.BIDIRECTIONAL | BindingFlags.SYNC_CREATE);
+        }
+    }
+
     // End points, used for all segments
     private Point _start;
     private Point _end;
@@ -47,17 +62,18 @@ public class Segment : Object {
         }
         set {
             if (segment_type == ARC) {
-                value = closest (value, out start_angle);
+                var new_value = closest (value, out start_angle);
+                if ((new_value.x - value.x).abs () + (new_value.y - value.y).abs () >= 1e-5) {
+                    prev.end = new_value;
+                }
+                value = new_value;
             }
             if (value != _start) {
                 _start = value;
-                if (prev != null && prev.end != value) {
-                    prev.end = value;
-                }
             }
         }
     }
-            
+
     public Point end {
         get {
             return _end;
@@ -68,9 +84,6 @@ public class Segment : Object {
             }
             if (value != _end) {
                 _end = value;
-                if (next != null && next.start != value) {
-                    next.start = value;
-                }
             }
         }
     }
@@ -281,6 +294,10 @@ public class Segment : Object {
 
             var qx = px - ex;
             var qy = py - ey;
+            
+            if (qx.is_nan ()) {
+                error ("Didn't find closest point.");
+            }
 
             var r = Math.hypot (r_y, r_x);
             var q = Math.hypot (qy, qx);

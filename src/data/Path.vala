@@ -8,7 +8,7 @@ public class Path : Object {
         }
         set {
             _fill = value;
-            fill.notify.connect (() => { update (); });
+            fill.update.connect (() => { update (); });
         }
     }
 
@@ -19,7 +19,7 @@ public class Path : Object {
         }
         set {
             _stroke = value;
-            stroke.notify.connect (() => { update (); });
+            stroke.update.connect (() => { update (); });
         }
     }
 
@@ -81,8 +81,6 @@ public class Path : Object {
         for (int i = 0; i < segments.length; i++) {
             segments[i].notify.connect (() => { update (); });
             segments[i].next = segments[(i + 1) % segments.length];
-            segments[(i + 1) % segments.length].prev = segments[i];
-            segments[i].next.start = segments[i].end;
         }
         select.connect (() => { update(); });
         notify.connect (() => { update(); });
@@ -133,13 +131,18 @@ public class Path : Object {
                 i = skip_whitespace (description, i);
                 var rx = get_number (description, ref i);
                 var ry = get_number (description, ref i);
-                var angle = get_number (description, ref i);
+                var angle = get_number (description, ref i) * Math.PI / 180;
                 var large_arc = get_number (description, ref i);
                 var sweep = get_number (description, ref i);
                 var x = get_number (description, ref i);
                 var y = get_number (description, ref i);
                 var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
                 var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
+                var dt = (x1 * x1) / ( rx * rx) + (y1 * y1) / (ry * ry);
+                if (dt > 1) {
+                    rx = rx * Math.sqrt (dt);
+                    ry = ry * Math.sqrt (dt);
+                }
                 var coefficient = Math.sqrt ((rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1) / (rx * rx * y1 * y1 + ry * ry * x1 * x1));
                 if (large_arc == sweep) {
                     coefficient = -coefficient;
@@ -148,6 +151,7 @@ public class Path : Object {
                 var cy1 = -coefficient * ry * x1 / rx;
                 var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
                 var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
+                print ("rx: %f ry: %f angle: %f x1: %f y1: %f coef: %f cx1: %f cy1: %f\n", rx, ry, angle, x1, y1, coefficient, cx1, cy1);
                 segments += new Segment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
                 current_x = x;
                 current_y = y;
@@ -193,7 +197,7 @@ public class Path : Object {
                     } else {
                         large_arc = sweep;
                     }
-                    data += "A %f %f %f %d %d %f %f".printf (s.rx, s.ry, s.angle, large_arc, sweep, s.end.x, s.end.y);
+                    data += "A %f %f %f %d %d %f %f".printf (s.rx, s.ry, 180 * s.angle / Math.PI, large_arc, sweep, s.end.x, s.end.y);
                     break;
             }
             s = s.next;
