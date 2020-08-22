@@ -16,5 +16,15 @@
       <summary>Window size</summary>
       <description>Most recent window size (width, height)</description>
     </key>
+    <key name="open-files" type="as">
+      <default>[]</default>
+      <summary>Open files</summary>
+      <description>The files that were last open</description>
+    </key>
+    <key name="focused-file" type="s">
+      <default>''</default>
+      <summary>Focused file</summary>
+      <description>The file last open in front</description>
+    </key>
   </schema>
 </schemalist>

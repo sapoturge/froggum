@@ -3,6 +3,8 @@ public class FroggumApplication : Gtk.Application {
     
     public static Settings settings;
     
+    private Granite.Widgets.DynamicNotebook notebook;
+    
     public FroggumApplication () {
         Object (
             application_id: "com.github.sapoturge.froggum",
@@ -69,7 +71,14 @@ public class FroggumApplication : Gtk.Application {
         header.show_close_button = true;
         header.title = _("Froggum");
         
-        var layout = new Granite.Widgets.DynamicNotebook ();
+        notebook = new Granite.Widgets.DynamicNotebook ();
+        
+        notebook.tab_switched.connect ((old_tab, new_tab) => {
+            var editor = new_tab.page as EditorView;
+            if (editor != null) {
+                settings.set_string ("focused-file", editor.image.file.get_uri ());
+            }
+        });
 
         var save_button = new Gtk.Button.from_icon_name ("document-save-as");
         save_button.tooltip_text = _("Save as new file");
@@ -79,13 +88,15 @@ public class FroggumApplication : Gtk.Application {
             file_chooser.set_current_name (_("Untitled Image"));
             var res = file_chooser.run ();
             if (res == Gtk.ResponseType.ACCEPT) {
-                var tab = layout.current;
+                var tab = notebook.current;
                 var editor = tab.page;
                 if (editor is EditorView) {
                     var file = File.new_for_path (file_chooser.get_filename ());
                     ((EditorView) editor).image.file = file;
                     tab.label = file.get_basename ();
+                    settings.set_string ("focused-file", file.get_uri ());
                 }
+                recalculate_open_files ();
             }
         });
 
@@ -93,7 +104,7 @@ public class FroggumApplication : Gtk.Application {
 
         main_window.set_titlebar (header);
 
-        layout.new_tab_requested.connect (() => {
+        notebook.new_tab_requested.connect (() => {
              var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
              var tab = new Granite.Widgets.Tab (_("New Image"), null, inner_layout);
 
@@ -185,16 +196,38 @@ public class FroggumApplication : Gtk.Application {
              inner_layout.halign = Gtk.Align.CENTER;
              inner_layout.valign = Gtk.Align.CENTER;
 
-             layout.insert_tab (tab, 0);
-             layout.show_all ();
+             notebook.insert_tab (tab, 0);
+             notebook.show_all ();
         });
 
-        layout.expand = true;
+        notebook.expand = true;
 
-        // TODO: Load previous session
-        layout.new_tab_requested ();
+        var last_files = settings.get_strv ("open-files");
+        var focused_file = settings.get_string ("focused-file");
+        
+        Granite.Widgets.Tab focused = null;
+        
+        foreach (string file in last_files) {
+            if (file != "") {
+                var real_file = File.new_for_uri (file);
+                var image = new Image.load (real_file);
+                var editor = new EditorView (image);
+                editor.expand = true;
+                var tab = new Granite.Widgets.Tab (real_file.get_basename (), null, editor);
+                notebook.insert_tab (tab, notebook.n_tabs);
+                if (file == focused_file) {
+                    focused = tab;
+                }
+            }
+        }
+        
+        if (notebook.n_tabs == 0) {
+            notebook.new_tab_requested ();
+        } else if (focused != null) {
+            notebook.current = focused;
+        }
 
-        main_window.add (layout);
+        main_window.add (notebook);
         main_window.show_all();
     }
 
@@ -216,9 +249,22 @@ public class FroggumApplication : Gtk.Application {
             var image = new Image.load (file);
             var editor = new EditorView (image);
             editor.expand = true;
+            tab.label = file.get_basename ();
             tab.page = editor;
             tab.show_all ();
+            recalculate_open_files ();
         }
+    }
+    
+    private void recalculate_open_files () {
+        var filenames = new string[] {};
+        foreach (Granite.Widgets.Tab tab in notebook.tabs) {
+            var editor = tab.page as EditorView;
+            if (editor != null) {
+                filenames += editor.image.file.get_uri ();
+            }
+        }
+        settings.set_strv ("open-files", filenames);
     }
 
     public static int main (string[] args) {
