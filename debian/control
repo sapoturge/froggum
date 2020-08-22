@@ -9,7 +9,7 @@ Build-Depends: cmake (>= 2.8),
                meson,
                valac (>= 0.40.0),
                libgranite-dev,
-               libxml-dev
+               libxml2-dev
 Standards-Version: 4.1.1
 
 Package: com.github.sapoturge.froggum
