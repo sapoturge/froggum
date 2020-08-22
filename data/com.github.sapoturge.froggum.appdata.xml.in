@@ -8,6 +8,11 @@
   <description>
     <p>A simple SVG editor designed for making elementary OS app icons.</p>
   </description>
+  <developer-name>John Hiatt</developer-name>
+  <content_rating type="oars-1.1" />
+  <screenshot type="default">
+    <image>https://raw.githubusercontent.com/sapoturge/froggum/master/screenshot.png</image>
+  </screenshot>
   <custom>
     <value key="x-appcenter-color-primary">#11640f</value>
     <value key="x-appcenter-color-primary-text">#ebba1c</value>
