@@ -69,4 +69,7 @@ foreach i : icon_sizes
     )
 endforeach
 
-
+install_data(
+    join_paths ('data', meson.project_name() + '.gschema.xml'),
+    install_dir: join_paths(get_option('datadir'), 'glib-2.0', 'schemas')
+)

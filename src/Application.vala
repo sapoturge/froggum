@@ -1,9 +1,17 @@
-public class SvgApp : Gtk.Application {
-    public SvgApp () {
+public class FroggumApplication : Gtk.Application {
+    private uint configure_id;
+    
+    public static Settings settings;
+    
+    public FroggumApplication () {
         Object (
             application_id: "com.github.sapoturge.froggum",
             flags: ApplicationFlags.FLAGS_NONE
         );
+    }
+    
+    static construct {
+        settings = new Settings ("com.github.sapoturge.froggum");
     }
 
     protected override void activate () {
@@ -13,9 +21,48 @@ public class SvgApp : Gtk.Application {
         var main_window = new Gtk.ApplicationWindow (this);
         main_window.title = _("Untitled");
 
-        // TODO: This should be made a setting.
-        main_window.maximize ();
-        main_window.set_default_size (640, 480);
+        int window_x, window_y;
+        var rect = Gtk.Allocation ();
+
+        settings.get ("window-position", "(ii)", out window_x, out window_y);
+        settings.get ("window-size", "(ii)", out rect.width, out rect.height);
+
+        if (window_x != -1 ||  window_y != -1) {
+            main_window.move (window_x, window_y);
+        }
+
+        main_window.set_allocation (rect);
+
+        if (settings.get_boolean ("window-maximized")) {
+            main_window.maximize ();
+        }
+
+        main_window.configure_event.connect (() => {
+            if (configure_id != 0) {
+                Source.remove (configure_id);
+            }
+
+            configure_id = Timeout.add (100, () => {
+                configure_id = 0;
+                if (main_window.is_maximized) {
+                    settings.set_boolean ("window-maximized", true);
+                } else {
+                    settings.set_boolean ("window-maximized", false);
+
+                    Gdk.Rectangle new_rect;
+                    main_window.get_allocation (out new_rect);
+                    settings.set ("window-size", "(ii)", new_rect.width, new_rect.height);
+
+                    int root_x, root_y;
+                    main_window.get_position (out root_x, out root_y);
+                    settings.set ("window-position", "(ii)", root_x, root_y);
+                }
+
+                return false;
+            });
+            
+            return false;
+        });
 
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "close:maximize";
@@ -175,7 +222,7 @@ public class SvgApp : Gtk.Application {
     }
 
     public static int main (string[] args) {
-        var app = new SvgApp ();
+        var app = new FroggumApplication ();
         return app.run (args);
     }
 }
