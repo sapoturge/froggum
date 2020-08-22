@@ -6,8 +6,26 @@
   <name>Froggum</name>
   <summary>Precise App Editor</summary>
   <description>
-    <p>A simple SVG editor designed for making elementary OS app icons.</p>
+    <p>Froggum is a simple svg editor designed for making app icons.</p>
+    <p><em>Note:</em> Froggum is still incomplete, and does not always
+       work. In particular, do not trust it with opening existing icon
+       files created in any other application. It doesn't actually
+       understand them yet.
+    </p>
   </description>
+  <releases>
+    <release version="0.1.0" date="2020-08-21">
+      <description>
+        <p>Initial release.</p>
+        <p>Included features:</p>
+        <ul>
+          <li>Edit paths to make all kinds of shapes.</li>
+          <li>Switch fill and stroke styles between linear and radial gradients, colors, and nothing at all.</li>
+          <li>Saves your progress continually.</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
   <developer-name>John Hiatt</developer-name>
   <content_rating type="oars-1.1" />
   <screenshot type="default">
