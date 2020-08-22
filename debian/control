@@ -8,11 +8,12 @@ Build-Depends: cmake (>= 2.8),
                libgtk-3-dev,
                meson,
                valac (>= 0.40.0),
-               libgranite-dev
+               libgranite-dev,
+               libxml-dev
 Standards-Version: 4.1.1
 
 Package: com.github.sapoturge.froggum
 Architecture: any
-Depends: 
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Simple icon editor
  Froggum is an editor for making app icons.
