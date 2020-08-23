@@ -2,19 +2,24 @@
 <!-- Copyright 2020 John Hiatt -->
 <component type="desktop">
   <id>com.github.sapoturge.froggum</id>
-  <metadata-license>MIT</metadata-license>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_licence>
   <name>Froggum</name>
   <summary>Precise App Editor</summary>
   <description>
-    <p>Froggum is a simple svg editor designed for making app icons.</p>
-    <p><em>Note:</em> Froggum is still incomplete, and does not always
-       work. In particular, do not trust it with opening existing icon
-       files created in any other application. It doesn't actually
-       understand them yet.
+    <p>
+      Froggum is a simple svg editor designed for programmers to make
+      app icons. No design training necessary. (It won't hurt, though.)
+    </p>
+    <p>
+      <em>Note:</em> Froggum is still incomplete, and does not always
+      work. In particular, do not trust it with opening existing icon
+      files created in any other application. It doesn't actually
+      understand them yet.
     </p>
   </description>
   <releases>
-    <release version="0.1.0" date="2020-08-21">
+    <release version="0.1.4" date="2020-08-21">
       <description>
         <p>Initial release.</p>
         <p>Included features:</p>
@@ -26,11 +31,41 @@
       </description>
     </release>
   </releases>
-  <developer-name>John Hiatt</developer-name>
-  <content_rating type="oars-1.1" />
-  <screenshot type="default">
-    <image>https://raw.githubusercontent.com/sapoturge/froggum/master/screenshot.png</image>
-  </screenshot>
+  <developer_name>John Hiatt</developer_name>
+  <content_rating type="oars-1.1">
+    <content_attribute id="violence-cartoon">none</content_attribute>
+    <content_attribute id="violence-fantasy">none</content_attribute>
+    <content_attribute id="violence-realistic">none</content_attribute>
+    <content_attribute id="violence-bloodshed">none</content_attribute>
+    <content_attribute id="violence-sexual">none</content_attribute>
+    <content_attribute id="violence-desecration">none</content_attribute>
+    <content_attribute id="violence-slavery">none</content_attribute>
+    <content_attribute id="violence-worship">none</content_attribute>
+    <content_attribute id="drugs-alcohol">none</content_attribute>
+    <content_attribute id="drugs-narcotics">none</content_attribute>
+    <content_attribute id="drugs-tobacco">none</content_attribute>
+    <content_attribute id="sex-nudity">none</content_attribute>
+    <content_attribute id="sex-themes">none</content_attribute>
+    <content_attribute id="sex-homosexuality">none</content_attribute>
+    <content_attribute id="sex-prostitution">none</content_attribute>
+    <content_attribute id="sex-adultery">none</content_attribute>
+    <content_attribute id="sex-appearance">none</content_attribute>
+    <content_attribute id="language-profanity">none</content_attribute>
+    <content_attribute id="language-humor">none</content_attribute>
+    <content_attribute id="language-discrimination">none</content_attribute>
+    <content_attribute id="social-chat">none</content_attribute>
+    <content_attribute id="social-info">none</content_attribute>
+    <content_attribute id="social-audio">none</content_attribute>
+    <content_attribute id="social-location">none</content_attribute>
+    <content_attribute id="social-contacts">none</content_attribute>
+    <content_attribute id="money-purchasing">none</content_attribute>
+    <content_attribute id="money-gambling">none</content_attribute>
+  </content-rating>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/sapoturge/froggum/master/screenshot.png</image>
+    </screenshot>
+  </screenshots>
   <custom>
     <value key="x-appcenter-color-primary">#11640f</value>
     <value key="x-appcenter-color-primary-text">#ebba1c</value>
