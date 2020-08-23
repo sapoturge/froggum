@@ -3,7 +3,7 @@
 <component type="desktop">
   <id>com.github.sapoturge.froggum</id>
   <metadata_license>MIT</metadata_license>
-  <project_license>MIT</project_licence>
+  <project_license>MIT</project_license>
   <name>Froggum</name>
   <summary>Precise App Editor</summary>
   <description>
@@ -60,7 +60,7 @@
     <content_attribute id="social-contacts">none</content_attribute>
     <content_attribute id="money-purchasing">none</content_attribute>
     <content_attribute id="money-gambling">none</content_attribute>
-  </content-rating>
+  </content_rating>
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/sapoturge/froggum/master/screenshot.png</image>
