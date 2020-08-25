@@ -7,20 +7,24 @@ public class Command : Object {
     public Command () {
     }
     
-    public void add_value (Object obj, string prop, Value new_value) {
+    construct {
+        objects = new Array<Object> ();
+        properties = new Array<string> ();
+        new_values = new Array<Value?> ();
+        old_values = new Array<Value?> ();
+    }
+    
+    public void add_value (Object obj, string prop, Value new_value, Value old_value) {
         objects.append_val (obj);
         properties.append_val (prop);
         new_values.append_val (new_value);
+        old_values.append_val (old_value);
     }
     
     public void apply () {
-        old_values = new Array<Value?> ();
         for (int i = 0; i < objects.length; i++) {
             var object = objects.index (i);
             var prop = properties.index (i);
-            Value old_value;
-            object.@get (prop, out old_value);
-            old_values.append_val (old_value);
             object.@set (prop, new_values.index (i));
         }
     }

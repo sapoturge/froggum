@@ -286,6 +286,10 @@ public class Image : Object, ListModel {
             paths.index (i).draw (cr);
         }
     }
+    
+    public void do_command (Command command) {
+        stack.add_command (command);
+    }
 
     public Path[] get_paths () {
         return paths.data;
