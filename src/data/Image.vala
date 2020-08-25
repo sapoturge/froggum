@@ -1,5 +1,6 @@
 public class Image : Object, ListModel {
     private File _file;
+    private CommandStack stack;
 
     public int width { get; private set; }
     public int height { get; private set; }
@@ -49,6 +50,10 @@ public class Image : Object, ListModel {
                 return false;
             });
         });
+    }
+    
+    construct {
+        stack = new CommandStack ();
     }
 
     public Image (int width, int height, Path[] paths = {}) {
