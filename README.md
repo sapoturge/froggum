@@ -1,6 +1,8 @@
 Froggum Svg Editor
 ==========
 
+[![Build Status](https://travis-ci.com/sapoturge/froggum.svg?branch=feature-travis)](https://travis-ci.com/sapoturge/froggum)
+
 Froggum is a Cairo-based SVG editor for making elementary OS app icons.
 (Other uses are allowed.)
 
