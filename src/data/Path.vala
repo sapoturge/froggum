@@ -151,7 +151,6 @@ public class Path : Object {
                 var cy1 = -coefficient * ry * x1 / rx;
                 var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
                 var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
-                print ("rx: %f ry: %f angle: %f x1: %f y1: %f coef: %f cx1: %f cy1: %f\n", rx, ry, angle, x1, y1, coefficient, cx1, cy1);
                 segments += new Segment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
                 current_x = x;
                 current_y = y;

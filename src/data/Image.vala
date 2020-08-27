@@ -290,6 +290,14 @@ public class Image : Object, ListModel {
     public void do_command (Command command) {
         stack.add_command (command);
     }
+    
+    public void undo () {
+        stack.undo ();
+    }
+    
+    public void redo () {
+        stack.redo ();
+    }
 
     public Path[] get_paths () {
         return paths.data;

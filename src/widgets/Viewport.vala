@@ -23,7 +23,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     
     private Object bound_obj;
     private string bound_prop;
-    private Point old_point;
+    private Value old_point;
 
     public Image image {
         get {
@@ -153,6 +153,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     construct {
         background = {0.7, 0.7, 0.7, 1.0};
+        old_point = Value (typeof (Point));
 
         set_size_request (320, 320);
 
@@ -490,14 +491,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         border = {0, 0, 0, 0};
         return true;
     }
-    
+
     private void bind_point (Object obj, string name) {
-        obj.@get (name, out old_point);
+        obj.get_property (name, ref old_point);
         bound_obj = obj;
         bound_prop = name;
         point_binding = bind_property ("control-point", obj, name);
     }
-    
+
     private void unbind_point () {
         point_binding.unbind ();
         point_binding = null;

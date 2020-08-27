@@ -12,8 +12,42 @@ public class FroggumApplication : Gtk.Application {
         );
     }
     
+    public SimpleActionGroup actions { get; construct; }
+    
+    public const string ACTION_UNDO = "action_undo";
+    public const string ACTION_REDO = "action_redo";
+    
     static construct {
         settings = new Settings ("com.github.sapoturge.froggum");
+    }
+    
+    construct {
+        var undo_action = new SimpleAction ("action_undo", null);
+        undo_action.activate.connect (() => {
+            var tab = notebook.current;
+            var editor = tab.page;
+            if (editor is EditorView) {
+                var image = ((EditorView) editor).image;
+                image.undo ();
+            }
+        });
+
+        var redo_action = new SimpleAction ("action_redo", null);
+        redo_action.activate.connect (() => {
+            var tab = notebook.current;
+            var editor = tab.page;
+            if (editor is EditorView) {
+                var image = ((EditorView) editor).image;
+                image.redo ();
+            }
+        });
+        
+        actions = new SimpleActionGroup ();
+        actions.add_action (undo_action);
+        actions.add_action (redo_action);
+        
+        set_accels_for_action ("froggum.action_undo", {"<Control>Z", null});
+        set_accels_for_action ("froggum.action_redo", {"<Control>Y", null});
     }
 
     protected override void activate () {
@@ -21,6 +55,7 @@ public class FroggumApplication : Gtk.Application {
         default_theme.add_resource_path ("/com/github/sapoturge/froggum");
         
         var main_window = new Gtk.ApplicationWindow (this);
+        main_window.insert_action_group ("froggum", actions);
         main_window.title = _("Untitled");
 
         int window_x, window_y;
@@ -229,6 +264,19 @@ public class FroggumApplication : Gtk.Application {
 
         main_window.add (notebook);
         main_window.show_all();
+    }
+    
+    private void action_undo () {
+        
+    }
+    
+    private void action_redo () {
+        var tab = notebook.current;
+        var editor = tab.page;
+        if (editor is EditorView) {
+            var image = ((EditorView) editor).image;
+            image.undo ();
+        }
     }
 
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {

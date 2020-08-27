@@ -77,7 +77,6 @@ public class GradientEditor : Gtk.DrawingArea {
                             dialog.bind_property ("rgba", stop, "rgba");
                             var result = dialog.run ();
                             if (result != Gtk.ResponseType.OK) {
-                                print ("%d\n", result);
                                 stop.rgba = old_rgba;
                             }
                             dialog.destroy ();
