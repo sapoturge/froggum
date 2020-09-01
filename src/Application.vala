@@ -232,8 +232,18 @@ public class FroggumApplication : Gtk.Application {
     }
 
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {
-        var path = new Path.from_string ("M 1.5 1.5 L 8 1.5 C 8 5 11 8 14.5 8 A 6.5 6.5 0 1 1 1.5 8 L 1.5 1.5 Z",
-                                         {0.3, 0.3, 0.3, 1}, {0.1, 0.1, 0.1, 1}, _("Path"));
+        var radius = int.max (int.min (width, height) / 8, 16);
+        var segments = new Segment[] {
+            new Segment.line (width - radius * 2, radius),
+            new Segment.arc (width - radius, radius * 2, width - radius * 2, radius * 2, radius, radius, 0, false),
+            new Segment.line (width - radius, height - radius * 2),
+            new Segment.arc (width - radius * 2, height - radius, width - radius * 2, height - radius * 2, radius, radius, 0, false),
+            new Segment.line (radius * 2, height - radius),
+            new Segment.arc (radius, height - radius * 2, radius * 2, height - radius * 2, radius, radius, 0, false),
+            new Segment.line (radius, radius * 2),
+            new Segment.arc (radius * 2, radius, radius * 2, radius * 2, radius, radius, 0, false),
+        };
+        var path = new Path.with_pattern (segments, new Pattern.color ({0.3, 0.3, 0.3, 1}), new Pattern.color ({0.1, 0.1, 0.1, 1}), _("Default Path"));
         var image = new Image (width, height, {path});
         var editor = new EditorView (image);
         editor.expand = true;
