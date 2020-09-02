@@ -37,6 +37,7 @@ public class Image : Object, ListModel {
                     path_selected (null);
                 }
             });
+            path.add_command.connect ((c) => { stack.add_command (c); });
         }
         
         update.connect (() => {
@@ -285,10 +286,6 @@ public class Image : Object, ListModel {
         for (int i = 0; i < paths.length; i++) {
             paths.index (i).draw (cr);
         }
-    }
-    
-    public void do_command (Command command) {
-        stack.add_command (command);
     }
     
     public void undo () {

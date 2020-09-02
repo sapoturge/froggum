@@ -42,7 +42,9 @@ public class PatternChooserDialog : Gtk.Dialog {
         no_color = new Gtk.RadioButton.with_label (null, _("None"));
         no_color.toggled.connect (() => {
             if (no_color.active) {
+                pattern.begin ("pattern_type");
                 pattern.pattern_type = PatternType.NONE;
+                pattern.finish ("pattern_type");
                 swap_sensitivity (PatternType.NONE);
             }
         });
@@ -50,7 +52,9 @@ public class PatternChooserDialog : Gtk.Dialog {
         pure_color = new Gtk.RadioButton.with_label_from_widget (no_color, _("Solid Color"));
         pure_color.toggled.connect (() => {
             if (pure_color.active) {
+                pattern.begin ("pattern_type");
                 pattern.pattern_type = PatternType.COLOR;
+                pattern.finish ("pattern_type");
                 pattern.rgba = color.rgba;
                 swap_sensitivity (PatternType.COLOR);
             }
@@ -59,13 +63,17 @@ public class PatternChooserDialog : Gtk.Dialog {
         color = new Gtk.ColorButton ();
         color.use_alpha = true;
         color.color_set.connect (() => {
+            pattern.begin ("rgba");
             pattern.rgba = color.rgba;
+            pattern.finish ("rgba");
         });
 
         gradient = new Gtk.RadioButton.with_label_from_widget (pure_color, "Gradient");
         gradient.toggled.connect (() => {
             if (gradient.active) {
+                pattern.begin ("pattern_type");
                 pattern.pattern_type = linear_radial.active ? PatternType.RADIAL : PatternType.LINEAR;
+                pattern.finish ("pattern_type");
                 swap_sensitivity (pattern.pattern_type);
             }
         });

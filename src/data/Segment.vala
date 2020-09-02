@@ -5,7 +5,7 @@ public enum SegmentType {
     ARC
 }
 
-public class Segment : Object {
+public class Segment : Object, Undoable {
     private SegmentType _segment_type = NONE;
     public SegmentType segment_type {
         get {
@@ -16,12 +16,27 @@ public class Segment : Object {
                 _segment_type = value;
                 return;
             }
+            var command = new Command ();
+            command.add_value (this, "segment_type", _segment_type, value);
+            if (_segment_type == CURVE) {
+                command.add_value (this, "p1", p1, p1);
+                command.add_value (this, "p2", p2, p2);
+            } else if (_segment_type == ARC) {
+                command.add_value (this, "c", c, c);
+                command.add_value (this, "angle", angle, angle);
+                command.add_value (this, "rx", rx, rx);
+                command.add_value (this, "ry", ry, ry);
+                command.add_value (this, "start", start, end);
+                command.add_value (this, "end", end, end);
+            }
             _segment_type = value;
             if (_segment_type == CURVE) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
                 p1 = {start.x + dx / 4, start.y + dy / 4};
                 p2 = {end.x - dx / 4, end.y - dy / 4};
+                command.add_value (this, "p1", p1, p1);
+                command.add_value (this, "p2", p2, p2);
             } else if (_segment_type == ARC) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
@@ -31,7 +46,14 @@ public class Segment : Object {
                 end_angle = Math.PI;
                 rx = Math.hypot (dy, dx) / 2;
                 ry = rx / 2;
+                command.add_value (this, "c", c, c);
+                command.add_value (this, "angle", angle, angle);
+                command.add_value (this, "rx", rx, rx);
+                command.add_value (this, "ry", ry, ry);
+                command.add_value (this, "start", start, end);
+                command.add_value (this, "end", end, end);
             }
+            add_command (command);
         }
     }
 
@@ -55,7 +77,6 @@ public class Segment : Object {
 
     // End points, used for all segments
     private Point _start;
-    private Point _end;
     public Point start {
         get {
             return _start;
@@ -74,6 +95,7 @@ public class Segment : Object {
         }
     }
 
+    private Point _end;
     public Point end {
         get {
             return _end;
@@ -97,7 +119,21 @@ public class Segment : Object {
     public double rx { get; set; default = 16; }
     public double ry { get; set; default = 16; }
     public double angle { get; set; }
-    public bool reverse { get; set; }
+    
+    private bool _reverse;
+    public bool reverse {
+        get {
+            return _reverse;
+        }
+        set {
+            if (_reverse != value) {
+                var command = new Command ();
+                command.add_value (this, "reverse", value, _reverse);
+                add_command (command);
+                _reverse = value;
+            }
+        }
+    }
     // Easier to use and update than just points
     public double start_angle;
     public double end_angle;
@@ -178,6 +214,16 @@ public class Segment : Object {
             end = point_from_angle(end_angle);
         }
     }
+    
+    // Backups for undo history
+    private Point previous_start;
+    private Point previous_end;
+    private Point previous_p1;
+    private Point previous_p2;
+    private Point previous_center;
+    private double previous_rx;
+    private double previous_ry;
+    private double previous_angle;
             
     // Constructors
     public Segment.line (double x, double y) {
@@ -200,6 +246,82 @@ public class Segment : Object {
         this.angle = angle;
         this.reverse = reverse;
         this.end = {x, y};
+    }
+    
+    public void begin (string property, Value? start_value = null) {
+        switch (property) {
+            case "start":
+                previous_start = start;
+                break;
+            case "end":
+                previous_end = end;
+                break;
+            case "p1":
+                previous_p1 = p1;
+                break;
+            case "p2":
+                previous_p2 = p2;
+                break;
+            case "center":
+                previous_start = start;
+                previous_end = end;
+                previous_center = c;
+                break;
+            case "topleft":
+            case "topright":
+            case "bottomleft":
+            case "bottomright":
+                previous_center = c;
+                previous_end = end;
+                previous_start = start;
+                previous_rx = rx;
+                previous_ry = ry;
+                break;
+            case "controller":
+                previous_start = start;
+                previous_end = end;
+                previous_angle = angle;
+                break;
+        }
+    }
+    
+    public void finish (string property) {
+        var command = new Command ();
+        switch (property) {
+            case "start":
+                command.add_value (this, "start", start, previous_start);
+                break;
+            case "end":
+                command.add_value (this, "end", end, previous_end);
+                break;
+            case "p1":
+                command.add_value (this, "p1", p1, previous_p1);
+                break;
+            case "p2":
+                command.add_value (this, "p2", p2, previous_p2);
+                break;
+            case "center":
+                command.add_value (this, "c", c, previous_center);
+                command.add_value (this, "start", start, previous_start);
+                command.add_value (this, "end", end, previous_end);
+                break;
+            case "topleft":
+            case "topright":
+            case "bottomleft":
+            case "bottomright":
+                command.add_value (this, "c", c, previous_center);
+                command.add_value (this, "rx", rx, previous_rx);
+                command.add_value (this, "ry", ry, previous_ry);
+                command.add_value (this, "start", start, previous_start);
+                command.add_value (this, "end", end, previous_end);
+                break;
+            case "controller":
+                command.add_value (this, "angle", angle, previous_angle);
+                command.add_value (this, "start", start, previous_start);
+                command.add_value (this, "end", end, previous_end);
+                break;
+        }
+        add_command (command);
     }
 
     public Segment copy () {

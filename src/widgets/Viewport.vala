@@ -21,9 +21,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private Binding point_binding;
     
-    private Object bound_obj;
+    private Undoable bound_obj;
     private string bound_prop;
-    private Value old_point;
 
     public Image image {
         get {
@@ -153,7 +152,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     construct {
         background = {0.7, 0.7, 0.7, 1.0};
-        old_point = Value (typeof (Point));
 
         set_size_request (320, 320);
 
@@ -429,7 +427,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Check for clicking on a path (not control handle)
             if (clicked && path == selected_path) {
-                selected_path.start_dragging ({x, y});
                 bind_point (selected_path, "reference");
                 return false;
             }
@@ -492,19 +489,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         return true;
     }
 
-    private void bind_point (Object obj, string name) {
-        obj.get_property (name, ref old_point);
+    private void bind_point (Undoable obj, string name) {
         bound_obj = obj;
         bound_prop = name;
+        obj.begin (name, control_point);
         point_binding = bind_property ("control-point", obj, name);
     }
 
     private void unbind_point () {
+        bound_obj.finish (bound_prop);
         point_binding.unbind ();
         point_binding = null;
-        var command = new Command ();
-        command.add_value (bound_obj, bound_prop, control_point, old_point);
-        image.do_command (command);
     }
 
     private bool clicked_path (int x, int y, out Path? path, out Segment? segment) {

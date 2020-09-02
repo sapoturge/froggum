@@ -1,4 +1,4 @@
-public class Path : Object {
+public class Path : Object, Undoable {
     public Segment root_segment;
 
     private Pattern _fill;
@@ -80,10 +80,13 @@ public class Path : Object {
         visible = true;
         for (int i = 0; i < segments.length; i++) {
             segments[i].notify.connect (() => { update (); });
+            segments[i].add_command.connect ((c) => { add_command (c); });
             segments[i].next = segments[(i + 1) % segments.length];
         }
         select.connect (() => { update(); });
         notify.connect (() => { update(); });
+        fill.add_command.connect ((c) => { add_command (c); });
+        stroke.add_command.connect ((c) => { add_command (c); });
     }
 
     public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {
@@ -261,8 +264,11 @@ public class Path : Object {
         cr.stroke ();
     }
 
-    public void start_dragging (Point start_location) {
-        last_reference = start_location;
+    public void begin (string prop, Value? start_location) {
+        last_reference = *((Point*) start_location.peek_pointer ());
+    }
+    
+    public void finish (string prop) {
     }
 
     private static int skip_whitespace (string source, int start) {

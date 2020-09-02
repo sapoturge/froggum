@@ -26,6 +26,7 @@ public class GradientEditor : Gtk.DrawingArea {
     public double offset { get; set; }
 
     private Binding stop_binding;
+    private Stop bound_stop;
 
     construct {
         set_size_request (400, 70);
@@ -62,6 +63,7 @@ public class GradientEditor : Gtk.DrawingArea {
         button_press_event.connect ((ev) => {
             if (stop_binding != null) {
                 stop_binding.unbind ();
+                bound_stop.finish ("offset");
                 stop_binding = null;
             }
             if (height - 35 < ev.y && ev.y < height - 5) {
@@ -74,13 +76,17 @@ public class GradientEditor : Gtk.DrawingArea {
                             dialog.use_alpha = true;
                             dialog.rgba = stop.rgba;
                             var old_rgba = stop.rgba;
+                            stop.begin ("rgba");
                             dialog.bind_property ("rgba", stop, "rgba");
                             var result = dialog.run ();
                             if (result != Gtk.ResponseType.OK) {
                                 stop.rgba = old_rgba;
                             }
+                            stop.finish ("rgba");
                             dialog.destroy ();
                         } else {
+                            stop.begin ("offset");
+                            bound_stop = stop;
                             stop_binding = bind_property ("offset", stop, "offset");
                         }
                         return false;
@@ -96,6 +102,7 @@ public class GradientEditor : Gtk.DrawingArea {
             if (stop_binding != null) {
                 stop_binding.unbind ();
                 stop_binding = null;
+                bound_stop.finish ("offset");
             }
         });
 
