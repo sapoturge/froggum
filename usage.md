@@ -28,22 +28,22 @@ Data loss may result.**
     path, a switch to control whether or not it is visible, the name of the path
     (which can be changed), and buttons to change the fill and stroke patterns.
 
-    a. Mini-view
+    1. Mini-view
 
         The mini-view is just that: a view of the icon. Useful for when you want
         to see how edits affect the shape while zoomed in.
 
-    b. Visibility switch
+    2. Visibility switch
 
         The visibility switch controls whether or not the path is shown in the
         editor. It has no effect on the saved file.
 
-    c. Name editor
+    3. Name editor
 
         Each path has a name, saved as the `id` attribute in the file.
         Double-clicking willlet you change the name.
 
-    d. Fill and Stroke buttons
+    4. Fill and Stroke buttons
 
         Clicking these buttons opens a dialog to let you choose the pattern used
         by the path. More on this later.
