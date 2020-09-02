@@ -79,6 +79,9 @@ public class FroggumApplication : Gtk.Application {
                 settings.set_string ("focused-file", editor.image.file.get_uri ());
             }
         });
+        notebook.tab_added.connect (() => { recalculate_open_files (); });
+        notebook.tab_removed.connect (() => { recalculate_open_files (); });
+        notebook.tab_reordered.connect (() => { recalculate_open_files (); });
 
         var save_button = new Gtk.Button.from_icon_name ("document-save-as");
         save_button.tooltip_text = _("Save as new file");
