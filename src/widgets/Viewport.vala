@@ -208,9 +208,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.line_to (s.end.x, s.end.y);
                             cr.set_source_rgba (0, 0.5, 1, 0.8);
                             cr.stroke ();
-                            cr.arc (s.p1.x, s.p1.y, 6 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.p1.x, s.p1.y, 6 / zoom, 0, Math.PI * 2);
                             cr.new_sub_path ();
-                            cr.arc (s.p2.x, s.p2.y, 6 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.p2.x, s.p2.y, 6 / zoom, 0, Math.PI * 2);
                             cr.new_sub_path ();
                             break;
                         case SegmentType.LINE:
@@ -222,9 +222,16 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.line_to (s.bottomright.x, s.bottomright.y);
                             cr.line_to (s.bottomleft.x, s.bottomleft.y);
                             cr.close_path ();
+                            cr.new_sub_path ();
+                            cr.save ();
+                            cr.translate (s.center.x, s.center.y);
+                            cr.rotate (s.angle);
+                            cr.scale (s.rx, s.ry);
+                            cr.arc (0, 0, 1, s.end_angle, s.start_angle);
+                            cr.restore ();
                             cr.set_source_rgba (0, 0.5, 1, 0.8);
                             cr.stroke ();
-                            cr.arc (s.controller.x, s.controller.y, 6 / zoom, 0, 3.14159265 * 2);
+                            cr.arc (s.controller.x, s.controller.y, 6 / zoom, 0, Math.PI * 2);
                             cr.new_sub_path ();
                             cr.arc (s.topleft.x, s.topleft.y, 6 / zoom, 0, Math.PI * 2);
                             cr.new_sub_path ();
@@ -234,9 +241,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.new_sub_path ();
                             cr.arc (s.bottomright.x, s.bottomright.y, 6 / zoom, 0, Math.PI * 2);
                             cr.new_sub_path ();
+                            cr.arc (s.center.x, s.center.y, 6 / zoom, 0, Math.PI * 2);
+                            cr.new_sub_path ();
                             break;
                     }
-                    cr.arc (s.end.x, s.end.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.arc (s.end.x, s.end.y, 6 / zoom, 0, Math.PI * 2);
                     cr.set_source_rgba (1, 0, 0, 0.9);
                     cr.fill ();
                     s = s.next;
@@ -249,14 +258,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     cr.set_source_rgba (0, 1, 0, 0.9);
                     cr.stroke ();
 
-                    cr.arc (selected_path.fill.start.x, selected_path.fill.start.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.arc (selected_path.fill.start.x, selected_path.fill.start.y, 6 / zoom, 0, Math.PI * 2);
                     cr.new_sub_path ();
-                    cr.arc (selected_path.fill.end.x, selected_path.fill.end.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.arc (selected_path.fill.end.x, selected_path.fill.end.y, 6 / zoom, 0, Math.PI * 2);
                  
                     for (int i = 0; i < selected_path.fill.get_n_items (); i++) {
                         var stop = (Stop) selected_path.fill.get_item (i);
                         cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, 3.14159265 * 2);
+                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
                     }
 
                     cr.fill ();
@@ -264,7 +273,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     for (int i = 0; i < selected_path.fill.get_n_items (); i++) {
                         var stop = (Stop) selected_path.fill.get_item (i);
                         cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, 3.14159265 * 2);
+                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
                         cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
                         cr.fill ();
                     }
@@ -277,14 +286,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     cr.set_source_rgba (0, 1, 0, 0.9);
                     cr.stroke ();
 
-                    cr.arc (selected_path.stroke.start.x, selected_path.stroke.start.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.arc (selected_path.stroke.start.x, selected_path.stroke.start.y, 6 / zoom, 0, Math.PI * 2);
                     cr.new_sub_path ();
-                    cr.arc (selected_path.stroke.end.x, selected_path.stroke.end.y, 6 / zoom, 0, 3.14159265 * 2);
+                    cr.arc (selected_path.stroke.end.x, selected_path.stroke.end.y, 6 / zoom, 0, Math.PI * 2);
 
                     for (int i = 0; i < selected_path.stroke.get_n_items (); i++) {
                         var stop = (Stop) selected_path.stroke.get_item (i);
                         cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, 3.14159265 * 2);
+                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
                     }
 
                     cr.fill ();
@@ -292,7 +301,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     for (int i = 0; i < selected_path.stroke.get_n_items (); i++) {
                         var stop = (Stop) selected_path.stroke.get_item (i);
                         cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, 3.14159265 * 2);
+                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
                         cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
                         cr.fill ();
                     }
@@ -385,6 +394,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             }
                             if ((x - s.bottomright.x).abs () <= 6 / zoom && (y - s.bottomright.y).abs () <= 6 / zoom) {
                                 point_binding = bind_property ("control-point", s, "bottomright");
+                                control_point = {x, y};
+                                return false;
+                            }
+                            if ((x - s.center.x).abs () <= 6 / zoom && (y - s.center.y).abs () <= 6 / zoom) {
+                                point_binding = bind_property ("control-point", s, "center");
                                 control_point = {x, y};
                                 return false;
                             }
