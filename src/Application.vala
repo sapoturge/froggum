@@ -235,7 +235,7 @@ public class FroggumApplication : Gtk.Application {
     }
 
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {
-        var radius = int.max (int.min (width, height) / 8, 16);
+        var radius = int.min (int.min (width, height) / 8, 16) + 0.5;
         var segments = new Segment[] {
             new Segment.line (width - radius * 2, radius),
             new Segment.arc (width - radius, radius * 2, width - radius * 2, radius * 2, radius, radius, 0, false),

@@ -227,8 +227,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             cr.translate (s.center.x, s.center.y);
                             cr.rotate (s.angle);
                             cr.scale (s.rx, s.ry);
-                            cr.arc (0, 0, 1, 0, Math.PI * 2);
-                            cr.close_path ();
+                            cr.arc (0, 0, 1, s.end_angle, s.start_angle);
                             cr.restore ();
                             cr.set_source_rgba (0, 0.5, 1, 0.8);
                             cr.stroke ();
