@@ -26,13 +26,11 @@ public class Tutorial : Gtk.Popover {
             stack.visible_child = done;
             skip.label = "Finish";
         } else {
-            popdown ();
+            finish ();
         }
     }
     
-    public void skip_tutorial () {
-        popdown ();
-    }
+    public signal void finish ();
     
     construct {
         var scroll = new Gtk.Label (_("Scroll to zoom"));
@@ -44,7 +42,7 @@ public class Tutorial : Gtk.Popover {
         done = new Gtk.Label (_("Keep editing!"));
         
         skip = new Gtk.Button.with_label (_("Skip Tutorial"));
-        skip.clicked.connect(() => { skip_tutorial (); });
+        skip.clicked.connect(() => { finish (); });
         
         stack = new Gtk.Stack ();
         stack.add_named (scroll, "scroll");
@@ -65,5 +63,7 @@ public class Tutorial : Gtk.Popover {
         
         modal = false;
         step = SCROLL;
+        
+        finish.connect (() => { popdown (); });
     }
 }
