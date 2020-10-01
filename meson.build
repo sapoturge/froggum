@@ -27,6 +27,9 @@ executable(
     'src/data/Segment.vala',
     'src/data/Point.vala',
     'src/data/Pattern.vala',
+    'src/data/Command.vala',
+    'src/data/CommandStack.vala',
+    'src/data/Undoable.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),

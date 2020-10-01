@@ -1,5 +1,6 @@
 public class Image : Object, ListModel {
     private File _file;
+    private CommandStack stack;
 
     public int width { get; private set; }
     public int height { get; private set; }
@@ -36,6 +37,7 @@ public class Image : Object, ListModel {
                     path_selected (null);
                 }
             });
+            path.add_command.connect ((c) => { stack.add_command (c); });
         }
         
         update.connect (() => {
@@ -49,6 +51,10 @@ public class Image : Object, ListModel {
                 return false;
             });
         });
+    }
+    
+    construct {
+        stack = new CommandStack ();
     }
 
     public Image (int width, int height, Path[] paths = {}) {
@@ -280,6 +286,14 @@ public class Image : Object, ListModel {
         for (int i = 0; i < paths.length; i++) {
             paths.index (i).draw (cr);
         }
+    }
+    
+    public void undo () {
+        stack.undo ();
+    }
+    
+    public void redo () {
+        stack.redo ();
     }
 
     public Path[] get_paths () {
