@@ -22,7 +22,7 @@ public class Segment : Object, Undoable {
                 command.add_value (this, "p1", p1, p1);
                 command.add_value (this, "p2", p2, p2);
             } else if (_segment_type == ARC) {
-                command.add_value (this, "c", c, c);
+                command.add_value (this, "center", center, center);
                 command.add_value (this, "angle", angle, angle);
                 command.add_value (this, "rx", rx, rx);
                 command.add_value (this, "ry", ry, ry);
@@ -46,7 +46,7 @@ public class Segment : Object, Undoable {
                 end_angle = Math.PI;
                 rx = Math.hypot (dy, dx) / 2;
                 ry = rx / 2;
-                command.add_value (this, "c", c, c);
+                command.add_value (this, "center", center, center);
                 command.add_value (this, "angle", angle, angle);
                 command.add_value (this, "rx", rx, rx);
                 command.add_value (this, "ry", ry, ry);
@@ -275,13 +275,13 @@ public class Segment : Object, Undoable {
             case "center":
                 previous_start = start;
                 previous_end = end;
-                previous_center = c;
+                previous_center = center;
                 break;
             case "topleft":
             case "topright":
             case "bottomleft":
             case "bottomright":
-                previous_center = c;
+                previous_center = center;
                 previous_end = end;
                 previous_start = start;
                 previous_rx = rx;
@@ -311,7 +311,7 @@ public class Segment : Object, Undoable {
                 command.add_value (this, "p2", p2, previous_p2);
                 break;
             case "center":
-                command.add_value (this, "c", c, previous_center);
+                command.add_value (this, "center", center, previous_center);
                 command.add_value (this, "start", start, previous_start);
                 command.add_value (this, "end", end, previous_end);
                 break;
@@ -319,7 +319,7 @@ public class Segment : Object, Undoable {
             case "topright":
             case "bottomleft":
             case "bottomright":
-                command.add_value (this, "c", c, previous_center);
+                command.add_value (this, "center", center, previous_center);
                 command.add_value (this, "rx", rx, previous_rx);
                 command.add_value (this, "ry", ry, previous_ry);
                 command.add_value (this, "start", start, previous_start);

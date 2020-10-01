@@ -332,8 +332,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 FroggumApplication.settings.set_boolean ("show-tutorial", false);
                 tutorial = new Tutorial ();
                 tutorial.relative_to = this;
-                tutorial.pointing_to = { (int) (width / 2), (int) (height / 2) };
-                print ("Showing tutorial!\n");
+                tutorial.pointing_to = { (int) (width / 2) - (, (int) (height / 2) };
                 tutorial.popup ();
             }
         });
@@ -521,6 +520,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private void bind_point (Undoable obj, string name) {
+        if (tutorial != null && tutorial.step == DRAG) {
+            tutorial.next_step ();
+        }
         bound_obj = obj;
         bound_prop = name;
         obj.begin (name, control_point);
