@@ -16,6 +16,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Image _image;
     private Gtk.Adjustment horizontal;
     private Gtk.Adjustment vertical;
+    
+    private Tutorial tutorial;
 
     public Point control_point { get; set; }
 
@@ -145,9 +147,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double scale_x (double x) {
         return (x - width / 2 - scroll_x) / zoom;
     }
+    
+    private double unscale_x (double x) {
+        return x * zoom + scroll_x + width / 2;
+    }
 
     private double scale_y (double y) {
         return (y - height / 2 - scroll_y) / zoom;
+    }
+    
+    private double unscale_y (double y) {
+        return y * zoom + scroll_y + height / 2;
     }
 
     construct {
@@ -325,6 +335,15 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Recalculate values.
             scroll_x = scroll_x;
             scroll_y = scroll_y;
+            
+            if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
+                FroggumApplication.settings.set_boolean ("show-tutorial", false);
+                tutorial = new Tutorial ();
+                tutorial.finish.connect (() => { tutorial = null; });
+                tutorial.relative_to = this;
+                position_tutorial ();
+                tutorial.popup ();
+            }
         });
 
         button_press_event.connect ((event) => {
@@ -345,6 +364,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for double-clicking on a path
             if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
                 if (clicked) {
+                    if (tutorial != null && tutorial.step == CLICK) {
+                        tutorial.next_step ();
+                    }
                     path.select (true);
                 } else {
                     selected_path.select (false);
@@ -469,6 +491,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             if (scrolling) {
                 scroll_x = (int) event.x - base_x;
                 scroll_y = (int) event.y - base_y;
+                position_tutorial ();
                 queue_draw ();
             }
             return false;
@@ -485,6 +508,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         scroll_event.connect ((event) => {
             if (event.direction == Gdk.ScrollDirection.UP) {
+                if (tutorial != null && tutorial.step == SCROLL) {
+                    tutorial.next_step ();
+                }
                 zoom *= 2;
                 scroll_x *= 2;
                 scroll_y *= 2;
@@ -493,6 +519,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 scroll_x /= 2;
                 scroll_y /= 2;
             }
+            position_tutorial ();
             queue_draw ();
             return false;
         });
@@ -504,6 +531,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private void bind_point (Undoable obj, string name) {
+        if (tutorial != null && tutorial.step == DRAG) {
+            tutorial.next_step ();
+        }
         bound_obj = obj;
         bound_prop = name;
         obj.begin (name, control_point);
@@ -514,6 +544,25 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         bound_obj.finish (bound_prop);
         point_binding.unbind ();
         point_binding = null;
+    }
+    
+    private void position_tutorial () {
+        if (tutorial != null) {
+            var x = unscale_x (image.width / 2);
+            var y = unscale_y (0);
+            if (y < 0) {
+                y = 0;
+                tutorial.position = BOTTOM;
+            } else if (y > height) {
+                y = height;
+            }
+            if (x < 0) {
+                x = 0;
+            } else if (x > width) {
+                x = width;
+            }
+            tutorial.pointing_to = { (int) x, (int) y };
+        }
     }
 
     private bool clicked_path (int x, int y, out Path? path, out Segment? segment) {
