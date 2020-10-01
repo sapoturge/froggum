@@ -352,6 +352,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for double-clicking on a path
             if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
                 if (clicked) {
+                    if (tutorial != null && tutorial.step == CLICK) {
+                        tutorial.next_step ();
+                    }
                     path.select (true);
                 } else {
                     selected_path.select (false);
@@ -509,6 +512,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         scroll_event.connect ((event) => {
             if (event.direction == Gdk.ScrollDirection.UP) {
+                if (tutorial != null && tutorial.step == SCROLL) {
+                    tutorial.next_step ();
+                }
                 zoom *= 2;
                 scroll_x *= 2;
                 scroll_y *= 2;
