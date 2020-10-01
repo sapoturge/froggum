@@ -33,3 +33,21 @@ ol ol {
 		}
 	}
 }
+
+ol li {
+	font-weight: bold;
+
+	p:first-child {
+		font-weight: bold;
+	}
+
+	ol li {
+		font-weight: bold;
+	}
+
+	* {
+		font-weight: initial;
+	}
+}
+
+
