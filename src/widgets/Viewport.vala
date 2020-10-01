@@ -16,6 +16,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Image _image;
     private Gtk.Adjustment horizontal;
     private Gtk.Adjustment vertical;
+    
+    private Tutorial tutorial;
 
     public Point control_point { get; set; }
 
@@ -322,6 +324,15 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Recalculate values.
             scroll_x = scroll_x;
             scroll_y = scroll_y;
+            
+            if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
+                FroggumApplication.settings.set_boolean ("show-tutorial", false);
+                tutorial = new Tutorial ();
+                tutorial.relative_to = this;
+                tutorial.pointing_to = { (int) (width / 2), (int) (height / 2) };
+                print ("Showing tutorial!\n");
+                tutorial.popup ();
+            }
         });
 
         button_press_event.connect ((event) => {

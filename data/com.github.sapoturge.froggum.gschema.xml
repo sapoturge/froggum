@@ -26,5 +26,10 @@
       <summary>Focused file</summary>
       <description>The file last open in front</description>
     </key>
+    <key name="show-tutorial" type="b">
+      <default>true</default>
+      <summary>Should the tutorial be shown?</summary>
+      <description>Whether or not to show the tutorial</description>
+    </key>
   </schema>
 </schemalist>
