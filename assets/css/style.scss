@@ -20,10 +20,16 @@ ol ol {
 	list-style-type: lower-alpha;
 }
 
-ul.navbar {
-	background-color: #C2FA96;
+.navbar {
+	background-color: #5198DF;
+	border-radius: 0px;
+	padding: 0;
 
-	li {
-		float: left;
+	ul {
+		height: 28px;
+
+		li {
+			height: 28px;
+		}
 	}
 }

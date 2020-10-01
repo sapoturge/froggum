@@ -1,0 +1,2 @@
+* [**Home**](index)
+* [**Usage**](usage)
