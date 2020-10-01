@@ -22,7 +22,7 @@ public class Segment : Object, Undoable {
                 command.add_value (this, "p1", p1, p1);
                 command.add_value (this, "p2", p2, p2);
             } else if (_segment_type == ARC) {
-                command.add_value (this, "c", c, c);
+                command.add_value (this, "center", center, center);
                 command.add_value (this, "angle", angle, angle);
                 command.add_value (this, "rx", rx, rx);
                 command.add_value (this, "ry", ry, ry);
@@ -40,13 +40,13 @@ public class Segment : Object, Undoable {
             } else if (_segment_type == ARC) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
-                c = {start.x + dx / 2, start.y + dy / 2};
+                center = {start.x + dx / 2, start.y + dy / 2};
                 angle = Math.PI + Math.atan2 (dy, dx);
                 start_angle = 0;
                 end_angle = Math.PI;
                 rx = Math.hypot (dy, dx) / 2;
                 ry = rx / 2;
-                command.add_value (this, "c", c, c);
+                command.add_value (this, "center", center, center);
                 command.add_value (this, "angle", angle, angle);
                 command.add_value (this, "rx", rx, rx);
                 command.add_value (this, "ry", ry, ry);
@@ -115,7 +115,7 @@ public class Segment : Object, Undoable {
     public Point p2 { get; set; }
 
     // SVG-based ARC control values
-    public Point c { get; set; }
+    public Point center { get; set; }
     public double rx { get; set; default = 16; }
     public double ry { get; set; default = 16; }
     public double angle { get; set; }
@@ -141,13 +141,13 @@ public class Segment : Object, Undoable {
     // Control points for ARC segments
     public Point topleft {
         get {
-            return {c.x - Math.cos (angle) * rx + Math.sin (angle) * ry,
-                    c.y - Math.cos (angle) * ry - Math.sin (angle) * rx};
+            return {center.x - Math.cos (angle) * rx + Math.sin (angle) * ry,
+                    center.y - Math.cos (angle) * ry - Math.sin (angle) * rx};
         }
         set {
-            c = {(value.x + bottomright.x) / 2, (value.y + bottomright.y) / 2};
-            var a = Math.atan2 (value.y - c.y, value.x - c.x);
-            var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
+            center = {(value.x + bottomright.x) / 2, (value.y + bottomright.y) / 2};
+            var a = Math.atan2 (value.y - center.y, value.x - center.x);
+            var d = Math.sqrt (Math.pow (value.x - center.x, 2) + Math.pow (value.y - center.y, 2));
             rx = d * Math.cos (Math.PI + a - angle);
             ry = d * Math.sin (Math.PI + a - angle);
             start = point_from_angle(start_angle);
@@ -157,13 +157,13 @@ public class Segment : Object, Undoable {
 
     public Point topright {
         get {
-            return {c.x + Math.cos (angle) * rx + Math.sin (angle) * ry,
-                    c.y - Math.cos (angle) * ry + Math.sin (angle) * rx};
+            return {center.x + Math.cos (angle) * rx + Math.sin (angle) * ry,
+                    center.y - Math.cos (angle) * ry + Math.sin (angle) * rx};
         }
         set {
-            c = {(value.x + bottomleft.x) / 2, (value.y + bottomleft.y) / 2};
-            var a = Math.atan2 (value.y - c.y, value.x - c.x);
-            var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
+            center = {(value.x + bottomleft.x) / 2, (value.y + bottomleft.y) / 2};
+            var a = Math.atan2 (value.y - center.y, value.x - center.x);
+            var d = Math.sqrt (Math.pow (value.x - center.x, 2) + Math.pow (value.y - center.y, 2));
             rx = d * Math.cos (angle - a);
             ry = d * Math.sin (angle - a);
             start = point_from_angle(start_angle);
@@ -173,13 +173,13 @@ public class Segment : Object, Undoable {
 
     public Point bottomleft {
         get {
-            return {c.x - Math.cos (angle) * rx - Math.sin (angle) * ry,
-                    c.y + Math.cos (angle) * ry - Math.sin (angle) * rx};
+            return {center.x - Math.cos (angle) * rx - Math.sin (angle) * ry,
+                    center.y + Math.cos (angle) * ry - Math.sin (angle) * rx};
         }
         set {
-            c = {(value.x + topright.x) / 2, (value.y + topright.y) / 2};
-            var a = Math.atan2 (value.y - c.y, value.x - c.x);
-            var d = Math.sqrt (Math.pow (value.x - c.x, 2) + Math.pow (value.y - c.y, 2));
+            center = {(value.x + topright.x) / 2, (value.y + topright.y) / 2};
+            var a = Math.atan2 (value.y - center.y, value.x - center.x);
+            var d = Math.sqrt (Math.pow (value.x - center.x, 2) + Math.pow (value.y - center.y, 2));
             rx = d * Math.cos (Math.PI + angle - a);
             ry = d * Math.sin (Math.PI + angle - a);
             start = point_from_angle(start_angle);
@@ -189,13 +189,13 @@ public class Segment : Object, Undoable {
     
     public Point bottomright {
         get {
-            return {c.x + Math.cos (angle) * rx - Math.sin (angle) * ry,
-                    c.y + Math.cos (angle) * ry + Math.sin (angle) * rx};
+            return {center.x + Math.cos (angle) * rx - Math.sin (angle) * ry,
+                    center.y + Math.cos (angle) * ry + Math.sin (angle) * rx};
         }
         set {
-            c = {(value.x + topleft.x) / 2, (value.y + topleft.y) / 2};
-            var a = Math.atan2 (value.y - c.y, value.x - c.x);
-            var d = Math.hypot (value.x - c.x, value.y - c.y);
+            center = {(value.x + topleft.x) / 2, (value.y + topleft.y) / 2};
+            var a = Math.atan2 (value.y - center.y, value.x - center.x);
+            var d = Math.hypot (value.x - center.x, value.y - center.y);
             rx = d * Math.cos (a - angle);
             ry = d * Math.sin (a - angle);
             start = point_from_angle(start_angle);
@@ -205,11 +205,11 @@ public class Segment : Object, Undoable {
 
     public Point controller {
         get {
-            return {c.x + Math.cos (angle) * (rx + 5),
-                    c.y + Math.sin (angle) * (rx + 5)};
+            return {center.x + Math.cos (angle) * (rx + 5),
+                    center.y + Math.sin (angle) * (rx + 5)};
         }
         set {
-            angle = Math.atan2 (value.y - c.y, value.x - c.x);
+            angle = Math.atan2 (value.y - center.y, value.x - center.x);
             start = point_from_angle(start_angle);
             end = point_from_angle(end_angle);
         }
@@ -240,7 +240,7 @@ public class Segment : Object, Undoable {
 
     public Segment.arc (double x, double y, double xc, double yc, double rx, double ry, double angle, bool reverse) {
         segment_type = ARC;
-        this.c = {xc, yc};
+        this.center = {xc, yc};
         this.rx = rx;
         this.ry = ry;
         this.angle = angle;
@@ -265,13 +265,13 @@ public class Segment : Object, Undoable {
             case "center":
                 previous_start = start;
                 previous_end = end;
-                previous_center = c;
+                previous_center = center;
                 break;
             case "topleft":
             case "topright":
             case "bottomleft":
             case "bottomright":
-                previous_center = c;
+                previous_center = center;
                 previous_end = end;
                 previous_start = start;
                 previous_rx = rx;
@@ -301,7 +301,7 @@ public class Segment : Object, Undoable {
                 command.add_value (this, "p2", p2, previous_p2);
                 break;
             case "center":
-                command.add_value (this, "c", c, previous_center);
+                command.add_value (this, "center", center, previous_center);
                 command.add_value (this, "start", start, previous_start);
                 command.add_value (this, "end", end, previous_end);
                 break;
@@ -309,7 +309,7 @@ public class Segment : Object, Undoable {
             case "topright":
             case "bottomleft":
             case "bottomright":
-                command.add_value (this, "c", c, previous_center);
+                command.add_value (this, "center", center, previous_center);
                 command.add_value (this, "rx", rx, previous_rx);
                 command.add_value (this, "ry", ry, previous_ry);
                 command.add_value (this, "start", start, previous_start);
@@ -331,7 +331,7 @@ public class Segment : Object, Undoable {
             case CURVE:
                 return new Segment.curve (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
             case ARC:
-                return new Segment.arc (end.x, end.y, c.x, c.y, rx, ry, angle, reverse);
+                return new Segment.arc (end.x, end.y, center.x, center.y, rx, ry, angle, reverse);
         }
         return null;
     }
@@ -376,7 +376,7 @@ public class Segment : Object, Undoable {
                 break;
             case ARC:
                 cr.save ();
-                cr.translate (c.x, c.y);
+                cr.translate (center.x, center.y);
                 cr.rotate (angle);
                 cr.scale (rx, ry);
                 if (reverse) {
@@ -391,8 +391,8 @@ public class Segment : Object, Undoable {
 
     private Point closest (Point original, out double p_angle) {
         // Logic copied from https://stackoverflow.com/questions/22959698/distance-from-given-point-to-given-ellipse
-        var dx = original.x - c.x;
-        var dy = original.y - c.y;
+        var dx = original.x - center.x;
+        var dy = original.y - center.y;
         var an = Math.atan2 (dy, dx);
         var d = Math.hypot (dx, dy);
         var px = Math.cos (an - angle) * d;
@@ -437,14 +437,14 @@ public class Segment : Object, Undoable {
         var sx = px / rx;
         var sy = py / ry;
         p_angle = Math.atan2 (sy, sx);
-        return {c.x + Math.cos (angle) * px - Math.sin (angle) * py,
-                c.y + Math.cos (angle) * py + Math.sin (angle) * px};
+        return {center.x + Math.cos (angle) * px - Math.sin (angle) * py,
+                center.y + Math.cos (angle) * py + Math.sin (angle) * px};
     }
 
     private Point point_from_angle (double a) {
         var dx = Math.cos (a);
         var dy = Math.sin (a);
-        return {c.x + Math.cos (angle) * dx * rx - Math.sin (angle) * dy * ry,
-                c.y + Math.cos (angle) * dy * ry + Math.sin (angle) * dx * rx};
+        return {center.x + Math.cos (angle) * dx * rx - Math.sin (angle) * dy * ry,
+                center.y + Math.cos (angle) * dy * ry + Math.sin (angle) * dx * rx};
     }
 }
