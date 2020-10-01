@@ -1,4 +1,4 @@
-public class Path : Object {
+public class Path : Object, Undoable {
     public Segment root_segment;
 
     private Pattern _fill;
@@ -80,10 +80,13 @@ public class Path : Object {
         visible = true;
         for (int i = 0; i < segments.length; i++) {
             segments[i].notify.connect (() => { update (); });
+            segments[i].add_command.connect ((c) => { add_command (c); });
             segments[i].next = segments[(i + 1) % segments.length];
         }
         select.connect (() => { update(); });
         notify.connect (() => { update(); });
+        fill.add_command.connect ((c) => { add_command (c); });
+        stroke.add_command.connect ((c) => { add_command (c); });
     }
 
     public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {
@@ -151,7 +154,6 @@ public class Path : Object {
                 var cy1 = -coefficient * ry * x1 / rx;
                 var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
                 var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
-                print ("rx: %f ry: %f angle: %f x1: %f y1: %f coef: %f cx1: %f cy1: %f\n", rx, ry, angle, x1, y1, coefficient, cx1, cy1);
                 segments += new Segment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
                 current_x = x;
                 current_y = y;
@@ -262,8 +264,11 @@ public class Path : Object {
         cr.stroke ();
     }
 
-    public void start_dragging (Point start_location) {
-        last_reference = start_location;
+    public void begin (string prop, Value? start_location) {
+        last_reference = *((Point*) start_location.peek_pointer ());
+    }
+    
+    public void finish (string prop) {
     }
 
     private static int skip_whitespace (string source, int start) {
