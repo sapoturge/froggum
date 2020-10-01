@@ -1,4 +1,4 @@
-{% inlclude navbar.md %}
+{% include_relative navbar.md %}
 
 # Froggum Icon Editor
 
