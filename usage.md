@@ -1,3 +1,5 @@
+{% include_relative navbar.md %}
+
 # Using Froggum
 
 ## Getting Started
