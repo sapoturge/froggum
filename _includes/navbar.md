@@ -1,2 +1,2 @@
-* [**Home**](/)
-* [**Docs**](/docs)
+* [**Home**]({{site.url}})
+* [**Docs**]({{site.url}}/docs)
