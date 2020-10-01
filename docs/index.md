@@ -1,4 +1,7 @@
+---
+---
+
 # Documentation
 
-* [**Installation**](/docs/install)
-* [**Usage**](/docs/usage)
+* [**Installation**]({{site.url}}/docs/install)
+* [**Usage**]({{site.url}}/docs/usage)
