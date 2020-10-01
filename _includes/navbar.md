@@ -1,2 +1,2 @@
-* [**Home**](index)
-* [**Usage**](usage)
+* [**Home**](/)
+* [**Docs**](/docs)
