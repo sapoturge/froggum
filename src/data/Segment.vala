@@ -115,7 +115,17 @@ public class Segment : Object, Undoable {
     public Point p2 { get; set; }
 
     // SVG-based ARC control values
-    public Point center { get; set; }
+    private Point _center;
+    public Point center {
+        get {
+            return _center;
+        }
+        set {
+            _center = value;
+            start = point_from_angle (start_angle);
+            end = point_from_angle (end_angle);
+        }
+    }
     public double rx { get; set; default = 16; }
     public double ry { get; set; default = 16; }
     public double angle { get; set; }
@@ -150,8 +160,8 @@ public class Segment : Object, Undoable {
             var d = Math.sqrt (Math.pow (value.x - center.x, 2) + Math.pow (value.y - center.y, 2));
             rx = d * Math.cos (Math.PI + a - angle);
             ry = d * Math.sin (Math.PI + a - angle);
-            start = point_from_angle(start_angle);
-            end = point_from_angle(end_angle);
+            start = point_from_angle (start_angle);
+            end = point_from_angle (end_angle);
         }
     }
 

@@ -2,6 +2,7 @@ public class PathRow : Gtk.ListBoxRow {
     private Image image;
     private int view_width;
     private int view_height;
+    private double view_scale;
 
     private Gtk.DrawingArea view;
     private Gtk.Entry title;
@@ -13,7 +14,8 @@ public class PathRow : Gtk.ListBoxRow {
     public PathRow (Image image, Path path) {
         this.image = image;
         this.path = path;
-        view.set_size_request (image.width, image.height);
+        view_scale = 32.0 / image.height;
+        view.set_size_request ((int) (image.width * view_scale), (int) (image.height * view_scale));
         path.update.connect (() => {
             view.queue_draw_area (0, 0, view_width, view_height);
         });
@@ -47,6 +49,7 @@ public class PathRow : Gtk.ListBoxRow {
 
         view.valign = Gtk.Align.CENTER;
         view.draw.connect ((cr) => {
+            cr.scale(view_scale, view_scale);
             path.draw (cr);
             return false;
         });
