@@ -22,6 +22,7 @@ executable(
     'src/widgets/PatternButton.vala',
     'src/widgets/PatternChooserDialog.vala',
     'src/widgets/GradientEditor.vala',
+    'src/widgets/Tutorial.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',
@@ -76,3 +77,5 @@ install_data(
     join_paths ('data', meson.project_name() + '.gschema.xml'),
     install_dir: join_paths(get_option('datadir'), 'glib-2.0', 'schemas')
 )
+
+meson.add_install_script('meson/post_install.py')
