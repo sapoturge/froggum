@@ -1,9 +1,9 @@
 # Installing
 
 Jump to:
-* (Linux)[#user-content-linux]
-* (Windows)[#user-content-windows]
-* (Mac OS)[#user-content-mac-os]
+* [Linux](#linux)
+* [Windows](#windows)
+* [Mac OS](mac-os)
 
 ## Linux
 
@@ -39,5 +39,5 @@ Granite.
 
 I don't have a Mac, so I can't test it. Since Mac OS is Unix-derived, Granite
 might work on it. Try following the Linux install instructions, and if it
-doesn't work please (file an issue)[https://github.com/sapoturge/froggum/issues/new]
+doesn't work please [file an issue](https://github.com/sapoturge/froggum/issues/new)
 so I know about it.
