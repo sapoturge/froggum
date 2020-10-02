@@ -1,5 +1,10 @@
 # Installing
 
+Jump to:
+* (Linux)[#user-content-linux]
+* (Windows)[#user-content-windows]
+* (Mac OS)[#user-content-mac-os]
+
 ## Linux
 
 **Froggum** requires the following dependencies:
