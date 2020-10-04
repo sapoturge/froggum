@@ -1,3 +1,8 @@
+---
+next-text: Editing
+next-link: /docs/editing
+---
+
 # Installing
 
 **Froggum** requires the following dependencies:
