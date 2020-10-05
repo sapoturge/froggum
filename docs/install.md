@@ -1,6 +1,6 @@
 ---
-next_text: Editing
-next: /docs/editing
+next_text: UI Overview
+next: /docs/overview
 ---
 
 # Installing

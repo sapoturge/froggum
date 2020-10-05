@@ -1,3 +1,10 @@
+---
+previous: /docs//install
+previous_text: Installing
+next: /docs/editing
+next_text: Editing
+---
+
 # Using Froggum
 
 ## UI Overview
