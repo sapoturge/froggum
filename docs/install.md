@@ -1,6 +1,6 @@
 ---
-next-text: Editing
-next-link: /docs/editing
+next_text: Editing
+next: /docs/editing
 ---
 
 # Installing
