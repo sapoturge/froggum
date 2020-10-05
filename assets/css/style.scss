@@ -12,12 +12,6 @@ header {
 	}
 }
 
-section ::after {
-	content: "";
-	display: block;
-	clear: both;
-}
-
 strong {
 	color: #242;
 }
