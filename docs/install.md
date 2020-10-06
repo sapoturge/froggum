@@ -1,3 +1,8 @@
+---
+next_text: UI Overview
+next: /docs/overview
+---
+
 # Installing
 
 Jump to:

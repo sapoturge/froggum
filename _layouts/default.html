@@ -39,8 +39,23 @@
       </header>
       <section>
 
-      {{ content }}
+        {{ content }}
 
+        {% if page.previous or page.next %}
+        <header class="navbar">
+          {% if page.previous %}
+          <ul class="previous">
+            <li><a href="{{ site.url }}{{ page.previous }}"><strong>{{ page.previous_text }}</strong></a></li>
+          </ul>
+          {% endif %}
+          {% if page.next %}
+          <ul>
+            <li><a href="{{ site.url }}{{ page.next }}"><strong>{{ page.next_text }}</strong></a></li>
+          </ul>
+          {% endif %}
+        </header>
+        {% endif %}
+        <div class="spacer"></div>
       </section>
     </div>
     <footer>

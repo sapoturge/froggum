@@ -1,3 +1,8 @@
+---
+previous: /docs/overview
+previous_text: UI Overview
+---
+
 # Using Froggum
 
 ## Editing
