@@ -407,6 +407,7 @@ public class Image : Object, ListModel {
         svg->new_prop ("version", "1.1");
         svg->new_prop ("width", width.to_string ());
         svg->new_prop ("height", height.to_string ());
+        svg->new_prop ("xmlns", "http://www.w3.org/2000/svg");
         
         Xml.Node* defs = new Xml.Node (null, "defs");
         svg->add_child (defs);
