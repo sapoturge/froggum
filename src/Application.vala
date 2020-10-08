@@ -1,5 +1,6 @@
 public class FroggumApplication : Gtk.Application {
     private uint configure_id;
+    private bool activated = false;
     
     public static Settings settings;
     
@@ -8,7 +9,7 @@ public class FroggumApplication : Gtk.Application {
     public FroggumApplication () {
         Object (
             application_id: "com.github.sapoturge.froggum",
-            flags: ApplicationFlags.FLAGS_NONE
+            flags: ApplicationFlags.HANDLES_OPEN
         );
     }
     
@@ -267,6 +268,45 @@ public class FroggumApplication : Gtk.Application {
 
         main_window.add (notebook);
         main_window.show_all();
+
+        activated = true;
+    }
+
+    protected override int command_line (ApplicationCommandLine command_line) {
+        if (!activated) {
+            activate ();
+        }
+
+        string[] args = command_line.get_arguments ();
+
+        foreach (unowned string arg in args[1:args.length]) {
+            var file = File.new_for_commandline_arg (arg);
+            var image = new Image.load (file);
+            var editor = new EditorView (image);
+            editor.expand = true;
+            var tab = new Granite.Widgets.Tab (file.get_basename (), null, editor);
+            notebook.insert_tab (tab, notebook.n_tabs);
+        }
+
+        recalculate_open_files ();
+
+        return 0;
+    }
+
+    protected override void open (File[] files, string hint) {
+        if (!activated) {
+             activate ();
+        }
+
+        foreach (File file in files) {
+            var image = new Image.load (file);
+            var editor = new EditorView (image);
+            editor.expand = true;
+            var tab = new Granite.Widgets.Tab (file.get_basename (), null, editor);
+            notebook.insert_tab (tab, notebook.n_tabs);
+        }
+
+        recalculate_open_files ();
     }
     
     private void action_undo () {
