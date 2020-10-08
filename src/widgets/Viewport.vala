@@ -9,7 +9,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private bool scrolling = false;
 
-    private Path? selected_path;
+    private Element? selected_path;
 
     private Gdk.RGBA background;
 
@@ -206,6 +206,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             // Draw Control Handles
             if (selected_path != null) {
+                selected_path.draw_controls (cr, zoom);
+                /*
                 selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
 
                 cr.set_line_width (1 / zoom);
@@ -318,9 +320,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                         cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
                         cr.fill ();
                     }
-                }
+                } */
             }
-
             cr.restore();
             return false;
         });
@@ -347,9 +348,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         });
 
         button_press_event.connect ((event) => {
-            Path path = null;
+            Element path = null;
             Segment segment = null;
-            var clicked = clicked_path ((int) event.x, (int) event.y, out path, out segment);
+            var clicked = false; // clicked_path ((int) event.x, (int) event.y, out path, out segment);
             var x = scale_x (event.x);
             var y = scale_y (event.y);
             control_point = {x, y};
@@ -375,6 +376,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Check for clicking on a control handle
             if (selected_path != null) {
+                Undoable obj;
+                string prop;
+                selected_path.check_controls (x, y, 6 / zoom, out obj, out prop);
+                if (obj != null) {
+                    bind_point (obj, prop);
+                    return false;
+                }
+                /*
                 var s = selected_path.root_segment;
                 var first = true;
                 while (first || s != selected_path.root_segment) {
@@ -460,6 +469,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                         return false;
                     }
                 }
+                */
             }
             // Check for clicking on a path (not control handle)
             if (clicked && path == selected_path) {
@@ -565,7 +575,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private bool clicked_path (int x, int y, out Path? path, out Segment? segment) {
+    /*
+    private bool clicked_path (int x, int y, out Element? path, out Segment? segment) {
         var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
         unowned uchar[] data = surface.get_data ();
         var cr = new Cairo.Context (surface);
@@ -599,6 +610,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         segment = null;
         return false;
     }
+    */
         
     private void show_context_menu (Segment? segment, Gdk.EventButton event) {
         // Menu contents:
@@ -634,6 +646,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             });
             menu_layout.pack_start (delete_segment, false, false, 0);
 
+            /*
             var split_segment = new Gtk.Button ();
             split_segment.label = _("Split Segment");
             split_segment.clicked.connect (() => {
@@ -641,6 +654,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                  menu.popdown ();
             });
             menu_layout.pack_start (split_segment, false, false, 0);
+            */
 
             if (segment.segment_type == ARC) {
                 var flip_arc = new Gtk.Button ();

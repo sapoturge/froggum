@@ -13,12 +13,12 @@ public class Image : Object, ListModel {
 
     public signal void update ();
 
-    public signal void path_selected (Path? path);
+    public signal void path_selected (Element? path);
 
-    private Array<Path> paths;
+    private Array<Element> paths;
 
-    private Path selected_path;
-    private Path last_selected_path;
+    private Element selected_path;
+    private Element last_selected_path;
     
     private uint save_id;
 
@@ -57,7 +57,7 @@ public class Image : Object, ListModel {
         stack = new CommandStack ();
     }
 
-    public Image (int width, int height, Path[] paths = {}) {
+    public Image (int width, int height, Element[] paths = {}) {
         this.width = width;
         this.height = height;
         this.paths = new Array<Path> ();
@@ -160,7 +160,8 @@ public class Image : Object, ListModel {
                         }
                     }
                     var data = iter->get_prop ("d");
-                    paths.append_val(new Path.from_string_with_pattern (data, fill, stroke, name));
+                    var path = new Path.from_string_with_pattern (data, fill, stroke, name);
+                    paths.append_val(path);
                 } else if (iter->name == "defs") {
                     for (Xml.Node* def = iter->children; def != null; def = def->next) {
                         if (def->name == "linearGradient") {
@@ -296,7 +297,7 @@ public class Image : Object, ListModel {
         stack.redo ();
     }
 
-    public Path[] get_paths () {
+    public Element[] get_paths () {
         return paths.data;
     }
 
@@ -416,7 +417,8 @@ public class Image : Object, ListModel {
         
         for (var i = 0; i < paths.length; i++) {
             var path = paths.index (i);
-            
+            pattern_index = path.add_svg (svg, defs, pattern_index);
+/*            
             var fill = "";
             var stroke = "";
             
@@ -537,6 +539,7 @@ public class Image : Object, ListModel {
             element->new_prop ("stroke", stroke);
             element->new_prop ("d", path.to_string ());
             svg->add_child (element);
+*/
         }
         
         var res = doc->save_file (file.get_path ());
