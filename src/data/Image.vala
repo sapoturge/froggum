@@ -327,6 +327,28 @@ public class Image : Object, ListModel {
         update ();
     }
 
+    public void new_circle () {
+        var circle = new Circle (width / 2, height / 2, double.min (width, height) / 2 - 1,
+                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
+                                 new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        circle.update.connect (() => { update (); });
+        circle.select.connect ((selected) => {
+            if (circle != selected_path) {
+                selected_path.select (false);
+                last_selected_path = circle;
+                selected_path = circle;
+                path_selected (circle);
+            } else if (selected == false) {
+                selected_path = null;
+                path_selected (null);
+            }
+        });
+        paths.append_val (circle);
+        items_changed (0, 0, 1);
+        circle.select (true);
+        update ();
+    }
+
     public void duplicate_path () {
         var path = last_selected_path.copy ();
         path.update.connect (() => { update (); });
