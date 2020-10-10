@@ -24,4 +24,6 @@ public abstract class Element : Object, Undoable {
     public abstract Element copy ();
 
     public abstract void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop);
+
+    public abstract bool clicked (double x, double y, double tolerance, out Segment? segment);
 }

@@ -457,4 +457,14 @@ public class Segment : Object, Undoable {
         return {center.x + Math.cos (angle) * dx * rx - Math.sin (angle) * dy * ry,
                 center.y + Math.cos (angle) * dy * ry + Math.sin (angle) * dx * rx};
     }
+
+    public bool clicked (double x, double y, double tolerance) {
+        switch (segment_type) {
+            case LINE:
+                var a = ((end.y - start.y) * x - (end.x - start.x) * y - start.x * end.y + end.x * start.y).abs ();
+                var d = Math.sqrt ((end.y - start.y) * (end.y - start.y) + (end.x - start.x) * (end.x - start.x));
+                return a / d <= tolerance;
+        }
+        return false;
+    }
 }

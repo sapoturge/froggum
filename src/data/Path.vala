@@ -650,4 +650,18 @@ public class Path : Element {
         obj = null;
         return;
     }
+
+    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+        segment = root_segment;
+        var first = true;
+        while (first || segment != root_segment) {
+            if (segment.clicked (x, y, tolerance)) {
+                return true;
+            }
+            first = false;
+            segment = segment.next;
+        }
+        segment = null;
+        return false;
+    }
 }

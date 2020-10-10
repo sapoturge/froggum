@@ -249,4 +249,8 @@ public class Circle : Element {
         prop = "";
         return;
     }
+
+    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+        return (Math.sqrt ((x - this.x) * (x - this.x) + (y - this.y) * (y - this.y)) - r).abs () <= tolerance;
+    }
 }

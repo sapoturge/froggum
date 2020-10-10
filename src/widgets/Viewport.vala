@@ -350,7 +350,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         button_press_event.connect ((event) => {
             Element path = null;
             Segment segment = null;
-            var clicked = false; // clicked_path ((int) event.x, (int) event.y, out path, out segment);
+            var clicked = clicked_path ((int) event.x, (int) event.y, out path, out segment);
             var x = scale_x (event.x);
             var y = scale_y (event.y);
             control_point = {x, y};
@@ -575,8 +575,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    /*
     private bool clicked_path (int x, int y, out Element? path, out Segment? segment) {
+        /*
         var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
         unowned uchar[] data = surface.get_data ();
         var cr = new Cairo.Context (surface);
@@ -585,10 +585,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         cr.scale (zoom, zoom);
         cr.set_line_width (6 / zoom);
         cr.set_source_rgba (1, 1, 1, 1);
-        var paths = image.get_paths ();
-        for (int i = paths.length - 1; i >= 0; i--) {
-            var _path = paths[i];
+        */
+        double real_x = scale_x (x);
+        double real_y = scale_y (y);
+        for (int i = 0; i < image.get_n_items (); i++) {
+            var _path = (Element) image.get_item (i);
             if (_path.visible || _path == selected_path) {
+                if (_path.clicked (real_x, real_y, 6 / zoom, out segment)) {
+                    path = _path;
+                    return true;
+                }
+                /*
                 var _segment = _path.root_segment;
                 var first = true;
                 while (first || _segment != _path.root_segment) {
@@ -604,13 +611,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     }
                     _segment = _segment.next;
                 }
+                */
             }
         }
         path = null;
         segment = null;
         return false;
     }
-    */
         
     private void show_context_menu (Segment? segment, Gdk.EventButton event) {
         // Menu contents:

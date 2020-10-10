@@ -276,7 +276,7 @@ public class Image : Object, ListModel {
     }
 
     public Type get_item_type () {
-        return typeof (Path);
+        return typeof (Element);
     }
 
     public uint get_n_items () {
