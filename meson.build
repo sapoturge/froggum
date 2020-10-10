@@ -32,6 +32,7 @@ executable(
     'src/data/CommandStack.vala',
     'src/data/Undoable.vala',
     'src/data/Element.vala',
+    'src/data/Circle.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),

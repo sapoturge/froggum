@@ -295,7 +295,8 @@ public class FroggumApplication : Gtk.Application {
             new Segment.arc (radius * 2, radius, radius * 2, radius * 2, radius, radius, 0, false),
         };
         var path = new Path.with_pattern (segments, new Pattern.color ({0.3, 0.3, 0.3, 1}), new Pattern.color ({0.1, 0.1, 0.1, 1}), _("Default Path"));
-        var image = new Image (width, height, {path});
+        var circle = new Circle (width / 2, height / 2, double.min (width / 2, height / 2), new Pattern.color ({0.4, 0.5, 0.6, 1}), new Pattern.color ({0.7, 0.6, 0.5, 1}));
+        var image = new Image (width, height, {path, circle});
         var editor = new EditorView (image);
         editor.expand = true;
 
