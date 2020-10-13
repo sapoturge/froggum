@@ -194,10 +194,13 @@ public class Path : Object, Undoable {
                     } else {
                         sweep = 1;
                     }
+                    if (end < start) {
+                        end += 2 * Math.PI;
+                    }
                     if (end - start > Math.PI) {
-                        large_arc = 1 - sweep;
-                    } else {
                         large_arc = sweep;
+                    } else {
+                        large_arc = 1 - sweep;
                     }
                     data += "A %f %f %f %d %d %f %f".printf (s.rx, s.ry, 180 * s.angle / Math.PI, large_arc, sweep, s.end.x, s.end.y);
                     break;
