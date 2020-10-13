@@ -1,0 +1,6 @@
+[Contractor Entry]
+Name=Edit with Froggum
+Icon=com.github.sapoturge.froggum
+Description=Edit icon with Froggum
+MimeType=image/svg+xml
+Exec=com.github.sapoturge.froggum %F
