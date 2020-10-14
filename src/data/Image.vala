@@ -301,6 +301,25 @@ public class Image : Object, ListModel {
         return paths.data;
     }
 
+    private void add_element(Element element) {
+        element.update.connect (() => { update (); });
+        element.select.connect ((selected) => {
+            if (element != selected_path) {
+                selected_path.select (false);
+                last_selected_path = element;
+                selected_path = element;
+                path_selected (element);
+            } else if (selected == false) {
+                selected_path = null;
+                path_selected (null);
+            }
+        });
+        paths.append_val (element);
+        items_changed (0, 0, 1);
+        element.select (true);
+        update ();
+    }
+
     public void new_path () {
         var path = new Path ({ new Segment.line (width - 1.5, 1.5),
                                new Segment.line (width - 1.5, height - 1.5),
@@ -309,44 +328,19 @@ public class Image : Object, ListModel {
                              {0.66, 0.66, 0.66, 1},
                              {0.33, 0.33, 0.33, 1},
                              "New Path");
-        path.update.connect (() => { update (); });
-        path.select.connect ((selected) => {
-            if (path != selected_path) {
-                selected_path.select (false);
-                last_selected_path = path;
-                selected_path = path;
-                path_selected (path);
-            } else if (selected == false) {
-                selected_path = null;
-                path_selected (null);
-            }
-        });
-        paths.append_val (path);
-        items_changed (0, 0, 1);
-        path.select (true);
-        update ();
+        add_element (path);
     }
 
     public void new_circle () {
         var circle = new Circle (width / 2, height / 2, double.min (width, height) / 2 - 1,
                                  new Pattern.color ({0.66, 0.66, 0.66, 1}),
                                  new Pattern.color ({0.33, 0.33, 0.33, 1}));
-        circle.update.connect (() => { update (); });
-        circle.select.connect ((selected) => {
-            if (circle != selected_path) {
-                selected_path.select (false);
-                last_selected_path = circle;
-                selected_path = circle;
-                path_selected (circle);
-            } else if (selected == false) {
-                selected_path = null;
-                path_selected (null);
-            }
-        });
-        paths.append_val (circle);
-        items_changed (0, 0, 1);
-        circle.select (true);
-        update ();
+        add_element (circle);
+    }
+
+    public void new_group () {
+        var group = new Group ();
+        add_element (group);
     }
 
     public void duplicate_path () {

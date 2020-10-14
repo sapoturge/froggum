@@ -38,6 +38,13 @@ public class EditorView : Gtk.Box {
             image.new_circle ();
         });
 
+        var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
+        new_group.tooltip_text = _("New group");
+        new_group.relief = NONE;
+        new_group.clicked.connect (() => {
+            image.new_group ();
+        });
+
         var duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
         duplicate_path.tooltip_text = _("Duplicate path");
         duplicate_path.relief = NONE;
@@ -69,6 +76,7 @@ public class EditorView : Gtk.Box {
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         task_bar.pack_start (new_path);
         task_bar.pack_start (new_circle);
+        task_bar.pack_start (new_group);
         task_bar.pack_start (duplicate_path);
         task_bar.pack_start (path_up);
         task_bar.pack_start (path_down);

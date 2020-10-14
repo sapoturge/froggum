@@ -33,6 +33,7 @@ executable(
     'src/data/Undoable.vala',
     'src/data/Element.vala',
     'src/data/Circle.vala',
+    'src/data/Group.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),
