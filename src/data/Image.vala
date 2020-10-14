@@ -60,14 +60,14 @@ public class Image : Object, ListModel {
     public Image (int width, int height, Element[] paths = {}) {
         this.width = width;
         this.height = height;
-        this.paths = new Array<Path> ();
+        this.paths = new Array<Element> ();
         this.paths.append_vals(paths, paths.length);
         this.selected_path = null;
         setup_signals ();
     }
 
     public Image.load (File file) {
-        this.paths = new Array<Path> ();
+        this.paths = new Array<Element> ();
         this._file = file;
         var doc = Xml.Parser.parse_file (file.get_path ());
         if (doc == null) {

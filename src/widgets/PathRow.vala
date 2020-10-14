@@ -9,27 +9,27 @@ public class PathRow : Gtk.ListBoxRow {
     private PatternButton fill;
     private PatternButton stroke;
 
-    public new Path path { get; private set; }
+    public Element element { get; private set; }
 
-    public PathRow (Image image, Path path) {
+    public PathRow (Image image, Element element) {
         this.image = image;
-        this.path = path;
+        this.element = element;
         view_scale = 32.0 / image.height;
         view.set_size_request ((int) (image.width * view_scale), (int) (image.height * view_scale));
-        path.update.connect (() => {
+        element.update.connect (() => {
             view.queue_draw_area (0, 0, view_width, view_height);
         });
-        path.select.connect ((selected) => {
+        element.select.connect ((selected) => {
             if (selected && !is_selected ()) {
                 activate ();
             }
         });
-        title.text = path.title;
-        path.bind_property ("title", title, "text", BindingFlags.BIDIRECTIONAL);
-        fill.pattern = path.fill;
-        fill.bind_property ("pattern", path, "fill");
-        stroke.pattern = path.stroke;
-        stroke.bind_property ("pattern", path, "stroke");
+        title.text = element.title;
+        element.bind_property ("title", title, "text", BindingFlags.BIDIRECTIONAL);
+        fill.pattern = element.fill;
+        fill.bind_property ("pattern", element, "fill");
+        stroke.pattern = element.stroke;
+        stroke.bind_property ("pattern", element, "stroke");
     }
 
     construct {
@@ -50,7 +50,7 @@ public class PathRow : Gtk.ListBoxRow {
         view.valign = Gtk.Align.CENTER;
         view.draw.connect ((cr) => {
             cr.scale(view_scale, view_scale);
-            path.draw (cr);
+            element.draw (cr);
             return false;
         });
         view.size_allocate.connect ((alloc) => {
@@ -63,22 +63,12 @@ public class PathRow : Gtk.ListBoxRow {
         visibility.active = true;
         visibility.tooltip_text = _("Visibility");
         visibility.state_set.connect ((state) => {
-            path.visible = state;
-            path.update ();
+            element.visible = state;
+            element.update ();
         });
 
         fill.tooltip_text = _("Fill color");
-        /* fill.use_alpha = true;
-        fill.color_set.connect (() => {
-            path.fill.base_color = fill.get_rgba ();
-            path.update ();
-        }); */
 
         stroke.tooltip_text = _("Stroke color");
-        /* stroke.use_alpha = true;
-        stroke.color_set.connect (() => {
-            path.stroke.base_color = stroke.get_rgba ();
-            path.update ();
-        }); */
     }
 }

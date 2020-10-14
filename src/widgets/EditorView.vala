@@ -7,12 +7,12 @@ public class EditorView : Gtk.Box {
     public EditorView (Image image) {
         this.image = image;
         list_box.bind_model (image, (path) => {
-            var row = new PathRow (image, (Path) path);
+            var row = new PathRow (image, (Element) path);
             row.show_all ();
             return row;
         });
         list_box.row_activated.connect ((row) => {
-            ((PathRow) row).path.select (true);
+            ((PathRow) row).element.select (true);
         });
         viewport.image = image;
     }
