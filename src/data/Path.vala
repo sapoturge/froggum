@@ -132,8 +132,8 @@ public class Path : Object, Undoable {
             } else if (description[i] == 'A') {
                 i += 1;
                 i = skip_whitespace (description, i);
-                var rx = get_number (description, ref i);
-                var ry = get_number (description, ref i);
+                var rx = get_number (description, ref i).abs ();
+                var ry = get_number (description, ref i).abs ();
                 var angle = get_number (description, ref i) * Math.PI / 180;
                 var large_arc = get_number (description, ref i);
                 var sweep = get_number (description, ref i);
@@ -286,6 +286,7 @@ public class Path : Object, Undoable {
         var negative = false;
         if (source[start] == '-') {
             negative = true;
+            start++;
         }
         while (start < source.length && source[start] >= '0' && source[start] <= '9') {
             result *= 10;
