@@ -1,5 +1,7 @@
 public class FroggumApplication : Gtk.Application {
     private uint configure_id;
+    private bool activated = false;
+    private bool will_open = false;
     
     public static Settings settings;
     
@@ -8,7 +10,7 @@ public class FroggumApplication : Gtk.Application {
     public FroggumApplication () {
         Object (
             application_id: "com.github.sapoturge.froggum",
-            flags: ApplicationFlags.FLAGS_NONE
+            flags: ApplicationFlags.HANDLES_OPEN
         );
     }
     
@@ -236,6 +238,8 @@ public class FroggumApplication : Gtk.Application {
 
              notebook.insert_tab (tab, 0);
              notebook.show_all ();
+
+             notebook.current = tab;
         });
 
         notebook.expand = true;
@@ -259,7 +263,7 @@ public class FroggumApplication : Gtk.Application {
             }
         }
         
-        if (notebook.n_tabs == 0) {
+        if (notebook.n_tabs == 0 && !will_open) {
             notebook.new_tab_requested ();
         } else if (focused != null) {
             notebook.current = focused;
@@ -267,6 +271,52 @@ public class FroggumApplication : Gtk.Application {
 
         main_window.add (notebook);
         main_window.show_all();
+
+        activated = true;
+    }
+
+    protected override int command_line (ApplicationCommandLine command_line) {
+        string[] args = command_line.get_arguments ();
+
+        if (args.length > 1) {
+            will_open = true;
+        }
+
+        if (!activated) {
+            activate ();
+        }
+
+        foreach (unowned string arg in args[1:args.length]) {
+            var file = File.new_for_commandline_arg (arg);
+            var image = new Image.load (file);
+            var editor = new EditorView (image);
+            editor.expand = true;
+            var tab = new Granite.Widgets.Tab (file.get_basename (), null, editor);
+            notebook.insert_tab (tab, notebook.n_tabs);
+        }
+
+        recalculate_open_files ();
+
+        return 0;
+    }
+
+    protected override void open (File[] files, string hint) {
+        will_open = true;
+
+        if (!activated) {
+             activate ();
+        }
+
+        foreach (File file in files) {
+            var image = new Image.load (file);
+            var editor = new EditorView (image);
+            editor.expand = true;
+            var tab = new Granite.Widgets.Tab (file.get_basename (), null, editor);
+            notebook.insert_tab (tab, notebook.n_tabs);
+            notebook.current = tab;
+        }
+
+        recalculate_open_files ();
     }
     
     private void action_undo () {

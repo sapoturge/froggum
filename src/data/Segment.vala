@@ -405,21 +405,20 @@ public class Segment : Object, Undoable {
         var dy = original.y - center.y;
         var an = Math.atan2 (dy, dx);
         var d = Math.hypot (dx, dy);
-        var px = Math.cos (an - angle) * d;
-        var py = Math.sin (an - angle) * d;
+        var px = (Math.cos (an - angle) * d).abs ();
+        var py = (Math.sin (an - angle) * d).abs ();
 
-        var tx = 0.707;
-        var ty = 0.707;
+        var t = Math.PI / 4;
 
         var a = rx;
         var b = ry;
 
         for (int i = 0; i < 3; i++) {
-            var x = a * tx;
-            var y = b * ty;
+            var x = a * Math.cos (t);
+            var y = b * Math.sin (t);
 
-            var ex = (a * a - b * b) * Math.pow (tx, 3) / a;
-            var ey = (b * b - a * a) * Math.pow (ty, 3) / b;
+            var ex = (a * a - b * b) * Math.pow (Math.cos (t), 3) / a;
+            var ey = (b * b - a * a) * Math.pow (Math.sin (t), 3) / b;
 
             var r_x = x - ex;
             var r_y = y - ey;
@@ -434,16 +433,14 @@ public class Segment : Object, Undoable {
             var r = Math.hypot (r_y, r_x);
             var q = Math.hypot (qy, qx);
 
-            // tx = double.min (1, double.max (0, (qx * r / q + ex) / a));
-            // ty = double.min (1, double.max (0, (qy * r / q + ey) / b));
-            tx = (qx * r / q + ex) / a;
-            ty = (qy * r / q + ey) / b;
-            var t = Math.hypot (ty, tx);
-            tx /= t;
-            ty /= t;
+            var d_c = r * Math.asin ((r_x * qy - r_y * qx) / (r * q));
+            var d_t = d_c / Math.sqrt (a * a + b * b - x * x - y * y);
+
+            t += d_t;
+            t = double.min (Math.PI / 2, double.max (0, t));
         }
-        px = Math.copysign (a * tx, px);
-        py = Math.copysign (b * ty, py);
+        px = Math.copysign (a * Math.cos (t), Math.cos (an - angle));
+        py = Math.copysign (b * Math.sin (t), Math.sin (an - angle));
         var sx = px / rx;
         var sy = py / ry;
         p_angle = Math.atan2 (sy, sx);

@@ -124,8 +124,8 @@ public class Path : Element {
             } else if (description[i] == 'A') {
                 i += 1;
                 i = skip_whitespace (description, i);
-                var rx = get_number (description, ref i);
-                var ry = get_number (description, ref i);
+                var rx = get_number (description, ref i).abs ();
+                var ry = get_number (description, ref i).abs ();
                 var angle = get_number (description, ref i) * Math.PI / 180;
                 var large_arc = get_number (description, ref i);
                 var sweep = get_number (description, ref i);
@@ -186,10 +186,13 @@ public class Path : Element {
                     } else {
                         sweep = 1;
                     }
+                    if (end < start) {
+                        end += 2 * Math.PI;
+                    }
                     if (end - start > Math.PI) {
-                        large_arc = 1 - sweep;
-                    } else {
                         large_arc = sweep;
+                    } else {
+                        large_arc = 1 - sweep;
                     }
                     data += "A %f %f %f %d %d %f %f".printf (s.rx, s.ry, 180 * s.angle / Math.PI, large_arc, sweep, s.end.x, s.end.y);
                     break;
@@ -379,6 +382,7 @@ public class Path : Element {
         var negative = false;
         if (source[start] == '-') {
             negative = true;
+            start++;
         }
         while (start < source.length && source[start] >= '0' && source[start] <= '9') {
             result *= 10;
