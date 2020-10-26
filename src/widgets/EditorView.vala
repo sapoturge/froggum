@@ -1,28 +1,45 @@
 public class EditorView : Gtk.Box {
     public Image image { get; private set; }
 
-    private Gtk.ListBox list_box;
+    private Gtk.TreeView paths_list;
     private Viewport viewport;
 
     public EditorView (Image image) {
         this.image = image;
-        list_box.bind_model (image, (path) => {
-            var row = new PathRow (image, (Element) path);
-            row.show_all ();
-            return row;
-        });
-        list_box.row_activated.connect ((row) => {
-            ((PathRow) row).element.select (true);
-        });
+        paths_list.model = image;
         viewport.image = image;
     }
     
     construct {
-        list_box = new Gtk.ListBox ();
+        var column = new Gtk.TreeViewColumn ();
+
+        var icon = new Gtk.CellRendererPixbuf ();
+        column.pack_start (icon, false);
+        column.add_attribute (icon, "surface", 0);
+
+        var visibility = new Gtk.CellRendererToggle ();
+        column.pack_start (visibility, false);
+        column.add_attribute (visibility, "active", 1);
+
+        var title = new Gtk.CellRendererText ();
+        title.editable = true;
+        title.edited.connect ((path, new_text) => {
+            Gtk.TreeIter iter;
+            image.get_iter_from_string (out iter, path);
+            image.get_element (iter).title = new_text;
+        });
+
+        column.pack_start (title, true);
+        column.add_attribute (title, "text", 2);
+
+        paths_list = new Gtk.TreeView ();
+        paths_list.headers_visible = false;
+        paths_list.reorderable = true;
+        paths_list.append_column (column);
 
         var list_box_scroll = new Gtk.ScrolledWindow (null, null);
         list_box_scroll.propagate_natural_width = true;
-        list_box_scroll.add (list_box);
+        list_box_scroll.add (paths_list);
 
         var new_path = new Gtk.Button.from_icon_name ("list-add-symbolic");
         new_path.tooltip_text = _("New path");

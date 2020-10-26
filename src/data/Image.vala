@@ -269,11 +269,23 @@ public class Image : Object, Gtk.TreeModel {
     }
 
     public Type get_column_type (int index_) {
-        return typeof (Path);
+        switch (index_) {
+            case 0:
+                return typeof (Cairo.Surface);
+            case 1:
+                return typeof (bool);
+            case 2:
+                return typeof (string);
+            case 3:
+                return typeof (Pattern);
+            case 4:
+                return typeof (Pattern);
+        }
+        return typeof (Object);
     }
 
     public Gtk.TreeModelFlags get_flags () {
-        return ITERS_PERSIST;
+        return 0;
     }
 
     public bool get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) {
@@ -294,7 +306,7 @@ public class Image : Object, Gtk.TreeModel {
     }
 
     public int get_n_columns () {
-        return 1;
+        return 5;
     }
 
     public Gtk.TreePath? get_path (Gtk.TreeIter iter) {
@@ -318,9 +330,38 @@ public class Image : Object, Gtk.TreeModel {
     public void get_value (Gtk.TreeIter iter, int column, out Value value) {
         var parent = iter.user_data;
         if (parent == this) {
-            value = this.paths.index (iter.stamp);
+            Element obj = this.paths.index (iter.stamp);
+            switch (column) {
+                case 0:
+                    var surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
+                    var context = new Cairo.Context (surf);
+                    obj.draw (context, 1, null, null, true);
+                    value = surf;
+                    break;
+                case 1:
+                    value = obj.visible;
+                    break;
+                case 2:
+                    value = obj.title;
+                    break;
+                case 3:
+                    value = obj.fill;
+                    break;
+                case 4:
+                    value = obj.stroke;
+                    break;
+            }
         } else {
             ((Gtk.TreeModel) parent).get_value (iter, column, out value);
+        }
+    }
+
+    public Element get_element (Gtk.TreeIter iter) {
+        var parent = iter.user_data;
+        if (parent == this) {
+            return this.paths.index (iter.stamp);
+        } else {
+            return ((Group) parent).get_element (iter);
         }
     }
 

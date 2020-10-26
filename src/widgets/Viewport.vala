@@ -588,8 +588,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         */
         double real_x = scale_x (x);
         double real_y = scale_y (y);
-        for (int i = 0; i < image.get_n_items (); i++) {
-            var _path = (Element) image.get_item (i);
+        Gtk.TreeIter iter;
+        Value value;
+        for (var valid = image.iter_children (out iter, null); valid; valid = image.iter_next (ref iter)) {
+            image.get_value (iter, 0, out value);
+            var _path = (Element) value.peek_pointer ();
             if (_path.visible || _path == selected_path) {
                 if (_path.clicked (real_x, real_y, 6 / zoom, out segment)) {
                     path = _path;

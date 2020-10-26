@@ -41,4 +41,8 @@ public class Group : Element {
         segment = null;
         return false;
     }
+
+    public Element get_element (Gtk.TreeIter iter) {
+        return new Path ();
+    }
 }
