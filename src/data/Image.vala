@@ -296,7 +296,7 @@ public class Image : Object, Gtk.TreeModel {
             iter = {indices[0], this, null, null};
             return true;
         } else {
-            var element = paths.index (indices[0]);
+            var element = paths.index (paths.length - 1 - indices[0]);
             if (element is Gtk.TreeModel) {
                 var new_path = new Gtk.TreePath.from_indices (path.get_indices () [1:path.get_indices ().length]);
                 return (element as Gtk.TreeModel).get_iter (out iter, new_path);
@@ -314,7 +314,7 @@ public class Image : Object, Gtk.TreeModel {
             return new Gtk.TreePath.from_indices (iter.stamp);
         } else {
             for (var i = 0; i < paths.length; i++) {
-                var e = paths.index (i);
+                var e = paths.index ( paths.length - 1 - i);
                 if (e is Gtk.TreeModel) {
                     var path = ((Gtk.TreeModel) e).get_path (iter);
                     if (path != null) {
@@ -330,7 +330,7 @@ public class Image : Object, Gtk.TreeModel {
     public void get_value (Gtk.TreeIter iter, int column, out Value value) {
         var parent = iter.user_data;
         if (parent == this) {
-            Element obj = this.paths.index (iter.stamp);
+            Element obj = paths.index (paths.length - 1 - iter.stamp);
             switch (column) {
                 case 0:
                     var surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
