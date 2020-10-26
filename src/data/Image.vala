@@ -359,7 +359,7 @@ public class Image : Object, Gtk.TreeModel {
     public Element get_element (Gtk.TreeIter iter) {
         var parent = iter.user_data;
         if (parent == this) {
-            return this.paths.index (iter.stamp);
+            return this.paths.index (paths.length - 1 - iter.stamp);
         } else {
             return ((Group) parent).get_element (iter);
         }

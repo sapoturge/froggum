@@ -18,6 +18,13 @@ public class EditorView : Gtk.Box {
         column.add_attribute (icon, "surface", 0);
 
         var visibility = new Gtk.CellRendererToggle ();
+        visibility.toggled.connect ((path) => {
+            Gtk.TreeIter iter;
+            image.get_iter_from_string (out iter, path);
+            var element = image.get_element (iter);
+            element.visible = !element.visible;
+        });
+
         column.pack_start (visibility, false);
         column.add_attribute (visibility, "active", 1);
 
