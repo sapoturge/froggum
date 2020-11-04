@@ -15,7 +15,11 @@ public class EditorView : Gtk.Box {
 
         var icon = new Gtk.CellRendererPixbuf ();
         column.pack_start (icon, false);
-        column.add_attribute (icon, "surface", 0);
+        column.set_cell_data_func (icon, (cell_layout, cell, model, iter) => {
+            icon.surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, image.width, image.height);
+            var context = new Cairo.Context (icon.surface);
+            image.get_element (iter).draw (context, 1, null, null, true);
+        });
 
         var visibility = new Gtk.CellRendererToggle ();
         visibility.toggled.connect ((path) => {
@@ -26,7 +30,9 @@ public class EditorView : Gtk.Box {
         });
 
         column.pack_start (visibility, false);
-        column.add_attribute (visibility, "active", 1);
+        column.set_cell_data_func (visibility, (cell_layout, cell, model, iter) => {
+            visibility.active = image.get_element (iter).visible;
+        });
 
         var title = new Gtk.CellRendererText ();
         title.editable = true;
@@ -37,7 +43,9 @@ public class EditorView : Gtk.Box {
         });
 
         column.pack_start (title, true);
-        column.add_attribute (title, "text", 2);
+        column.set_cell_data_func (title, (cell_layout, cell, model, iter) => {
+            title.text = image.get_element (iter).title;
+        });
 
         paths_list = new Gtk.TreeView ();
         paths_list.headers_visible = false;
