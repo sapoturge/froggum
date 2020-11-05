@@ -17,7 +17,6 @@ executable(
     meson.project_name(),
     'src/Application.vala',
     'src/widgets/EditorView.vala',
-    'src/widgets/PathRow.vala',
     'src/widgets/Viewport.vala',
     'src/widgets/PatternButton.vala',
     'src/widgets/PatternChooserDialog.vala',

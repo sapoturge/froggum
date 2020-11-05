@@ -47,6 +47,18 @@ public class EditorView : Gtk.Box {
             title.text = image.get_element (iter).title;
         });
 
+        var fill = new PatternButton ();
+        column.pack_start (fill, false);
+        column.set_cell_data_func (fill, (cell_layout, cell, model, iter) => {
+            fill.pattern = image.get_element (iter).fill;
+        });
+
+        var stroke = new PatternButton ();
+        column.pack_start (stroke, false);
+        column.set_cell_data_func (stroke, (cell_layout, cell, model, iter) => {
+            stroke.pattern = image.get_element (iter).stroke;
+        });
+
         paths_list = new Gtk.TreeView ();
         paths_list.headers_visible = false;
         paths_list.reorderable = true;
