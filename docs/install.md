@@ -37,10 +37,11 @@ sudo ninja install
 
 ## Windows
 
-The [feature-windows](https://github.com/sapoturge/froggum/tree/feature-windows)
-branch support being run on Windows using MinGW (and probably Cygwin, but I
-haven't tested it.). It requires all dependencies above except `granite`. The
-process is otherwise almost identical:
+The `Granite` library does not support running on Windows. The
+[feature-windows](https://github.com/sapoturge/froggum/tree/feature-windows)
+branch does support being compiled and run on Windows using MinGW (and probably
+Cygwin, but I haven't tested it.). It requires all dependencies above except
+`libgranite-dev`. The process is otherwise almost identical:
 
 ```
 git clone https://github.com/sapoturge/froggum.git
@@ -56,7 +57,7 @@ ninja install
 
 ## Mac OS
 
-Mac is Unix-derived, so `granite` might work on it. Try following the instructions
+Mac is Unix-derived, so `Granite` might work on it. Try following the instructions
 for [Linux](#linux) above, and if that doesn't work install as for [Windows](#windows).
 These two branches will be merged eventually, without `Granite`, so the process
 will be simpler everywhere.
