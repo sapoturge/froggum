@@ -13,6 +13,11 @@ add_global_arguments('-DGETTEXT_PACKAGE="@0@"'.format(meson.project_name()), lan
 
 cc = meson.get_compiler('c')
 
+granite = dependency('granite', required: false)
+if granite.found()
+  add_project_arguments('-DGRANITE', language:'c')
+endif
+
 executable(
     meson.project_name(),
     'src/Application.vala',
@@ -34,8 +39,9 @@ executable(
     gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),
-        dependency('granite'),
         dependency('libxml-2.0'),
+	dependency('gee-0.8'),
+	granite,
         cc.find_library('m', required: false)
     ],
     install: true

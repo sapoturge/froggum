@@ -36,7 +36,11 @@ public class PatternChooserDialog : Gtk.Dialog {
     private Gtk.RadioButton gradient;
 
     private Gtk.ColorButton color;
+#if GRANITE
     private Granite.ModeSwitch linear_radial;
+#else
+    private Gtk.Switch linear_radial;
+#endif
     
     construct {
         no_color = new Gtk.RadioButton.with_label (null, _("None"));
@@ -78,9 +82,20 @@ public class PatternChooserDialog : Gtk.Dialog {
             }
         });
 
+#if GRANITE
         linear_radial = new Granite.ModeSwitch.from_icon_name ("gradient-linear", "gradient-radial");
         linear_radial.primary_icon_tooltip_text = _("Linear");
         linear_radial.secondary_icon_tooltip_text = _("Radial");
+#else
+        linear_radial = new Gtk.Switch ();
+        var linear = new Gtk.Image.from_icon_name ("gradient-linear", Gtk.IconSize.BUTTON);
+        var radial = new Gtk.Image.from_icon_name ("gradient-radial", Gtk.IconSize.BUTTON);
+        var radial_selection = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        radial_selection.pack_start (linear, false, false, 0);
+        radial_selection.pack_start (linear_radial, false, false, 0);
+        radial_selection.pack_start (radial, false, false, 0);
+#endif
+
         linear_radial.bind_property ("active", this, "is_radial");
 
         var editor = new GradientEditor ();
@@ -92,7 +107,11 @@ public class PatternChooserDialog : Gtk.Dialog {
 
         var gradient_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
         gradient_row.pack_start (gradient, true, true, 0);
+#if GRANITE
         gradient_row.pack_end (linear_radial, false, false, 0);
+#else
+        gradient_row.pack_end (radial_selection, false, false, 0);
+#endif
 
         var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
         layout.border_width = 3;
