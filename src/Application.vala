@@ -169,103 +169,13 @@ public class FroggumApplication : Gtk.Application {
         main_window.set_titlebar (header);
 
 #if GRANITE
-        notebook.new_tab_requested.connect (() => {
-             var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
-             var tab = new Granite.Widgets.Tab (_("New Image"), null, inner_layout);
+        notebook.new_tab_requested.connect (() => { new_tab (); });
+#else
+        var new_tab_button = new Gtk.Button.from_icon_name ("list-add-symbolic");
+        new_tab_button.show_all ();
+        notebook.set_action_widget (new_tab_button, Gtk.PackType.START);
 
-             var title = new Gtk.Label (_("Create a new icon:"));
-
-             var n16 = new Gtk.Button ();
-             n16.label = _("16 \u00D7 16");
-             n16.clicked.connect (() => {
-                 new_image (16, 16, tab);
-             });
-
-             var n24 = new Gtk.Button ();
-             n24.label = _("24 \u00D7 24");
-             n24.clicked.connect (() => {
-                 new_image (24, 24, tab);
-             });
-
-             var n32 = new Gtk.Button ();
-             n32.label = _("32 \u00D7 32");
-             n32.clicked.connect (() => {
-                 new_image (32, 32, tab);
-             });
- 
-             var n48 = new Gtk.Button ();
-             n48.label = _("48 \u00D7 48");
-             n48.clicked.connect (() => {
-                 new_image (48, 48, tab);
-             });
-
-             var n64 = new Gtk.Button ();
-             n64.label = _("64 \u00D7 64");
-             n64.clicked.connect (() => {
-                 new_image (64, 64, tab);
-             });
-
-             var n128 = new Gtk.Button ();
-             n128.label = _("128 \u00D7 128");
-             n128.clicked.connect (() => {
-                 new_image (128, 128, tab);
-             });
-
-             var standard_grid = new Gtk.Grid ();
-             standard_grid.row_spacing = 4;
-             standard_grid.column_spacing = 4;
-             standard_grid.attach (n16, 0, 0, 1, 1);
-             standard_grid.attach (n24, 1, 0, 1, 1);
-             standard_grid.attach (n32, 2, 0, 1, 1);
-             standard_grid.attach (n48, 0, 1, 1, 1);
-             standard_grid.attach (n64, 1, 1, 1, 1);
-             standard_grid.attach (n128, 2, 1, 1, 1);
-             standard_grid.column_homogeneous = true;
-
-             var custom_width = new Gtk.SpinButton.with_range (1, 2048, 1);
-             var custom_height = new Gtk.SpinButton.with_range (1, 2018, 1);
-
-             var ncustom = new Gtk.Button ();
-             ncustom.label = _("Custom:");
-             ncustom.clicked.connect (() => {
-                 new_image ((int) custom_width.value, (int) custom_height.value, tab);
-             });
-
-             var custom_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
-             custom_box.pack_start (ncustom, true, true);
-             custom_box.pack_start (new Gtk.Label("Width:"), false, false);
-             custom_box.pack_start (custom_width, false, false);
-             custom_box.pack_start (new Gtk.Label ("Height:"), false, false);
-             custom_box.pack_start (custom_height, false, false);
-
-             var new_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
-             new_side.pack_start (title, false, false);
-             new_side.pack_start (standard_grid, false, false);
-             new_side.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false);
-             new_side.pack_start (custom_box, false, false);
-
-             var open_button = new Gtk.Button ();
-             open_button.label = _("Open");
-             open_button.clicked.connect (() => {
-                 open_image (tab);
-             });
-
-             var open_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
-             open_side.pack_start (open_button);
-             open_side.valign = Gtk.Align.CENTER;
-
-             inner_layout.pack_start (new_side, false, false);
-             inner_layout.pack_start (new Gtk.Separator (Gtk.Orientation.VERTICAL), false, false);
-             inner_layout.pack_start (open_side, false, false);
-
-             inner_layout.halign = Gtk.Align.CENTER;
-             inner_layout.valign = Gtk.Align.CENTER;
-
-             notebook.insert_tab (tab, 0);
-             notebook.show_all ();
-
-             notebook.current = tab;
-        });
+        new_tab_button.clicked.connect (() => { new_tab (); });
 #endif
 
         notebook.expand = true;
@@ -310,6 +220,8 @@ public class FroggumApplication : Gtk.Application {
             && !will_open) {
 #if GRANITE
             notebook.new_tab_requested ();
+#else
+            new_tab ();
 #endif
         } else if (focused !=
 #if GRANITE
@@ -403,6 +315,9 @@ public class FroggumApplication : Gtk.Application {
 
 #if GRANITE
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {
+#else
+    private void new_image (int width, int height, Gtk.Bin tab) {
+#endif
         var radius = int.min (int.min (width, height) / 8, 16) + 0.5;
         var segments = new Segment[] {
             new Segment.line (width - radius * 2, radius),
@@ -419,25 +334,145 @@ public class FroggumApplication : Gtk.Application {
         var editor = new EditorView (image);
         editor.expand = true;
 
+#if GRANITE
         tab.page = editor;
+#else
+        tab.remove (tab.get_child ());
+        tab.add (editor);
+#endif
         tab.show_all ();
     }
 
+#if GRANITE
     private void open_image (Granite.Widgets.Tab tab) {
+#else
+    private void open_image (Gtk.Bin tab) {
+#endif
         var dialog = new Gtk.FileChooserNative (_("Open Icon"), null, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
         if (dialog.run () == Gtk.ResponseType.ACCEPT) {
             var file = dialog.get_file ();
             var image = new Image.load (file);
             var editor = new EditorView (image);
             editor.expand = true;
+#if GRANITE
             tab.label = file.get_basename ();
             tab.page = editor;
+#else
+            tab.remove (tab.get_child ());
+            tab.add (editor);
+            notebook.set_tab_label_text (tab, file.get_basename ());
+#endif
             tab.show_all ();
             recalculate_open_files ();
         }
     }
-#endif
     
+    private void new_tab () {
+         var title = new Gtk.Label (_("Create a new icon:"));
+
+         var n16 = new Gtk.Button ();
+         n16.label = _("16 \u00D7 16");
+
+         var n24 = new Gtk.Button ();
+         n24.label = _("24 \u00D7 24");
+
+         var n32 = new Gtk.Button ();
+         n32.label = _("32 \u00D7 32");
+ 
+         var n48 = new Gtk.Button ();
+         n48.label = _("48 \u00D7 48");
+
+         var n64 = new Gtk.Button ();
+         n64.label = _("64 \u00D7 64");
+
+         var n128 = new Gtk.Button ();
+         n128.label = _("128 \u00D7 128");
+
+         var standard_grid = new Gtk.Grid ();
+         standard_grid.row_spacing = 4;
+         standard_grid.column_spacing = 4;
+         standard_grid.attach (n16, 0, 0, 1, 1);
+         standard_grid.attach (n24, 1, 0, 1, 1);
+         standard_grid.attach (n32, 2, 0, 1, 1);
+         standard_grid.attach (n48, 0, 1, 1, 1);
+         standard_grid.attach (n64, 1, 1, 1, 1);
+         standard_grid.attach (n128, 2, 1, 1, 1);
+         standard_grid.column_homogeneous = true;
+
+         var custom_width = new Gtk.SpinButton.with_range (1, 2048, 1);
+         var custom_height = new Gtk.SpinButton.with_range (1, 2018, 1);
+
+         var ncustom = new Gtk.Button ();
+         ncustom.label = _("Custom:");
+
+         var custom_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
+         custom_box.pack_start (ncustom, true, true);
+         custom_box.pack_start (new Gtk.Label("Width:"), false, false);
+         custom_box.pack_start (custom_width, false, false);
+         custom_box.pack_start (new Gtk.Label ("Height:"), false, false);
+         custom_box.pack_start (custom_height, false, false);
+
+         var new_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
+         new_side.pack_start (title, false, false);
+         new_side.pack_start (standard_grid, false, false);
+         new_side.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false);
+         new_side.pack_start (custom_box, false, false);
+
+         var open_button = new Gtk.Button ();
+         open_button.label = _("Open");
+
+         var open_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
+         open_side.pack_start (open_button);
+         open_side.valign = Gtk.Align.CENTER;
+
+         var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
+         inner_layout.pack_start (new_side, false, false);
+         inner_layout.pack_start (new Gtk.Separator (Gtk.Orientation.VERTICAL), false, false);
+         inner_layout.pack_start (open_side, false, false);
+
+         inner_layout.halign = Gtk.Align.CENTER;
+         inner_layout.valign = Gtk.Align.CENTER;
+
+#if GRANITE
+         Granite.Widgets.Tab tab = new Granite.Widgets.Tab (_("New Image"), null, inner_layout);
+         notebook.insert_tab (tab, 0);
+         notebook.show_all ();
+
+         notebook.current = tab;
+#else
+         var tab = new Gtk.Viewport (null, null);
+         tab.add (inner_layout);
+         notebook.append_page (tab, new Gtk.Label("New Image"));
+         notebook.show_all ();
+         notebook.set_current_page (notebook.page_num (inner_layout));
+#endif
+
+         n16.clicked.connect (() => {
+             new_image (16, 16, tab);
+         });
+         n24.clicked.connect (() => {
+             new_image (24, 24, tab);
+         });
+         n32.clicked.connect (() => {
+             new_image (32, 32, tab);
+         });
+         n48.clicked.connect (() => {
+             new_image (48, 48, tab);
+         });
+         n64.clicked.connect (() => {
+             new_image (64, 64, tab);
+         });
+         n128.clicked.connect (() => {
+             new_image (128, 128, tab);
+         });
+         ncustom.clicked.connect (() => {
+             new_image ((int) custom_width.value, (int) custom_height.value, tab);
+         });
+         open_button.clicked.connect (() => {
+             open_image (tab);
+         });
+    }
+
     private void recalculate_open_files () {
         var filenames = new string[] {};
 #if GRANITE
