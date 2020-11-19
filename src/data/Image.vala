@@ -260,11 +260,10 @@ public class Image : Gtk.TreeStore {
 
     public void draw (Cairo.Context cr) {
         Gtk.TreeIter iter;
-        if (get_iter_first (out iter)) {
-            do {
-                draw_element (cr, iter);
-            } while (iter_next (ref iter));
-        }
+        iter_nth_child (out iter, null, iter_n_children (null) - 1);
+        do {
+            draw_element (cr, iter);
+        } while (iter_previous (ref iter));
     }
 
     private void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
@@ -272,10 +271,10 @@ public class Image : Gtk.TreeStore {
         if (element is Group) {
             (element as Group).setup_draw (cr);
             Gtk.TreeIter inner_iter;
-            if (iter_children (out inner_iter, iter)) {
+            if (iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1)) {
                 do {
                     draw_element (cr, inner_iter);
-                } while (iter_next (ref inner_iter));
+                } while (iter_previous (ref inner_iter));
             }
             (element as Group).cleanup_draw (cr);
         } else {

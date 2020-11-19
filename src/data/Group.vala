@@ -45,4 +45,10 @@ public class Group : Element {
     public Element get_element (Gtk.TreeIter iter) {
         return new Path ();
     }
+
+    public void setup_draw (Cairo.Context cr) {
+    }
+
+    public void cleanup_draw (Cairo.Context cr) {
+    }
 }
