@@ -15,34 +15,14 @@ public class Image : Gtk.TreeStore {
 
     public signal void path_selected (Element? path);
 
-    private Array<Element> paths;
+    // private Array<Element> paths;
 
-    private Element selected_path;
-    private Element last_selected_path;
+    private Gtk.TreeIter? selected_path;
+    private Gtk.TreeIter? last_selected_path;
     
     private uint save_id;
 
     private void setup_signals () {
-        Gtk.TreeIter iter;
-
-        for (int i = 0; i < paths.length; i++) {
-            var path = paths.index (i);
-            path.update.connect (() => { update (); });
-            path.select.connect ((selected) => {
-                if (selected && path != selected_path) {
-                    selected_path.select (false);
-                    last_selected_path = path;
-                    selected_path = path;
-                    path_selected (path);
-                } else if (selected == false) {
-                    selected_path = null;
-                    path_selected (null);
-                }
-            });
-            path.add_command.connect ((c) => { stack.add_command (c); });
-            insert_with_valuesv (out iter, null, i, {0}, {path});
-        }
-        
         update.connect (() => {
             if (save_id != 0) {
                 Source.remove (save_id);
@@ -64,14 +44,14 @@ public class Image : Gtk.TreeStore {
     public Image (int width, int height, Element[] paths = {}) {
         this.width = width;
         this.height = height;
-        this.paths = new Array<Element> ();
-        this.paths.append_vals(paths, paths.length);
         this.selected_path = null;
+        foreach (Element element in paths) {
+            add_element (element);
+        }
         setup_signals ();
     }
 
     public Image.load (File file) {
-        this.paths = new Array<Element> ();
         this._file = file;
         var doc = Xml.Parser.parse_file (file.get_path ());
         if (doc == null) {
@@ -165,7 +145,7 @@ public class Image : Gtk.TreeStore {
                     }
                     var data = iter->get_prop ("d");
                     var path = new Path.from_string_with_pattern (data, fill, stroke, name);
-                    paths.append_val(path);
+                    add_element (path);
                 } else if (iter->name == "defs") {
                     for (Xml.Node* def = iter->children; def != null; def = def->next) {
                         if (def->name == "linearGradient") {
@@ -272,196 +252,34 @@ public class Image : Gtk.TreeStore {
         }
     }
 
-/*
-    public Type get_column_type (int index_) {
-        switch (index_) {
-            case 0:
-                return typeof (Cairo.Surface);
-            case 1:
-                return typeof (bool);
-            case 2:
-                return typeof (string);
-            case 3:
-                return typeof (Pattern);
-            case 4:
-                return typeof (Pattern);
-        }
-        return typeof (Object);
-    }
-
-    public Gtk.TreeModelFlags get_flags () {
-        return 0;
-    }
-
-    public bool get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) {
-        var indices = path.get_indices ();
-        if (indices[0] >= paths.length) {
-            return false;
-        } else if (indices.length == 1) {
-            iter = {indices[0], this, null, null};
-            return true;
-        } else {
-            var element = paths.index (paths.length - 1 - indices[0]);
-            Object parent = 
-            for (index = 1; index < indices.length && element is Group; index++) {
-                element = element.get_child (indices[index]);
-            }
-            if (index == indices.length) {
-                
-            return false;
-        }
-    }
-
-    public int get_n_columns () {
-        return 5;
-    }
-
-    public Gtk.TreePath? get_path (Gtk.TreeIter iter) {
-        if (iter.user_data == this) {
-            return new Gtk.TreePath.from_indices (iter.stamp);
-        } else {
-            for (var i = 0; i < paths.length; i++) {
-                var e = paths.index ( paths.length - 1 - i);
-                if (e is Gtk.TreeModel) {
-                    var path = ((Gtk.TreeModel) e).get_path (iter);
-                    if (path != null) {
-                        path.prepend_index (i);
-                        return path;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public void get_value (Gtk.TreeIter iter, int column, out Value value) {
-        var parent = iter.user_data;
-        if (parent == this) {
-            Element obj = paths.index (paths.length - 1 - iter.stamp);
-            switch (column) {
-                case 0:
-                    var surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
-                    var context = new Cairo.Context (surf);
-                    obj.draw (context, 1, null, null, true);
-                    value = surf;
-                    break;
-                case 1:
-                    value = obj.visible;
-                    break;
-                case 2:
-                    value = obj.title;
-                    break;
-                case 3:
-                    value = obj.fill;
-                    break;
-                case 4:
-                    value = obj.stroke;
-                    break;
-            }
-        } else {
-            ((Gtk.TreeModel) parent).get_value (iter, column, out value);
-        }
-    }
-*/
-
     public Element get_element (Gtk.TreeIter iter) {
         Value element;
 	get_value (iter, 0, out element);
         return ((Element*) (element.peek_pointer ()));
     }
 
-/*
-    public bool iter_children (out Gtk.TreeIter iter, Gtk.TreeIter? parent) {
-        if (parent == null) {
-            iter = {0, this, null, null};
-            return true;
-        } else {
-            var real_parent = parent.user_data;
-            if (real_parent == this) {
-                var element = paths.index (parent.stamp);
-                if (element is Gtk.TreeModel) {
-                    return ((Gtk.TreeModel) element).iter_children (out iter, null);
-                } else {
-                    return false;
-                }
-            } else {
-                return ((Gtk.TreeModel) real_parent).iter_children (out iter, parent);
-            }
-        }
-    }
-
-    public bool iter_has_child (Gtk.TreeIter iter) {
-        if (iter.user_data == this) {
-            var element = paths.index (iter.stamp);
-            if (element is Gtk.TreeModel) {
-                return ((Gtk.TreeModel) element).iter_has_child (iter);
-            } else {
-                return false;
-            }
-        } else {
-            return ((Gtk.TreeModel) iter.user_data).iter_has_child (iter);
-        }
-    }
-
-    public int iter_n_children (Gtk.TreeIter? iter) {
-        if (iter == null) {
-            return (int) paths.length;
-        } else {
-            var parent = iter.user_data;
-            if (parent == this) {
-                var element = paths.index (iter.stamp);
-                if (element is Gtk.TreeModel) {
-                    return ((Gtk.TreeModel) element).iter_n_children (null);
-                } else {
-                    return 0;
-                }
-            } else {
-                return ((Gtk.TreeModel) parent).iter_n_children (iter);
-            }
-        }
-    }
-
-    public bool iter_next (ref Gtk.TreeIter iter) {
-        if (iter.user_data == this) {
-            if (iter.stamp < paths.length - 1) {
-                iter.stamp++;
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return ((Gtk.TreeModel) iter.user_data).iter_next (ref iter);
-        }
-    }
-
-    public bool iter_nth_child (out Gtk.TreeIter iter, Gtk.TreeIter? parent, int n) {
-        if (parent == null) {
-            if (n < paths.length) {
-                iter = {n, this, null, null};
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return ((Gtk.TreeModel) parent.user_data).iter_nth_child (out iter, parent, n);
-        }
-    }
-
-    public bool iter_parent (out Gtk.TreeIter iter, Gtk.TreeIter child) {
-        if (child.user_data == this) {
-            return false;
-        } else {
-            var path = get_path (child);
-            path.up ();
-            get_iter (out iter, path);
-            return true;
-        }
-    }
-*/
-
     public void draw (Cairo.Context cr) {
-        for (int i = 0; i < paths.length; i++) {
-            paths.index (i).draw (cr);
+        Gtk.TreeIter iter;
+        if (get_iter_first (out iter)) {
+            do {
+                draw_element (cr, iter);
+            } while (iter_next (ref iter));
+        }
+    }
+
+    private void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
+        var element = get_element (iter);
+        if (element is Group) {
+            (element as Group).setup_draw (cr);
+            Gtk.TreeIter inner_iter;
+            if (iter_children (out inner_iter, iter)) {
+                do {
+                    draw_element (cr, inner_iter);
+                } while (iter_next (ref inner_iter));
+            }
+            (element as Group).cleanup_draw (cr);
+        } else {
+            element.draw (cr);
         }
     }
     
@@ -473,25 +291,27 @@ public class Image : Gtk.TreeStore {
         stack.redo ();
     }
 
-    public Element[] get_paths () {
-        return paths.data;
-    }
-
     private void add_element(Element element) {
         element.update.connect (() => { update (); });
         element.select.connect ((selected) => {
-            if (element != selected_path) {
-                selected_path.select (false);
-                last_selected_path = element;
-                selected_path = element;
+            Element? select_path;
+            if (selected_path != null) {
+                select_path = get_element (selected_path);
+            } else {
+                select_path = null;
+            }
+            if (element != select_path) {
+                select_path.select (false);
+                // last_selected_path = element;
+                // select_path = element;
                 path_selected (element);
             } else if (selected == false) {
                 selected_path = null;
                 path_selected (null);
             }
         });
-        paths.append_val (element);
-        row_inserted (new Gtk.TreePath.from_indices (0), {0, &element, null, null});
+        Gtk.TreeIter iter;
+        insert_with_values (out iter, null, 0, 0, element);
         element.select (true);
         update ();
     }
@@ -520,48 +340,23 @@ public class Image : Gtk.TreeStore {
     }
 
     public void duplicate_path () {
-        var path = last_selected_path.copy ();
-        path.update.connect (() => { update (); });
-        path.select.connect ((selected) => {
-            if (path != selected_path) {
-                selected_path.select (false);
-                last_selected_path = path;
-                selected_path = path;
-                path_selected (path);
-            } else if (selected == false) {
-                selected_path = null;
-                path_selected (null);
-            }
-        });
-        paths.append_val (path);
-        row_inserted (new Gtk.TreePath.from_indices (0), {0, &path, null, null});
-        path.select (true);
-        update ();
+        var path = get_element (last_selected_path).copy ();
+        add_element (path);
     }
 
     public void path_up () {
-        int i;
-        for (i = 0; i < paths.length - 1; i++) {
-            if (paths.index (i) == last_selected_path) {
-                break;
-            }
+        Gtk.TreeIter next = selected_path;
+        if (iter_next(ref next)) {
+            swap (selected_path, next);
         }
-        if (i == paths.length - 1) {
-            return;
-        }
-        paths.insert_val (i + 1, paths.remove_index (i));
-        int[] indices = {};
-        for (int j = 0; j < paths.length; j++) {
-             indices += j;
-        }
-        indices [i] = i + 1;
-        indices [i + 1] = i;
-        rows_reordered (new Gtk.TreePath.first (), {0, this, null, null}, indices);
-        last_selected_path.select (true);
-        last_selected_path.select (false);
     }
 
     public void path_down () {
+        Gtk.TreeIter prev = selected_path;
+        if (iter_previous(ref prev)) {
+            swap (selected_path, prev);
+        }
+/*
         int i;
         for (i = 1; i < paths.length; i++) {
             if (paths.index (i) == last_selected_path) {
@@ -581,9 +376,12 @@ public class Image : Gtk.TreeStore {
         rows_reordered (new Gtk.TreePath.first (), {0, this, null, null}, indices);
         last_selected_path.select (true);
         last_selected_path.select (false);
+*/
     }
 
     public void delete_path () {
+        remove (ref selected_path);
+/*
         int i;
         for (i = 0; i < paths.length; i++) {
             if (paths.index (i) == last_selected_path) {
@@ -600,6 +398,7 @@ public class Image : Gtk.TreeStore {
         } else {
             paths.index (0).select (true);
         }
+*/
     }
 
     private void save_xml () {
@@ -619,8 +418,9 @@ public class Image : Gtk.TreeStore {
         
         var pattern_index = 0;
         
-        for (var i = 0; i < paths.length; i++) {
-            var path = paths.index (i);
+        Gtk.TreeIter iter;
+        for (iter_children (out iter, null); iter_next (ref iter);) {
+            var path = get_element (iter);
             pattern_index = path.add_svg (svg, defs, pattern_index);
 /*            
             var fill = "";
