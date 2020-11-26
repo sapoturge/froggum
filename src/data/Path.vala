@@ -162,7 +162,17 @@ public class Path : Element {
         }
         this.with_pattern (segments, fill, stroke, title);
     }
-    
+
+    public Path.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
+        var fill = Pattern.get_from_text(node->get_prop ("fill"), patterns);
+        var stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
+        var title = node->get_prop ("id");
+        if (title == null) {
+            title = "Path";
+        }
+        this.from_string_with_pattern (node->get_prop ("d"), fill, stroke, title);
+    }
+        
     public string to_string () {
         var data = new string[] {"M %f %f".printf (root_segment.start.x, root_segment.start.y)};
         var s = root_segment;

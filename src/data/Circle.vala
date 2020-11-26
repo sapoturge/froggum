@@ -31,7 +31,7 @@ public class Circle : Element {
         }
     }
 
-    public Circle (double x, double y, double r, Pattern fill, Pattern stroke) {
+    public Circle (double x, double y, double r, Pattern fill, Pattern stroke, string? title = null) {
         this.x = x;
         this.y = y;
         this.r = r;
@@ -39,11 +39,25 @@ public class Circle : Element {
         this.fill = fill;
         this.stroke = stroke;
         visible = true;
-        title = "Circle";
+        if (title == null) {
+            this.title = "Circle";
+        } else {
+            this.title = title;
+        }
 
         fill.update.connect (() => { update (); });
         stroke.update.connect (() => { update (); });
         select.connect (() => { update (); });
+    }
+
+    public Circle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
+        this (double.parse (node->get_prop ("cx")),
+              double.parse (node->get_prop ("cy")),
+              double.parse (node->get_prop ("r")),
+              Pattern.get_from_text(node->get_prop ("fill"), patterns),
+              Pattern.get_from_text (node->get_prop ("stroke"), patterns),
+              node->get_prop ("id")
+        );
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
@@ -225,6 +239,7 @@ public class Circle : Element {
         node->new_prop ("stroke", stroke_text);
         node->new_prop ("cx", x.to_string ());
         node->new_prop ("cy", y.to_string ());
+        node->new_prop ("r", r.to_string ());
         root->add_child (node);
 
         return pattern_index;

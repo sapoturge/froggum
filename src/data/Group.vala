@@ -6,6 +6,14 @@ public class Group : Element {
         fill.update.connect (() => { update (); });
         stroke.update.connect (() => { update (); });
     }
+
+    public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
+        title = node->get_prop ("id");
+        fill = Pattern.get_from_text (node->get_prop ("fill"), patterns);
+        stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
+        fill.update.connect (() => { update (); });
+        stroke.update.connect (() => { update (); });
+    }
     
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         return;

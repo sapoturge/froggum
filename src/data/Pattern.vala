@@ -45,6 +45,49 @@ public class Pattern : Object, ListModel, Undoable {
         pattern_type = RADIAL;
     }
 
+    public static Pattern get_from_text (string? text, Gee.HashMap<string, Pattern> patterns) {
+        if (text == null) {
+            return new Pattern.none ();
+        } else {
+            if (text.has_prefix ("url(#")) {
+                return patterns.@get (text.substring (5, text.length - 6));
+            } else if (text == "none") {
+                return new Pattern.none ();
+            } else {
+                var rgba = Gdk.RGBA ();
+                if (text.has_prefix ("rgb(")) {
+                    var channels = text.substring (4, text.length - 5).split (",");
+                    rgba.red = int.parse (channels[0]) / 255.0;
+                    rgba.green = int.parse (channels[1]) / 255.0;
+                    rgba.blue = int.parse (channels[2]) / 255.0;
+                } else if (text.has_prefix ("rgba(")) {
+                    var channels = text.substring (4, text.length - 5).split (",");
+                    rgba.red = int.parse (channels[0]) / 255.0;
+                    rgba.green = int.parse (channels[1]) / 255.0;
+                    rgba.blue = int.parse (channels[2]) / 255.0;
+                    rgba.alpha = double.parse (channels[3]);
+                } else if (text.has_prefix ("#")) {
+                    var color_length = (text.length - 1) / 3;
+                    var red = 0;
+                    var green = 0;
+                    var blue = 0;
+                    text.substring (1, color_length).scanf ("%x", &red);
+                    text.substring (1 + color_length, color_length).scanf ("%x", &green);
+                    text.substring (1 + color_length * 2, color_length).scanf ("%x", &blue);
+                    if (color_length == 1) {
+                        red *= 17;
+                        green *= 17;
+                        blue *= 17;
+                    }
+                    rgba.red = red / 255.0;
+                    rgba.green = green / 255.0;
+                    rgba.blue = blue / 255.0;
+                }
+                return new Pattern.color (rgba);
+            }
+        }
+    }
+
     construct {
         stops = new Array<Stop> ();
         start = {0, 0};

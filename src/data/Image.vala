@@ -46,7 +46,7 @@ public class Image : Gtk.TreeStore {
         this.height = height;
         this.selected_path = null;
         foreach (Element element in paths) {
-            add_element (element);
+            add_element (element, null);
         }
         setup_signals ();
     }
@@ -77,7 +77,9 @@ public class Image : Gtk.TreeStore {
             var patterns = new Gee.HashMap<string, Pattern> ();
 
             for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
+                /*
                 if (iter->name == "path") {
+                    /*
                     var fill = new Pattern.none ();
                     var stroke = new Pattern.none ();
                     var name = iter->get_prop ("id");
@@ -145,8 +147,17 @@ public class Image : Gtk.TreeStore {
                     }
                     var data = iter->get_prop ("d");
                     var path = new Path.from_string_with_pattern (data, fill, stroke, name);
+                    * /
+                    var path = new Path.from_xml (iter, patterns);
                     add_element (path);
-                } else if (iter->name == "defs") {
+                } else if (iter->name == "circle") {
+                    var circle = new Circle.from_xml (iter, patterns);
+                    add_element (circle);
+                } else if (iter->name == "g") {
+                    var group = new Group.from_xml (iter, patterns);
+                    add_element (group);
+                    // TODO: Load child elements * /
+                } else */ if (iter->name == "defs") {
                     for (Xml.Node* def = iter->children; def != null; def = def->next) {
                         if (def->name == "linearGradient") {
                             var name = def->get_prop ("id");
@@ -215,11 +226,28 @@ public class Image : Gtk.TreeStore {
                     }
                 }
             }
+
+            load_elements (root, patterns, null);
         }
         
         setup_signals ();
     }
-    
+
+    private void load_elements (Xml.Node* group, Gee.HashMap<string, Pattern> patterns, Gtk.TreeIter? root) {
+        for (Xml.Node* iter = group->children; iter != null; iter = iter->next) {
+            if (iter->name == "path") {
+                var path = new Path.from_xml (iter, patterns);
+                add_element (path, root);
+            } else if (iter->name == "circle") {
+                var circle = new Circle.from_xml (iter, patterns);
+                add_element (circle, root);
+            } else if (iter->name == "g") {
+                var g = new Group.from_xml (iter, patterns);
+                load_elements (iter, patterns, add_element (g, root));
+            }
+        }
+    }
+                
     private Gdk.RGBA process_color (string color) {
         var rgba = Gdk.RGBA ();
         if (color.has_prefix ("rgb(")) {
@@ -290,7 +318,7 @@ public class Image : Gtk.TreeStore {
         stack.redo ();
     }
 
-    private void add_element(Element element) {
+    private Gtk.TreeIter add_element(Element element, Gtk.TreeIter? root) {
         element.update.connect (() => { update (); });
         element.select.connect ((selected) => {
             Element? select_path;
@@ -310,9 +338,10 @@ public class Image : Gtk.TreeStore {
             }
         });
         Gtk.TreeIter iter;
-        insert_with_values (out iter, null, 0, 0, element);
+        insert_with_values (out iter, root, 0, 0, element);
         element.select (true);
         update ();
+        return iter;
     }
 
     public void new_path () {
@@ -323,24 +352,24 @@ public class Image : Gtk.TreeStore {
                              {0.66, 0.66, 0.66, 1},
                              {0.33, 0.33, 0.33, 1},
                              "New Path");
-        add_element (path);
+        add_element (path, null);
     }
 
     public void new_circle () {
         var circle = new Circle (width / 2, height / 2, double.min (width, height) / 2 - 1,
                                  new Pattern.color ({0.66, 0.66, 0.66, 1}),
                                  new Pattern.color ({0.33, 0.33, 0.33, 1}));
-        add_element (circle);
+        add_element (circle, null);
     }
 
     public void new_group () {
         var group = new Group ();
-        add_element (group);
+        add_element (group, null);
     }
 
     public void duplicate_path () {
         var path = get_element (last_selected_path).copy ();
-        add_element (path);
+        add_element (path, null);
     }
 
     public void path_up () {
