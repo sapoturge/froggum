@@ -75,8 +75,7 @@ public class Path : Element {
             segments[i].add_command.connect ((c) => { add_command (c); });
             segments[i].next = segments[(i + 1) % segments.length];
         }
-        select.connect (() => { update(); });
-        notify.connect (() => { update(); });
+        setup_signals ();
         fill.add_command.connect ((c) => { add_command (c); });
         stroke.add_command.connect ((c) => { add_command (c); });
     }

@@ -18,7 +18,7 @@ public class EditorView : Gtk.Box {
         column.set_cell_data_func (icon, (cell_layout, cell, model, iter) => {
             icon.surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, image.width, image.height);
             var context = new Cairo.Context (icon.surface);
-            image.get_element (iter).draw (context, 1, null, null, true);
+            image.draw_element (context, iter);
         });
 
         var visibility = new Gtk.CellRendererToggle ();

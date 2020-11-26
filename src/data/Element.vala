@@ -11,6 +11,13 @@ public abstract class Element : Object, Undoable {
 
     public signal void select (bool selected);
 
+    protected void setup_signals () {
+        stroke.update.connect (() => { update (); });
+        fill.update.connect (() => { update (); });
+        notify.connect (() => { update (); });
+        select.connect (() => { update (); });
+    }
+
     public abstract void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false);
 
     public abstract void draw_controls (Cairo.Context cr, double zoom);

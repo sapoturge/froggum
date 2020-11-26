@@ -45,9 +45,7 @@ public class Circle : Element {
             this.title = title;
         }
 
-        fill.update.connect (() => { update (); });
-        stroke.update.connect (() => { update (); });
-        select.connect (() => { update (); });
+        setup_signals ();
     }
 
     public Circle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {

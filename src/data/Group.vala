@@ -1,18 +1,20 @@
 public class Group : Element {
     public Group () {
         title = "Group";
+        visible = true;
         fill = new Pattern.none ();
         stroke = new Pattern.none ();
-        fill.update.connect (() => { update (); });
-        stroke.update.connect (() => { update (); });
+   
+        setup_signals ();
     }
 
     public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
         title = node->get_prop ("id");
+        visible = true;
         fill = Pattern.get_from_text (node->get_prop ("fill"), patterns);
         stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
-        fill.update.connect (() => { update (); });
-        stroke.update.connect (() => { update (); });
+
+        setup_signals ();
     }
     
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {

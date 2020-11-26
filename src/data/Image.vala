@@ -294,9 +294,9 @@ public class Image : Gtk.TreeStore {
         } while (iter_previous (ref iter));
     }
 
-    private void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
+    public void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
         var element = get_element (iter);
-        if (element is Group) {
+        if (element is Group && element.visible) {
             (element as Group).setup_draw (cr);
             Gtk.TreeIter inner_iter;
             if (iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1)) {
