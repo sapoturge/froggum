@@ -415,12 +415,28 @@ public class Image : Gtk.TreeStore {
         Xml.Node* defs = new Xml.Node (null, "defs");
         svg->add_child (defs);
         
-        var pattern_index = 0;
-        
+        save_children (svg, defs, 0, null);
+
+        var res = doc->save_file (file.get_path ());
+        if (res < 0) {
+            // TODO: communicate error
+        }
+    }
+
+    private int save_children(Xml.Node* root_node, Xml.Node* defs, int pattern_index, Gtk.TreeIter? root) {
         Gtk.TreeIter iter;
-        for (iter_children (out iter, null); iter_next (ref iter);) {
-            var path = get_element (iter);
-            pattern_index = path.add_svg (svg, defs, pattern_index);
+        if (iter_nth_child (out iter, root, iter_n_children(root) - 1)) {
+            do {
+                var path = get_element (iter);
+                Xml.Node* node;
+                pattern_index = ((Group) path).add_svg(root_node, defs, pattern_index, out node);
+                if (path is Group) {
+                    pattern_index = save_children(node, defs, pattern_index, iter);
+                }
+            } while (iter_previous (ref iter));
+        }
+        return pattern_index;
+    }
 /*            
             var fill = "";
             var stroke = "";
@@ -543,11 +559,5 @@ public class Image : Gtk.TreeStore {
             element->new_prop ("d", path.to_string ());
             svg->add_child (element);
 */
-        }
         
-        var res = doc->save_file (file.get_path ());
-        if (res < 0) {
-            // TODO: communicate error
-        }
-    }
 }

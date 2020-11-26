@@ -405,7 +405,7 @@ public class Path : Element {
         return result;
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
         var fill_text = "";
         var stroke_text = "";
 
@@ -519,13 +519,13 @@ public class Path : Element {
                 break;
         }
         
-        Xml.Node* element = new Xml.Node (null, "path");
+        node = new Xml.Node (null, "path");
         
-        element->new_prop ("id", title);
-        element->new_prop ("fill", fill_text);
-        element->new_prop ("stroke", stroke_text);
-        element->new_prop ("d", to_string ());
-        root->add_child (element);
+        node->new_prop ("id", title);
+        node->new_prop ("fill", fill_text);
+        node->new_prop ("stroke", stroke_text);
+        node->new_prop ("d", to_string ());
+        root->add_child (node);
 
         return pattern_index;
     }

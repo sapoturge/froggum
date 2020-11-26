@@ -23,7 +23,10 @@ public class Group : Element {
         return;
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
+        node = new Xml.Node (null, "g");
+        node->new_prop ("id", title);
+        root->add_child (node);
         return pattern_index;
     }
 

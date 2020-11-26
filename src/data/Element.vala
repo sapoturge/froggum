@@ -19,7 +19,7 @@ public abstract class Element : Object, Undoable {
 
     public abstract void finish (string prop);
 
-    public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index);
+    public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node);
 
     public abstract Element copy ();
 
