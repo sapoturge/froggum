@@ -49,13 +49,11 @@ public class Circle : Element {
     }
 
     public Circle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        this (double.parse (node->get_prop ("cx")),
-              double.parse (node->get_prop ("cy")),
-              double.parse (node->get_prop ("r")),
-              Pattern.get_from_text(node->get_prop ("fill"), patterns),
-              Pattern.get_from_text (node->get_prop ("stroke"), patterns),
-              node->get_prop ("id")
-        );
+        base.from_xml (node, patterns);
+        x = double.parse (node->get_prop ("cx"));
+        y = double.parse (node->get_prop ("cy"));
+        r = double.parse (node->get_prop ("r"));
+        _radius = { x + r, y };
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {

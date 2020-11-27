@@ -65,26 +65,28 @@ public class Path : Element {
     }
 
     public Path.with_pattern (Segment[] segments, Pattern fill, Pattern stroke, string title) {
-        this.root_segment = segments[0];
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
         visible = true;
-        for (int i = 0; i < segments.length; i++) {
-            segments[i].notify.connect (() => { update (); });
-            segments[i].add_command.connect ((c) => { add_command (c); });
-            segments[i].next = segments[(i + 1) % segments.length];
-        }
+        set_segments (segments);
         setup_signals ();
-        fill.add_command.connect ((c) => { add_command (c); });
-        stroke.add_command.connect ((c) => { add_command (c); });
-    }
-
-    public Path.from_string (string description, Gdk.RGBA fill, Gdk.RGBA stroke, string title) {
-        this.from_string_with_pattern (description, new Pattern.color (fill), new Pattern.color (stroke), title);
     }
 
     public Path.from_string_with_pattern (string description, Pattern fill, Pattern stroke, string title) {
+        parse_string (description);
+        this.fill = fill;
+        this.stroke = stroke;
+        this.title = title;
+        visible = true;
+    }
+
+    public Path.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
+        base.from_xml (node, patterns);
+        parse_string (node->get_prop ("d"));
+    }
+
+    private void parse_string (string description) {
         var segments = new Segment[] {};
         int i = skip_whitespace (description, 0);
         double start_x = 0;
@@ -159,17 +161,16 @@ public class Path : Element {
                 i = skip_whitespace (description, i);
             }
         }
-        this.with_pattern (segments, fill, stroke, title);
+        set_segments (segments);
     }
 
-    public Path.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        var fill = Pattern.get_from_text(node->get_prop ("fill"), patterns);
-        var stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
-        var title = node->get_prop ("id");
-        if (title == null) {
-            title = "Path";
+    private void set_segments (Segment[] segments) {
+        root_segment = segments[0];
+        for (int i = 0; i < segments.length; i++) {
+            segments[i].notify.connect (() => { update (); });
+            segments[i].add_command.connect ((c) => { add_command (c); });
+            segments[i].next = segments[(i + 1) % segments.length];
         }
-        this.from_string_with_pattern (node->get_prop ("d"), fill, stroke, title);
     }
         
     public string to_string () {

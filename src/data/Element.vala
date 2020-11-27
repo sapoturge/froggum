@@ -14,8 +14,20 @@ public abstract class Element : Object, Undoable {
     protected void setup_signals () {
         stroke.update.connect (() => { update (); });
         fill.update.connect (() => { update (); });
+        stroke.add_command.connect ((c) => { add_command (c); });
+        fill.add_command.connect ((c) => { add_command (c); });
+
         notify.connect (() => { update (); });
         select.connect (() => { update (); });
+    }
+
+    protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
+        title = node->get_prop ("id");
+        visible = true;
+        fill = Pattern.get_from_text (node->get_prop ("fill"), patterns);
+        stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
+
+        setup_signals ();
     }
 
     public abstract void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false);
