@@ -588,11 +588,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         */
         double real_x = scale_x (x);
         double real_y = scale_y (y);
+        return clicked_subpath (real_x, real_y, null, out path, out segment);
         Gtk.TreeIter iter;
         Value value;
         for (var valid = image.iter_children (out iter, null); valid; valid = image.iter_next (ref iter)) {
-            image.get_value (iter, 0, out value);
-            var _path = (Element) value.peek_pointer ();
+            var _path = image.get_element (iter);
             if (_path.visible || _path == selected_path) {
                 if (_path.clicked (real_x, real_y, 6 / zoom, out segment)) {
                     path = _path;
@@ -616,6 +616,30 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 }
                 */
             }
+        }
+        path = null;
+        segment = null;
+        return false;
+    }
+
+    private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
+        Gtk.TreeIter iter;
+        if (image.iter_n_children (root) > 0) {
+            image.iter_nth_child (out iter, root, image.iter_n_children (root) - 1);
+            do {
+                var element = image.get_element (iter);
+                if (element.visible) {
+                    if (element.clicked (x, y, 6 / zoom, out segment)) {
+                        path = element;
+                        return true;
+                    } else if (element is Group) {
+                        // TODO: Apply transformation
+                        if (clicked_subpath (x, y, iter, out path, out segment)) {
+                            return true;
+                        }
+                    }
+                }
+            } while (image.iter_previous (ref iter));
         }
         path = null;
         segment = null;

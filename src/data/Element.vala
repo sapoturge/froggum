@@ -18,7 +18,9 @@ public abstract class Element : Object, Undoable {
         fill.add_command.connect ((c) => { add_command (c); });
 
         notify.connect (() => { update (); });
-        select.connect (() => { update (); });
+        select.connect (() => {
+            update ();
+        });
     }
 
     protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {

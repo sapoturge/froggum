@@ -15,7 +15,7 @@ public class Image : Gtk.TreeStore {
 
     public signal void path_selected (Element? path);
 
-    // private Array<Element> paths;
+    private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
 
     private Gtk.TreeIter? selected_path;
     private Gtk.TreeIter? last_selected_path;
@@ -39,6 +39,8 @@ public class Image : Gtk.TreeStore {
     construct {
         stack = new CommandStack ();
         set_column_types ({typeof (Element)});
+
+        element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
     }
 
     public Image (int width, int height, Element[] paths = {}) {
@@ -287,24 +289,27 @@ public class Image : Gtk.TreeStore {
     }
 
     public void draw (Cairo.Context cr) {
-        Gtk.TreeIter iter;
-        iter_nth_child (out iter, null, iter_n_children (null) - 1);
-        do {
-            draw_element (cr, iter);
-        } while (iter_previous (ref iter));
+        if (iter_n_children (null) > 0) {
+            Gtk.TreeIter iter;
+            iter_nth_child (out iter, null, iter_n_children (null) - 1);
+            do {
+                draw_element (cr, iter);
+            } while (iter_previous (ref iter));
+        }
     }
 
     public void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
         var element = get_element (iter);
         if (element is Group && element.visible) {
-            (element as Group).setup_draw (cr);
-            Gtk.TreeIter inner_iter;
-            if (iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1)) {
+            if (iter_has_child (iter)) {
+                (element as Group).setup_draw (cr);
+                Gtk.TreeIter inner_iter;
+                iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1);
                 do {
                     draw_element (cr, inner_iter);
                 } while (iter_previous (ref inner_iter));
+                (element as Group).cleanup_draw (cr);
             }
-            (element as Group).cleanup_draw (cr);
         } else {
             element.draw (cr);
         }
@@ -329,16 +334,18 @@ public class Image : Gtk.TreeStore {
             }
             if (element != select_path) {
                 select_path.select (false);
-                // last_selected_path = element;
-                // select_path = element;
+                last_selected_path = element_index[element];
+                selected_path = element_index[element];
                 path_selected (element);
             } else if (selected == false) {
                 selected_path = null;
+                print ("Deselecting!");
                 path_selected (null);
             }
         });
         Gtk.TreeIter iter;
         insert_with_values (out iter, root, 0, 0, element);
+        element_index[element] = iter;
         element.select (true);
         update ();
         return iter;
