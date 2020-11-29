@@ -339,7 +339,6 @@ public class Image : Gtk.TreeStore {
                 path_selected (element);
             } else if (selected == false) {
                 selected_path = null;
-                print ("Deselecting!");
                 path_selected (null);
             }
         });

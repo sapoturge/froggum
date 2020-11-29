@@ -84,6 +84,21 @@ public class Segment : Object, Undoable {
         set {
             if (segment_type == ARC) {
                 var new_value = closest (value, out start_angle);
+                double maximum;
+                double minimum;
+                if (reverse) {
+                    minimum = end_angle;
+                    maximum = end_angle + Math.PI * 2;
+                } else {
+                    maximum = end_angle;
+                    minimum = end_angle - Math.PI * 2;
+                }
+                while (start_angle < minimum) {
+                    start_angle += Math.PI * 2;
+                }
+                while (start_angle > maximum) {
+                    start_angle -= Math.PI * 2;
+                }
                 if ((new_value.x - value.x).abs () + (new_value.y - value.y).abs () >= 1e-5) {
                     prev.end = new_value;
                 }
@@ -103,6 +118,21 @@ public class Segment : Object, Undoable {
         set {
             if (segment_type == ARC) {
                 value = closest (value, out end_angle);
+                double maximum;
+                double minimum;
+                if (reverse) {
+                    maximum = start_angle;
+                    minimum = start_angle - Math.PI * 2;
+                } else {
+                    minimum = start_angle;
+                    maximum = start_angle + Math.PI * 2;
+                }
+                while (end_angle < minimum) {
+                    end_angle += Math.PI * 2;
+                }
+                while (end_angle > maximum) {
+                    end_angle -= Math.PI * 2;
+                }
             }
             if (value != _end) {
                 _end = value;
@@ -458,9 +488,21 @@ public class Segment : Object, Undoable {
     public bool clicked (double x, double y, double tolerance) {
         switch (segment_type) {
             case LINE:
-                var a = ((end.y - start.y) * x - (end.x - start.x) * y - start.x * end.y + end.x * start.y).abs ();
-                var d = Math.sqrt ((end.y - start.y) * (end.y - start.y) + (end.x - start.x) * (end.x - start.x));
-                return a / d <= tolerance;
+                var a = (x - start.x)*(end.x - start.x) + (y - start.y)*(end.y - start.y);
+                var p = (end.x - start.x)*(end.x - start.x) + (end.y - start.y)*(end.y - start.y);
+                var d = a / p;
+                Point n_p = { start.x + d * (end.x - start.x), start.y + d * (end.y - start.y) };
+                return (0 <= d &&
+                        d <= 1 &&
+                        (n_p.x - x)*(n_p.x - x) + (n_p.y - y)*(n_p.y - y) <= tolerance * tolerance);
+            case ARC:
+                double angle;
+                var c = closest ({ x, y }, out angle);
+                var dist = (c.x-x)*(c.x-x)+(c.y-y)*(c.y-y);
+                print ("Distance: %f (%s), Angle: %s\n", dist, (dist < tolerance * tolerance).to_string (), (start_angle <= angle && angle <= end_angle).to_string ());
+                return ((c.x - x)*(c.x-x) + (c.y - y)*(c.y-y) <= tolerance * tolerance &&
+                        ((start_angle <= angle && angle <= end_angle) ||
+                         (end_angle <= angle && angle <= start_angle)));
         }
         return false;
     }
