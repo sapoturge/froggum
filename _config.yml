@@ -3,3 +3,6 @@ title: Froggum Icon Editor
 description: Pixel perfect icons
 url: https://sapoturge.github.io/froggum
 icon: https://raw.githubusercontent.com/sapoturge/froggum/master/data/icons/48/com.github.sapoturge.froggum.svg
+background-color: "#C2FA96"
+title-color: "#690"
+bold-color: "#242"
