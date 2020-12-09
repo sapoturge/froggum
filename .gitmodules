@@ -1,0 +1,3 @@
+[submodule "modernist"]
+	path = modernist
+	url = https://github.com/sapoturge/modernist
