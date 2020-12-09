@@ -1,8 +1,8 @@
 ---
 previous: /docs/install
-previous_text: Installing
+previous-text: Installing
 next: /docs/editing
-next_text: Editing
+next-text: Editing
 ---
 
 # Using Froggum

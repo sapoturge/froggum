@@ -1,5 +1,5 @@
 ---
-next_text: UI Overview
+next-text: UI Overview
 next: /docs/overview
 ---
 
