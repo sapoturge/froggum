@@ -71,6 +71,6 @@ segments, and red control handles will appear around any draggable point. All
 control handles can be dragged around as you wish, and everything is
 automatically saved.
 
-*Note: Undo functionality is coming in version 0.2*
+Control-Z and Control-Y can be used for undo and redo, respectively.
 
 Double-clicking off of a path will deselect it, and hide all controls.
