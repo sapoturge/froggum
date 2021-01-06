@@ -48,12 +48,14 @@ public class EditorView : Gtk.Box {
         });
 
         var fill = new PatternButton ();
+        fill.mode = Gtk.CellRendererMode.EDITABLE;
         column.pack_start (fill, false);
         column.set_cell_data_func (fill, (cell_layout, cell, model, iter) => {
             fill.pattern = image.get_element (iter).fill;
         });
 
         var stroke = new PatternButton ();
+        stroke.mode = Gtk.CellRendererMode.EDITABLE;
         column.pack_start (stroke, false);
         column.set_cell_data_func (stroke, (cell_layout, cell, model, iter) => {
             stroke.pattern = image.get_element (iter).stroke;

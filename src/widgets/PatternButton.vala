@@ -84,5 +84,20 @@ public class PatternButton : Gtk.CellRenderer {
         minimum_height = 24;
         natural_height = 32;
     }
+
+    public override unowned Gtk.CellEditable? start_editing (Gdk.Event? event, Gtk.Widget widget, string path, Gdk.Rectangle background_area, Gdk.Rectangle cell_aea, Gtk.CellRendererState flags) {
+        print ("Editing!\n");
+        var dialog = new PatternChooserDialog ();
+        dialog.pattern = pattern;
+        dialog.run ();
+        pattern = dialog.pattern;
+        dialog.hide ();
+        return null;
+    }
 }
         
+/*
+public class EditingPatternButton : Gtk.CellEditable {
+    public override void start_editing (Event? event) {
+    }
+}  */
