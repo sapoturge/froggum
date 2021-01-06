@@ -93,7 +93,6 @@ public class Path : Element {
         double start_y = 0;
         double current_x = 0;
         double current_y = 0;
-        var num_segments = 0;
         while (i < description.length) {
             if (description[i] == 'M') {
                 i += 1;
@@ -206,6 +205,8 @@ public class Path : Element {
                     }
                     data += "A %f %f %f %d %d %f %f".printf (s.rx, s.ry, 180 * s.angle / Math.PI, large_arc, sweep, s.end.x, s.end.y);
                     break;
+                default:
+                    break;
             }
             s = s.next;
         }
@@ -316,6 +317,8 @@ public class Path : Element {
                     cr.new_sub_path ();
                     cr.arc (s.center.x, s.center.y, 6 / zoom, 0, Math.PI * 2);
                     cr.new_sub_path ();
+                    break;
+                default:
                     break;
             }
 
@@ -604,6 +607,8 @@ public class Path : Element {
                         return;
                     }
                     break;
+                default:
+                    break;
             }
             s = s.next;
         }
@@ -662,6 +667,7 @@ public class Path : Element {
 
         // TODO: check for clicking on the path itself
         obj = null;
+        prop = null;
         return;
     }
 

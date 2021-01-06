@@ -369,7 +369,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                         tutorial.next_step ();
                     }
                     path.select (true);
-                } else {
+                } else if (selected_path != null) {
                     selected_path.select (false);
                 }
                 return false;
@@ -589,6 +589,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         double real_x = scale_x (x);
         double real_y = scale_y (y);
         return clicked_subpath (real_x, real_y, null, out path, out segment);
+        /*
         Gtk.TreeIter iter;
         Value value;
         for (var valid = image.iter_children (out iter, null); valid; valid = image.iter_next (ref iter)) {
@@ -614,12 +615,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     }
                     _segment = _segment.next;
                 }
-                */
+                * /
             }
         }
         path = null;
         segment = null;
         return false;
+        */
     }
 
     private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
@@ -743,6 +745,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 case ARC:
                     arc_mode.active = true;
                     break;
+                default:
+                    log (null, LogLevelFlags.LEVEL_ERROR, "Selected an uninitialized segment.");
+                    return;
             }
         }
 

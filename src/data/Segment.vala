@@ -287,6 +287,8 @@ public class Segment : Object, Undoable {
         this.reverse = reverse;
         this.end = {x, y};
     }
+
+    private Segment.none () {}
     
     public void begin (string property, Value? start_value = null) {
         switch (property) {
@@ -372,29 +374,40 @@ public class Segment : Object, Undoable {
                 return new Segment.curve (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
             case ARC:
                 return new Segment.arc (end.x, end.y, center.x, center.y, rx, ry, angle, reverse);
+            default:
+                log (null, LogLevelFlags.LEVEL_ERROR, "Tried to copy an unitialized segment.");
+                return this;
         }
-        return null;
     }
 
 
     public void split (out Segment first, out Segment last) {
-        if (segment_type == LINE) {
-            Point center = {(start.x + end.x) / 2, (start.y + end.y) / 2};
-            first = new Segment.line (center.x, center.y);
-            last = new Segment.line (end.x, end.y);
-        } else if (segment_type == CURVE) {
-            Point q1 = {(start.x + p1.x) / 2, (start.y + p1.y) / 2};
-            Point q2 = {(p1.x + p2.x) / 2, (p1.y + p2.y) / 2};
-            Point q3 = {(p2.x + end.x) / 2, (p2.y + end.y) / 2};
-            Point r1 = {(q1.x + q2.x) / 2, (q1.y + q2.y) / 2};
-            Point r2 = {(q2.x + q3.x) / 2, (q2.y + q3.y) / 2};
-            Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
-            first = new Segment.curve (q1.x, q1.y, r1.x, r1.y, s.x, s.y);
-            last = new Segment.curve (r2.x, r2.y, q3.x, q3.y, end.x, end.y);
-        } else if (segment_type == ARC) {
-            // ARC segments don't work very well together.
-            first = this;
-            last = new Segment.line (end.x, end.y);
+        switch (segment_type) {
+            case LINE:
+                Point center = {(start.x + end.x) / 2, (start.y + end.y) / 2};
+                first = new Segment.line (center.x, center.y);
+                last = new Segment.line (end.x, end.y);
+                break;
+            case CURVE:
+                Point q1 = {(start.x + p1.x) / 2, (start.y + p1.y) / 2};
+                Point q2 = {(p1.x + p2.x) / 2, (p1.y + p2.y) / 2};
+                Point q3 = {(p2.x + end.x) / 2, (p2.y + end.y) / 2};
+                Point r1 = {(q1.x + q2.x) / 2, (q1.y + q2.y) / 2};
+                Point r2 = {(q2.x + q3.x) / 2, (q2.y + q3.y) / 2};
+                Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
+                first = new Segment.curve (q1.x, q1.y, r1.x, r1.y, s.x, s.y);
+                last = new Segment.curve (r2.x, r2.y, q3.x, q3.y, end.x, end.y);
+                break;
+            case ARC:
+                // ARC segments don't work very well together.
+                first = this;
+                last = new Segment.line (end.x, end.y);
+                break;
+            default:
+                log (null, LogLevelFlags.LEVEL_ERROR, "Tried to split an unitialized segment.");
+                first = null;
+                last = null;
+                return;
         }
         prev.next = first;
         first.prev = prev;
@@ -425,6 +438,8 @@ public class Segment : Object, Undoable {
                     cr.arc (0, 0, 1, start_angle, end_angle);
                 }
                 cr.restore ();
+                break;
+            default:
                 break;
         }
     }
@@ -503,7 +518,8 @@ public class Segment : Object, Undoable {
                 return ((c.x - x)*(c.x-x) + (c.y - y)*(c.y-y) <= tolerance * tolerance &&
                         ((start_angle <= angle && angle <= end_angle) ||
                          (end_angle <= angle && angle <= start_angle)));
+            default:
+                return false;
         }
-        return false;
     }
 }

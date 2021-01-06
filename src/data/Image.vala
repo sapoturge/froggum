@@ -302,13 +302,13 @@ public class Image : Gtk.TreeStore {
         var element = get_element (iter);
         if (element is Group && element.visible) {
             if (iter_has_child (iter)) {
-                (element as Group).setup_draw (cr);
+                ((Group) element).setup_draw (cr);
                 Gtk.TreeIter inner_iter;
                 iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1);
                 do {
                     draw_element (cr, inner_iter);
                 } while (iter_previous (ref inner_iter));
-                (element as Group).cleanup_draw (cr);
+                ((Group) element).cleanup_draw (cr);
             }
         } else {
             element.draw (cr);
@@ -333,7 +333,9 @@ public class Image : Gtk.TreeStore {
                 select_path = null;
             }
             if (element != select_path) {
-                select_path.select (false);
+                if (select_path != null) {
+                    select_path.select (false);
+                }
                 last_selected_path = element_index[element];
                 selected_path = element_index[element];
                 path_selected (element);
@@ -460,11 +462,13 @@ public class Image : Gtk.TreeStore {
 
     private int save_children(Xml.Node* root_node, Xml.Node* defs, int pattern_index, Gtk.TreeIter? root) {
         Gtk.TreeIter iter;
-        if (iter_nth_child (out iter, root, iter_n_children(root) - 1)) {
+        var n_children = iter_n_children (root);
+        if (n_children != 0) {
+            iter_nth_child (out iter, root, n_children - 1);
             do {
                 var path = get_element (iter);
                 Xml.Node* node;
-                pattern_index = ((Group) path).add_svg(root_node, defs, pattern_index, out node);
+                pattern_index = path.add_svg(root_node, defs, pattern_index, out node);
                 if (path is Group) {
                     pattern_index = save_children(node, defs, pattern_index, iter);
                 }

@@ -319,19 +319,6 @@ public class FroggumApplication : Gtk.Application {
         recalculate_open_files ();
     }
     
-    private void action_undo () {
-        
-    }
-    
-    private void action_redo () {
-        var tab = notebook.current;
-        var editor = tab.page;
-        if (editor is EditorView) {
-            var image = ((EditorView) editor).image;
-            image.undo ();
-        }
-    }
-
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {
         var radius = int.min (int.min (width, height) / 8, 16) + 0.5;
         var segments = new Segment[] {
