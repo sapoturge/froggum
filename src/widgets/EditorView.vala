@@ -65,6 +65,12 @@ public class EditorView : Gtk.Box {
         paths_list.headers_visible = false;
         paths_list.reorderable = true;
         paths_list.append_column (column);
+        paths_list.row_activated.connect ((path, column) => {
+            Gtk.TreeIter iter;
+            image.get_iter (out iter, path);
+            var element = image.get_element (iter);
+            element.select (true);
+        });
 
         var list_box_scroll = new Gtk.ScrolledWindow (null, null);
         list_box_scroll.propagate_natural_width = true;
