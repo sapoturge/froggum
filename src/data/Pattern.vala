@@ -61,7 +61,7 @@ public class Pattern : Object, ListModel, Undoable {
                     rgba.green = int.parse (channels[1]) / 255.0;
                     rgba.blue = int.parse (channels[2]) / 255.0;
                 } else if (text.has_prefix ("rgba(")) {
-                    var channels = text.substring (4, text.length - 5).split (",");
+                    var channels = text.substring (5, text.length - 6).split (",");
                     rgba.red = int.parse (channels[0]) / 255.0;
                     rgba.green = int.parse (channels[1]) / 255.0;
                     rgba.blue = int.parse (channels[2]) / 255.0;
