@@ -674,6 +674,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             menu_layout.pack_start (separator, false, false, 0);
 
+            /*
             var delete_segment = new Gtk.Button ();
             delete_segment.label = _("Delete Segment");
             delete_segment.clicked.connect (() => {
@@ -681,16 +682,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 menu.popdown ();
             });
             menu_layout.pack_start (delete_segment, false, false, 0);
-
-            /*
-            var split_segment = new Gtk.Button ();
-            split_segment.label = _("Split Segment");
-            split_segment.clicked.connect (() => {
-                 selected_path.split_segment (segment);
-                 menu.popdown ();
-            });
-            menu_layout.pack_start (split_segment, false, false, 0);
             */
+
+            if (selected_path is Path) {
+                var split_segment = new Gtk.Button ();
+                split_segment.label = _("Split Segment");
+                split_segment.clicked.connect (() => {
+                    (selected_path as Path).split_segment (segment);
+                    menu.popdown ();
+                });
+                menu_layout.pack_start (split_segment, false, false, 0);
+            }
 
             if (segment.segment_type == ARC) {
                 var flip_arc = new Gtk.Button ();
