@@ -1,4 +1,4 @@
-project('com.github.sapoturge.froggum', 'vala', 'c')
+project('io.github.sapoturge.froggum', 'vala', 'c')
 
 gnome = import('gnome')
 i18n = import('i18n')
