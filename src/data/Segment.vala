@@ -501,25 +501,19 @@ public class Segment : Object, Undoable {
     }
 
     public bool clicked (double x, double y, double tolerance) {
-        switch (segment_type) {
-            case LINE:
-                var a = (x - start.x)*(end.x - start.x) + (y - start.y)*(end.y - start.y);
-                var p = (end.x - start.x)*(end.x - start.x) + (end.y - start.y)*(end.y - start.y);
-                var d = a / p;
-                Point n_p = { start.x + d * (end.x - start.x), start.y + d * (end.y - start.y) };
-                return (0 <= d &&
-                        d <= 1 &&
-                        (n_p.x - x)*(n_p.x - x) + (n_p.y - y)*(n_p.y - y) <= tolerance * tolerance);
-            case ARC:
-                double angle;
-                var c = closest ({ x, y }, out angle);
-                var dist = (c.x-x)*(c.x-x)+(c.y-y)*(c.y-y);
-                print ("Distance: %f (%s), Angle: %s\n", dist, (dist < tolerance * tolerance).to_string (), (start_angle <= angle && angle <= end_angle).to_string ());
-                return ((c.x - x)*(c.x-x) + (c.y - y)*(c.y-y) <= tolerance * tolerance &&
-                        ((start_angle <= angle && angle <= end_angle) ||
-                         (end_angle <= angle && angle <= start_angle)));
-            default:
-                return false;
-        }
+        int32 pixel = 0;
+        var surface = new Cairo.ImageSurface.for_data(((uchar[])((uchar*)&pixel))[0:4], Cairo.Format.ARGB32, 1, 1, 4);
+        var context = new Cairo.Context(surface);
+        // Draw the segment with no anti-aliasing on a single-pixel surface. If the pixel is set, the path was clicked.
+        context.scale(100, 100);  // This should be sufficient precision, but can be increased if necessary.
+        context.translate(-x, -y);
+        context.set_line_width(tolerance);
+        context.set_antialias(Cairo.Antialias.NONE);
+        context.set_source_rgba(1, 1, 1, 1);
+        context.move_to(start.x, start.y);
+        do_command(context);
+        context.stroke();
+        surface.flush();
+        return pixel != 0;
     }
 }
