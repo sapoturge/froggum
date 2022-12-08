@@ -501,19 +501,13 @@ public class Segment : Object, Undoable {
     }
 
     public bool clicked (double x, double y, double tolerance) {
-        int32 pixel = 0;
-        var surface = new Cairo.ImageSurface.for_data(((uchar[])((uchar*)&pixel))[0:4], Cairo.Format.ARGB32, 1, 1, 4);
+        // Have Cairo check if the point would be covered by
+        // stroking the path by tolerance.
+        var surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, 1, 1);
         var context = new Cairo.Context(surface);
-        // Draw the segment with no anti-aliasing on a single-pixel surface. If the pixel is set, the path was clicked.
-        context.scale(100, 100);  // This should be sufficient precision, but can be increased if necessary.
-        context.translate(-x, -y);
         context.set_line_width(tolerance);
-        context.set_antialias(Cairo.Antialias.NONE);
-        context.set_source_rgba(1, 1, 1, 1);
         context.move_to(start.x, start.y);
         do_command(context);
-        context.stroke();
-        surface.flush();
-        return pixel != 0;
+        return context.in_stroke(x, y);
     }
 }
