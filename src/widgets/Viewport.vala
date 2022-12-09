@@ -576,58 +576,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private bool clicked_path (int x, int y, out Element? path, out Segment? segment) {
-        /*
-        var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
-        unowned uchar[] data = surface.get_data ();
-        var cr = new Cairo.Context (surface);
-        cr.translate (width / 2, height / 2);
-        cr.translate (scroll_x, scroll_y);
-        cr.scale (zoom, zoom);
-        cr.set_line_width (6 / zoom);
-        cr.set_source_rgba (1, 1, 1, 1);
-        */
         double real_x = scale_x (x);
         double real_y = scale_y (y);
         return clicked_subpath (real_x, real_y, null, out path, out segment);
-        /*
-        Gtk.TreeIter iter;
-        Value value;
-        for (var valid = image.iter_children (out iter, null); valid; valid = image.iter_next (ref iter)) {
-            var _path = image.get_element (iter);
-            if (_path.visible || _path == selected_path) {
-                if (_path.clicked (real_x, real_y, 6 / zoom, out segment)) {
-                    path = _path;
-                    return true;
-                }
-                /*
-                var _segment = _path.root_segment;
-                var first = true;
-                while (first || _segment != _path.root_segment) {
-                    first = false;
-                    cr.move_to (_segment.start.x, _segment.start.y);
-                    _segment.do_command (cr);
-                    cr.stroke ();
-                    // Check alpha of clicked pixel
-                    if (data [y * width * 4 + x * 4 + 3] > 0) {
-                        path = _path;
-                        segment = _segment;
-                        return true;
-                    }
-                    _segment = _segment.next;
-                }
-                * /
-            }
-        }
-        path = null;
-        segment = null;
-        return false;
-        */
     }
 
     private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
         Gtk.TreeIter iter;
-        if (image.iter_n_children (root) > 0) {
-            image.iter_nth_child (out iter, root, image.iter_n_children (root) - 1);
+        if (image.iter_children (out iter, root)) {
             do {
                 var element = image.get_element (iter);
                 if (element.visible) {
@@ -641,7 +597,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                         }
                     }
                 }
-            } while (image.iter_previous (ref iter));
+            } while (image.iter_next (ref iter));
         }
         path = null;
         segment = null;
