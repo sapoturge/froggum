@@ -34,6 +34,26 @@ public class Image : Gtk.TreeStore {
                 return false;
             });
         });
+
+        row_inserted.connect ((path, iter) => {
+            Element? element = get_element(iter);
+            if (element != null) {
+                stdout.printf("Updating element\n");
+                element_index[element] = iter;
+            } else {
+                stdout.printf("No element attached\n");
+            }
+        });
+
+        row_changed.connect ((path, iter) => {
+            Element? element = get_element(iter);
+            if (element != null) {
+                stdout.printf("Updating element\n");
+                element_index[element] = iter;
+            } else {
+                stdout.printf("No element added\n");
+            }
+        });
     }
     
     construct {
@@ -282,7 +302,7 @@ public class Image : Gtk.TreeStore {
         }
     }
 
-    public Element get_element (Gtk.TreeIter iter) {
+    public Element? get_element (Gtk.TreeIter iter) {
         Value element;
 	get_value (iter, 0, out element);
         return ((Element*) (element.peek_pointer ()));
