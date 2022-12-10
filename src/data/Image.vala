@@ -355,24 +355,8 @@ public class Image : Gtk.TreeStore {
 
     public void delete_path () {
         remove (ref selected_path);
-/* //
-        int i;
-        for (i = 0; i < paths.length; i++) {
-            if (paths.index (i) == last_selected_path) {
-                break;
-            }
-        }
-        if (selected_path != null) {
-            selected_path.select (false);
-        }
-        paths.remove_index (i);
-        row_deleted (new Gtk.TreePath.from_indices (i));
-        if (i > 0) {
-            paths.index (i - 1).select (true);
-        } else {
-            paths.index (0).select (true);
-        }
-}*/
+        selected_path = null;
+        path_selected (null);
     }
 
     private void save_xml () {
