@@ -21,6 +21,7 @@ public class Image : Gtk.TreeStore {
     private Gtk.TreeIter? last_selected_path;
     
     private uint save_id;
+    private bool already_loaded = false;
 
     private void setup_signals () {
         update.connect (() => {
@@ -38,20 +39,14 @@ public class Image : Gtk.TreeStore {
         row_inserted.connect ((path, iter) => {
             Element? element = get_element(iter);
             if (element != null) {
-                stdout.printf("Updating element\n");
                 element_index[element] = iter;
-            } else {
-                stdout.printf("No element attached\n");
             }
         });
 
         row_changed.connect ((path, iter) => {
             Element? element = get_element(iter);
             if (element != null) {
-                stdout.printf("Updating element\n");
                 element_index[element] = iter;
-            } else {
-                stdout.printf("No element added\n");
             }
         });
     }
@@ -64,16 +59,18 @@ public class Image : Gtk.TreeStore {
     }
 
     public Image (int width, int height, Element[] paths = {}) {
+        setup_signals ();
         this.width = width;
         this.height = height;
         this.selected_path = null;
         foreach (Element element in paths) {
             add_element (element, null);
         }
-        setup_signals ();
+        already_loaded = true;
     }
 
     public Image.load (File file) {
+        setup_signals ();
         this._file = file;
         var doc = Xml.Parser.parse_file (file.get_path ());
         if (doc == null) {
@@ -99,87 +96,7 @@ public class Image : Gtk.TreeStore {
             var patterns = new Gee.HashMap<string, Pattern> ();
 
             for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
-                /*
-                if (iter->name == "path") {
-                    /*
-                    var fill = new Pattern.none ();
-                    var stroke = new Pattern.none ();
-                    var name = iter->get_prop ("id");
-                    if (name == null) {
-                        name = "Path";
-                    }
-                    var style = iter->get_prop ("style");
-                    if (style != null) {
-                        var styles = style.split (";");
-                        int fill_red = 0;
-                        int fill_green = 0;
-                        int fill_blue = 0;
-                        float fill_alpha = 0;
-                        int stroke_red = 0;
-                        int stroke_green = 0;
-                        int stroke_blue = 0;
-                        float stroke_alpha = 0;
-                        foreach (string s in styles) {
-                            if (s.has_prefix ("fill:#")) {
-                                var color = s.substring (6);
-                                var r = color.substring (0, color.length / 3);
-                                var g = color.substring (r.length, r.length);
-                                var b = color.substring (r.length * 2, r.length);
-                                r.scanf ("%x", &fill_red);
-                                g.scanf ("%x", &fill_green);
-                                b.scanf ("%x", &fill_blue);
-                            } else if (s.has_prefix ("stroke:#")) {
-                                var color = s.substring (8);
-                                var r = color.substring (0, color.length / 3);
-                                var g = color.substring (r.length, r.length);
-                                var b = color.substring (r.length * 2, r.length);
-                                r.scanf ("%x", &stroke_red);
-                                g.scanf ("%x", &stroke_green);
-                                b.scanf ("%x", &stroke_blue);
-                            } else if (s.has_prefix ("fill-opacity:")) {
-                                var op = s.substring (13);
-                                op.scanf ("%f", &fill_alpha);
-                            } else if (s.has_prefix ("stroke-opacity:")) {
-                                var op = s.substring (15);
-                                op.scanf ("%f", &stroke_alpha);
-                            }
-                        }
-                        fill = new Pattern.color ({fill_red / 255.0, fill_green / 255.0, fill_blue / 255.0, fill_alpha});
-                        stroke = new Pattern.color ({stroke_red / 255.0, stroke_green / 255.0, stroke_blue / 255.0, stroke_alpha});
-                    }
-                    var fill_data = iter->get_prop ("fill");
-                    if (fill_data != null) {
-                        if (fill_data.has_prefix ("url(#")) {
-                            fill = patterns.@get (fill_data.substring (5, fill_data.length - 6));
-                        } else if (fill_data == "none") {
-                            fill = new Pattern.none ();
-                        } else {
-                            fill = new Pattern.color (process_color (fill_data));
-                        }
-                    }
-                    var stroke_data = iter->get_prop ("stroke");
-                    if (stroke_data != null) {
-                        if (stroke_data.has_prefix ("url(#")) {
-                            stroke = patterns.@get (stroke_data.substring (5, stroke_data.length - 6));
-                        } else if (stroke_data == "none") {
-                            stroke = new Pattern.none ();
-                        } else {
-                            stroke = new Pattern.color (process_color (stroke_data));
-                        }
-                    }
-                    var data = iter->get_prop ("d");
-                    var path = new Path.from_string_with_pattern (data, fill, stroke, name);
-                    * /
-                    var path = new Path.from_xml (iter, patterns);
-                    add_element (path);
-                } else if (iter->name == "circle") {
-                    var circle = new Circle.from_xml (iter, patterns);
-                    add_element (circle);
-                } else if (iter->name == "g") {
-                    var group = new Group.from_xml (iter, patterns);
-                    add_element (group);
-                    // TODO: Load child elements * /
-                } else */ if (iter->name == "defs") {
+                if (iter->name == "defs") {
                     for (Xml.Node* def = iter->children; def != null; def = def->next) {
                         if (def->name == "linearGradient") {
                             var name = def->get_prop ("id");
@@ -251,8 +168,7 @@ public class Image : Gtk.TreeStore {
 
             load_elements (root, patterns, null);
         }
-        
-        setup_signals ();
+        already_loaded = true;
     }
 
     private void load_elements (Xml.Node* group, Gee.HashMap<string, Pattern> patterns, Gtk.TreeIter? root) {
@@ -367,7 +283,9 @@ public class Image : Gtk.TreeStore {
         Gtk.TreeIter iter;
         insert_with_values (out iter, root, 0, 0, element);
         element_index[element] = iter;
-        element.select (true);
+        if (already_loaded) {
+            element.select (true);
+        }
         update ();
         return iter;
     }
@@ -412,7 +330,7 @@ public class Image : Gtk.TreeStore {
         if (iter_previous(ref prev)) {
             swap (selected_path, prev);
         }
-/*
+/* //
         int i;
         for (i = 1; i < paths.length; i++) {
             if (paths.index (i) == last_selected_path) {
@@ -432,12 +350,12 @@ public class Image : Gtk.TreeStore {
         rows_reordered (new Gtk.TreePath.first (), {0, this, null, null}, indices);
         last_selected_path.select (true);
         last_selected_path.select (false);
-*/
+}*/
     }
 
     public void delete_path () {
         remove (ref selected_path);
-/*
+/* //
         int i;
         for (i = 0; i < paths.length; i++) {
             if (paths.index (i) == last_selected_path) {
@@ -454,7 +372,7 @@ public class Image : Gtk.TreeStore {
         } else {
             paths.index (0).select (true);
         }
-*/
+}*/
     }
 
     private void save_xml () {
@@ -496,7 +414,7 @@ public class Image : Gtk.TreeStore {
         }
         return pattern_index;
     }
-/*            
+/* //            
             var fill = "";
             var stroke = "";
             
@@ -617,6 +535,6 @@ public class Image : Gtk.TreeStore {
             element->new_prop ("stroke", stroke);
             element->new_prop ("d", path.to_string ());
             svg->add_child (element);
-*/
+}*/
         
 }
