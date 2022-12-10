@@ -464,7 +464,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private void unbind_point () {
-        stdout.printf("Unbinding point\n");
         bound_obj.finish (bound_prop);
         point_binding.unbind ();
         point_binding = null;
