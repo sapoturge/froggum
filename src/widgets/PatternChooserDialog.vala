@@ -10,12 +10,14 @@ public class PatternChooserDialog : Gtk.Dialog {
                 case COLOR:
                     color.rgba = value.rgba;
                     break;
-                case LINEAR:
-                    // Nothing to do right now.
-                    break;
                 case RADIAL:
                     linear_radial.active = true;
                     break;
+                default:
+                    // Probably Linear, possibly uninitialized
+                    // Nothing to do right now.
+                    break;
+                    
             }
             swap_sensitivity (value.pattern_type);
         }

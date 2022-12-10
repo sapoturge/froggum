@@ -9,7 +9,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private bool scrolling = false;
 
-    private Path? selected_path;
+    private Element? selected_path;
 
     private Gdk.RGBA background;
 
@@ -206,6 +206,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             // Draw Control Handles
             if (selected_path != null) {
+                selected_path.draw_controls (cr, zoom);
+                /*
                 selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
 
                 cr.set_line_width (1 / zoom);
@@ -318,9 +320,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                         cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
                         cr.fill ();
                     }
-                }
+                } */
             }
-
             cr.restore();
             return false;
         });
@@ -347,7 +348,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         });
 
         button_press_event.connect ((event) => {
-            Path path = null;
+            Element path = null;
             Segment segment = null;
             var clicked = clicked_path ((int) event.x, (int) event.y, out path, out segment);
             var x = scale_x (event.x);
@@ -368,97 +369,19 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                         tutorial.next_step ();
                     }
                     path.select (true);
-                } else {
+                } else if (selected_path != null) {
                     selected_path.select (false);
                 }
                 return false;
             }
             // Check for clicking on a control handle
             if (selected_path != null) {
-                var s = selected_path.root_segment;
-                var first = true;
-                while (first || s != selected_path.root_segment) {
-                    first = false;
-                    if ((x - s.end.x).abs () <= 6 / zoom && (y - s.end.y).abs () <= 6 / zoom) {
-                        bind_point (s, "end");
-                        return false;
-                    }
-                    switch (s.segment_type) {
-                        case SegmentType.CURVE:
-                            if ((x - s.p1.x).abs () <= 6 / zoom && (y - s.p1.y).abs () <= 6 / zoom) {
-                                bind_point (s, "p1");
-                                return false;
-                            }
-                            if ((x - s.p2.x).abs () <= 6 / zoom && (y - s.p2.y).abs () <= 6 / zoom) {
-                                bind_point (s, "p2");
-                                return false;
-                            }
-                            break;
-                        case SegmentType.ARC:
-                            if ((x - s.controller.x).abs () <= 6 / zoom && (y - s.controller.y).abs () <= 6 / zoom) {
-                                bind_point (s, "controller");
-                                return false;
-                            }
-                            if ((x - s.topleft.x).abs () <= 6 / zoom && (y - s.topleft.y).abs () <= 6 / zoom) {
-                                bind_point (s, "topleft");
-                                return false;
-                            }
-                            if ((x - s.topright.x).abs () <= 6 / zoom && (y - s.topright.y).abs () <= 6 / zoom) {
-                                bind_point (s, "topright");
-                                return false;
-                            }
-                            if ((x - s.bottomleft.x).abs () <= 6 / zoom && (y - s.bottomleft.y).abs () <= 6 / zoom) {
-                                bind_point (s, "bottomleft");
-                                return false;
-                            }
-                            if ((x - s.bottomright.x).abs () <= 6 / zoom && (y - s.bottomright.y).abs () <= 6 / zoom) {
-                                bind_point (s, "bottomright");
-                                return false;
-                            }
-                            if ((x - s.center.x).abs () <= 6 / zoom && (y - s.center.y).abs () <= 6 / zoom) {
-                                point_binding = bind_property ("control-point", s, "center");
-                                control_point = {x, y};
-                                return false;
-                            }
-                            break;
-                    }
-                    s = s.next;
-                }
-
-                if (selected_path.fill.pattern_type == LINEAR || selected_path.fill.pattern_type == RADIAL) {
-                    for (var i = 0; i < selected_path.fill.get_n_items (); i++) {
-                        var stop = (Stop) selected_path.fill.get_item (i);
-                        if ((x - stop.display.x).abs () <= 6 / zoom && (y - stop.display.y).abs () <= 6 / zoom) {
-                            bind_point (stop, "display");
-                            return false;
-                        }
-                    }
-                    if ((x - selected_path.fill.start.x).abs () <= 6 / zoom && (y - selected_path.fill.start.y).abs () <= 6 / zoom) {
-                        bind_point (selected_path.fill, "start");
-                        return false;
-                    }
-                    if ((x - selected_path.fill.end.x).abs () <= 6 / zoom && (y - selected_path.fill.end.y).abs () <= 6 / zoom) {
-                        bind_point (selected_path.fill, "end");
-                        return false;
-                    }
-                }
-
-                if (selected_path.stroke.pattern_type == LINEAR || selected_path.stroke.pattern_type == RADIAL) {
-                    for (var i = 0; i < selected_path.stroke.get_n_items (); i++) {
-                        var stop = (Stop) selected_path.stroke.get_item (i);
-                        if ((x - stop.display.x).abs () <= 6 / zoom && (y - stop.display.y).abs () <= 6 / zoom) {
-                            bind_point (stop, "display");
-                            return false;
-                        }
-                    }
-                    if ((x - selected_path.stroke.start.x).abs () <= 6 / zoom && (y - selected_path.stroke.start.y).abs () <= 6 / zoom) {
-                        bind_point (selected_path.stroke, "start");
-                        return false;
-                    }
-                    if ((x - selected_path.stroke.end.x).abs () <= 6 / zoom && (y - selected_path.stroke.end.y).abs () <= 6 / zoom) {
-                        bind_point (selected_path.stroke, "end");
-                        return false;
-                    }
+                Undoable obj;
+                string prop;
+                selected_path.check_controls (x, y, 6 / zoom, out obj, out prop);
+                if (obj != null) {
+                    bind_point (obj, prop);
+                    return false;
                 }
             }
             // Check for clicking on a path (not control handle)
@@ -565,35 +488,29 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private bool clicked_path (int x, int y, out Path? path, out Segment? segment) {
-        var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, width, height);
-        unowned uchar[] data = surface.get_data ();
-        var cr = new Cairo.Context (surface);
-        cr.translate (width / 2, height / 2);
-        cr.translate (scroll_x, scroll_y);
-        cr.scale (zoom, zoom);
-        cr.set_line_width (6 / zoom);
-        cr.set_source_rgba (1, 1, 1, 1);
-        var paths = image.get_paths ();
-        for (int i = paths.length - 1; i >= 0; i--) {
-            var _path = paths[i];
-            if (_path.visible || _path == selected_path) {
-                var _segment = _path.root_segment;
-                var first = true;
-                while (first || _segment != _path.root_segment) {
-                    first = false;
-                    cr.move_to (_segment.start.x, _segment.start.y);
-                    _segment.do_command (cr);
-                    cr.stroke ();
-                    // Check alpha of clicked pixel
-                    if (data [y * width * 4 + x * 4 + 3] > 0) {
-                        path = _path;
-                        segment = _segment;
+    private bool clicked_path (int x, int y, out Element? path, out Segment? segment) {
+        double real_x = scale_x (x);
+        double real_y = scale_y (y);
+        return clicked_subpath (real_x, real_y, null, out path, out segment);
+    }
+
+    private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
+        Gtk.TreeIter iter;
+        if (image.iter_children (out iter, root)) {
+            do {
+                var element = image.get_element (iter);
+                if (element.visible) {
+                    if (element.clicked (x, y, 6 / zoom, out segment)) {
+                        path = element;
                         return true;
+                    } else if (element is Group) {
+                        // TODO: Apply transformation
+                        if (clicked_subpath (x, y, iter, out path, out segment)) {
+                            return true;
+                        }
                     }
-                    _segment = _segment.next;
                 }
-            }
+            } while (image.iter_next (ref iter));
         }
         path = null;
         segment = null;
@@ -626,6 +543,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             menu_layout.pack_start (separator, false, false, 0);
 
+            /*
             var delete_segment = new Gtk.Button ();
             delete_segment.label = _("Delete Segment");
             delete_segment.clicked.connect (() => {
@@ -633,14 +551,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 menu.popdown ();
             });
             menu_layout.pack_start (delete_segment, false, false, 0);
+            */
 
-            var split_segment = new Gtk.Button ();
-            split_segment.label = _("Split Segment");
-            split_segment.clicked.connect (() => {
-                 selected_path.split_segment (segment);
-                 menu.popdown ();
-            });
-            menu_layout.pack_start (split_segment, false, false, 0);
+            if (selected_path is Path) {
+                var split_segment = new Gtk.Button ();
+                split_segment.label = _("Split Segment");
+                split_segment.clicked.connect (() => {
+                    (selected_path as Path).split_segment (segment);
+                    menu.popdown ();
+                });
+                menu_layout.pack_start (split_segment, false, false, 0);
+            }
 
             if (segment.segment_type == ARC) {
                 var flip_arc = new Gtk.Button ();
@@ -695,6 +616,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 case ARC:
                     arc_mode.active = true;
                     break;
+                default:
+                    log (null, LogLevelFlags.LEVEL_ERROR, "Selected an uninitialized segment.");
+                    return;
             }
         }
 

@@ -17,7 +17,6 @@ executable(
     meson.project_name(),
     'src/Application.vala',
     'src/widgets/EditorView.vala',
-    'src/widgets/PathRow.vala',
     'src/widgets/Viewport.vala',
     'src/widgets/PatternButton.vala',
     'src/widgets/PatternChooserDialog.vala',
@@ -31,6 +30,9 @@ executable(
     'src/data/Command.vala',
     'src/data/CommandStack.vala',
     'src/data/Undoable.vala',
+    'src/data/Element.vala',
+    'src/data/Circle.vala',
+    'src/data/Group.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),

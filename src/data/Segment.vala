@@ -84,6 +84,21 @@ public class Segment : Object, Undoable {
         set {
             if (segment_type == ARC) {
                 var new_value = closest (value, out start_angle);
+                double maximum;
+                double minimum;
+                if (reverse) {
+                    minimum = end_angle;
+                    maximum = end_angle + Math.PI * 2;
+                } else {
+                    maximum = end_angle;
+                    minimum = end_angle - Math.PI * 2;
+                }
+                while (start_angle < minimum) {
+                    start_angle += Math.PI * 2;
+                }
+                while (start_angle > maximum) {
+                    start_angle -= Math.PI * 2;
+                }
                 if ((new_value.x - value.x).abs () + (new_value.y - value.y).abs () >= 1e-5) {
                     prev.end = new_value;
                 }
@@ -103,6 +118,21 @@ public class Segment : Object, Undoable {
         set {
             if (segment_type == ARC) {
                 value = closest (value, out end_angle);
+                double maximum;
+                double minimum;
+                if (reverse) {
+                    maximum = start_angle;
+                    minimum = start_angle - Math.PI * 2;
+                } else {
+                    minimum = start_angle;
+                    maximum = start_angle + Math.PI * 2;
+                }
+                while (end_angle < minimum) {
+                    end_angle += Math.PI * 2;
+                }
+                while (end_angle > maximum) {
+                    end_angle -= Math.PI * 2;
+                }
             }
             if (value != _end) {
                 _end = value;
@@ -257,6 +287,8 @@ public class Segment : Object, Undoable {
         this.reverse = reverse;
         this.end = {x, y};
     }
+
+    private Segment.none () {}
     
     public void begin (string property, Value? start_value = null) {
         switch (property) {
@@ -342,29 +374,40 @@ public class Segment : Object, Undoable {
                 return new Segment.curve (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
             case ARC:
                 return new Segment.arc (end.x, end.y, center.x, center.y, rx, ry, angle, reverse);
+            default:
+                log (null, LogLevelFlags.LEVEL_ERROR, "Tried to copy an unitialized segment.");
+                return this;
         }
-        return null;
     }
 
 
     public void split (out Segment first, out Segment last) {
-        if (segment_type == LINE) {
-            Point center = {(start.x + end.x) / 2, (start.y + end.y) / 2};
-            first = new Segment.line (center.x, center.y);
-            last = new Segment.line (end.x, end.y);
-        } else if (segment_type == CURVE) {
-            Point q1 = {(start.x + p1.x) / 2, (start.y + p1.y) / 2};
-            Point q2 = {(p1.x + p2.x) / 2, (p1.y + p2.y) / 2};
-            Point q3 = {(p2.x + end.x) / 2, (p2.y + end.y) / 2};
-            Point r1 = {(q1.x + q2.x) / 2, (q1.y + q2.y) / 2};
-            Point r2 = {(q2.x + q3.x) / 2, (q2.y + q3.y) / 2};
-            Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
-            first = new Segment.curve (q1.x, q1.y, r1.x, r1.y, s.x, s.y);
-            last = new Segment.curve (r2.x, r2.y, q3.x, q3.y, end.x, end.y);
-        } else if (segment_type == ARC) {
-            // ARC segments don't work very well together.
-            first = this;
-            last = new Segment.line (end.x, end.y);
+        switch (segment_type) {
+            case LINE:
+                Point center = {(start.x + end.x) / 2, (start.y + end.y) / 2};
+                first = new Segment.line (center.x, center.y);
+                last = new Segment.line (end.x, end.y);
+                break;
+            case CURVE:
+                Point q1 = {(start.x + p1.x) / 2, (start.y + p1.y) / 2};
+                Point q2 = {(p1.x + p2.x) / 2, (p1.y + p2.y) / 2};
+                Point q3 = {(p2.x + end.x) / 2, (p2.y + end.y) / 2};
+                Point r1 = {(q1.x + q2.x) / 2, (q1.y + q2.y) / 2};
+                Point r2 = {(q2.x + q3.x) / 2, (q2.y + q3.y) / 2};
+                Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
+                first = new Segment.curve (q1.x, q1.y, r1.x, r1.y, s.x, s.y);
+                last = new Segment.curve (r2.x, r2.y, q3.x, q3.y, end.x, end.y);
+                break;
+            case ARC:
+                // ARC segments don't work very well together.
+                first = this;
+                last = new Segment.line (end.x, end.y);
+                break;
+            default:
+                log (null, LogLevelFlags.LEVEL_ERROR, "Tried to split an unitialized segment.");
+                first = null;
+                last = null;
+                return;
         }
         prev.next = first;
         first.prev = prev;
@@ -395,6 +438,8 @@ public class Segment : Object, Undoable {
                     cr.arc (0, 0, 1, start_angle, end_angle);
                 }
                 cr.restore ();
+                break;
+            default:
                 break;
         }
     }
@@ -453,5 +498,16 @@ public class Segment : Object, Undoable {
         var dy = Math.sin (a);
         return {center.x + Math.cos (angle) * dx * rx - Math.sin (angle) * dy * ry,
                 center.y + Math.cos (angle) * dy * ry + Math.sin (angle) * dx * rx};
+    }
+
+    public bool clicked (double x, double y, double tolerance) {
+        // Have Cairo check if the point would be covered by
+        // stroking the path by tolerance.
+        var surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, 1, 1);
+        var context = new Cairo.Context(surface);
+        context.set_line_width(tolerance);
+        context.move_to(start.x, start.y);
+        do_command(context);
+        return context.in_stroke(x, y);
     }
 }

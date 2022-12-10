@@ -1,4 +1,4 @@
-public class Image : Object, ListModel {
+public class Image : Gtk.TreeStore {
     private File _file;
     private CommandStack stack;
 
@@ -13,33 +13,17 @@ public class Image : Object, ListModel {
 
     public signal void update ();
 
-    public signal void path_selected (Path? path);
+    public signal void path_selected (Element? path);
 
-    private Array<Path> paths;
+    private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
 
-    private Path selected_path;
-    private Path last_selected_path;
+    private Gtk.TreeIter? selected_path;
+    private Gtk.TreeIter? last_selected_path;
     
     private uint save_id;
+    private bool already_loaded = false;
 
     private void setup_signals () {
-        for (int i = 0; i < paths.length; i++) {
-            var path = paths.index (i);
-            path.update.connect (() => { update (); });
-            path.select.connect ((selected) => {
-                if (selected && path != selected_path) {
-                    selected_path.select (false);
-                    last_selected_path = path;
-                    selected_path = path;
-                    path_selected (path);
-                } else if (selected == false) {
-                    selected_path = null;
-                    path_selected (null);
-                }
-            });
-            path.add_command.connect ((c) => { stack.add_command (c); });
-        }
-        
         update.connect (() => {
             if (save_id != 0) {
                 Source.remove (save_id);
@@ -51,23 +35,42 @@ public class Image : Object, ListModel {
                 return false;
             });
         });
+
+        row_inserted.connect ((path, iter) => {
+            Element? element = get_element(iter);
+            if (element != null) {
+                element_index[element] = iter;
+            }
+        });
+
+        row_changed.connect ((path, iter) => {
+            Element? element = get_element(iter);
+            if (element != null) {
+                element_index[element] = iter;
+            }
+        });
     }
     
     construct {
         stack = new CommandStack ();
+        set_column_types ({typeof (Element)});
+
+        element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
     }
 
-    public Image (int width, int height, Path[] paths = {}) {
+    public Image (int width, int height, Element[] paths = {}) {
+        setup_signals ();
         this.width = width;
         this.height = height;
-        this.paths = new Array<Path> ();
-        this.paths.append_vals(paths, paths.length);
         this.selected_path = null;
-        setup_signals ();
+        foreach (Element element in paths) {
+            add_element (element, null);
+        }
+        already_loaded = true;
     }
 
     public Image.load (File file) {
-        this.paths = new Array<Path> ();
+        setup_signals ();
         this._file = file;
         var doc = Xml.Parser.parse_file (file.get_path ());
         if (doc == null) {
@@ -93,75 +96,7 @@ public class Image : Object, ListModel {
             var patterns = new Gee.HashMap<string, Pattern> ();
 
             for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
-                if (iter->name == "path") {
-                    var fill = new Pattern.none ();
-                    var stroke = new Pattern.none ();
-                    var name = iter->get_prop ("id");
-                    if (name == null) {
-                        name = "Path";
-                    }
-                    var style = iter->get_prop ("style");
-                    if (style != null) {
-                        var styles = style.split (";");
-                        int fill_red = 0;
-                        int fill_green = 0;
-                        int fill_blue = 0;
-                        float fill_alpha = 0;
-                        int stroke_red = 0;
-                        int stroke_green = 0;
-                        int stroke_blue = 0;
-                        float stroke_alpha = 0;
-                        foreach (string s in styles) {
-                            if (s.has_prefix ("fill:#")) {
-                                var color = s.substring (6);
-                                var r = color.substring (0, color.length / 3);
-                                var g = color.substring (r.length, r.length);
-                                var b = color.substring (r.length * 2, r.length);
-                                r.scanf ("%x", &fill_red);
-                                g.scanf ("%x", &fill_green);
-                                b.scanf ("%x", &fill_blue);
-                            } else if (s.has_prefix ("stroke:#")) {
-                                var color = s.substring (8);
-                                var r = color.substring (0, color.length / 3);
-                                var g = color.substring (r.length, r.length);
-                                var b = color.substring (r.length * 2, r.length);
-                                r.scanf ("%x", &stroke_red);
-                                g.scanf ("%x", &stroke_green);
-                                b.scanf ("%x", &stroke_blue);
-                            } else if (s.has_prefix ("fill-opacity:")) {
-                                var op = s.substring (13);
-                                op.scanf ("%f", &fill_alpha);
-                            } else if (s.has_prefix ("stroke-opacity:")) {
-                                var op = s.substring (15);
-                                op.scanf ("%f", &stroke_alpha);
-                            }
-                        }
-                        fill = new Pattern.color ({fill_red / 255.0, fill_green / 255.0, fill_blue / 255.0, fill_alpha});
-                        stroke = new Pattern.color ({stroke_red / 255.0, stroke_green / 255.0, stroke_blue / 255.0, stroke_alpha});
-                    }
-                    var fill_data = iter->get_prop ("fill");
-                    if (fill_data != null) {
-                        if (fill_data.has_prefix ("url(#")) {
-                            fill = patterns.@get (fill_data.substring (5, fill_data.length - 6));
-                        } else if (fill_data == "none") {
-                            fill = new Pattern.none ();
-                        } else {
-                            fill = new Pattern.color (process_color (fill_data));
-                        }
-                    }
-                    var stroke_data = iter->get_prop ("stroke");
-                    if (stroke_data != null) {
-                        if (stroke_data.has_prefix ("url(#")) {
-                            stroke = patterns.@get (stroke_data.substring (5, stroke_data.length - 6));
-                        } else if (stroke_data == "none") {
-                            stroke = new Pattern.none ();
-                        } else {
-                            stroke = new Pattern.color (process_color (stroke_data));
-                        }
-                    }
-                    var data = iter->get_prop ("d");
-                    paths.append_val(new Path.from_string_with_pattern (data, fill, stroke, name));
-                } else if (iter->name == "defs") {
+                if (iter->name == "defs") {
                     for (Xml.Node* def = iter->children; def != null; def = def->next) {
                         if (def->name == "linearGradient") {
                             var name = def->get_prop ("id");
@@ -230,11 +165,27 @@ public class Image : Object, ListModel {
                     }
                 }
             }
+
+            load_elements (root, patterns, null);
         }
-        
-        setup_signals ();
+        already_loaded = true;
     }
-    
+
+    private void load_elements (Xml.Node* group, Gee.HashMap<string, Pattern> patterns, Gtk.TreeIter? root) {
+        for (Xml.Node* iter = group->children; iter != null; iter = iter->next) {
+            if (iter->name == "path") {
+                var path = new Path.from_xml (iter, patterns);
+                add_element (path, root);
+            } else if (iter->name == "circle") {
+                var circle = new Circle.from_xml (iter, patterns);
+                add_element (circle, root);
+            } else if (iter->name == "g") {
+                var g = new Group.from_xml (iter, patterns);
+                load_elements (iter, patterns, add_element (g, root));
+            }
+        }
+    }
+                
     private Gdk.RGBA process_color (string color) {
         var rgba = Gdk.RGBA ();
         if (color.has_prefix ("rgb(")) {
@@ -267,24 +218,36 @@ public class Image : Object, ListModel {
         }
     }
 
-    public Object? get_item (uint position) {
-        if (position < paths.length) {
-            return paths.index(paths.length-position-1);
-        }
-        return null;
-    }
-
-    public Type get_item_type () {
-        return typeof (Path);
-    }
-
-    public uint get_n_items () {
-        return paths.length;
+    public Element? get_element (Gtk.TreeIter iter) {
+        Value element;
+	get_value (iter, 0, out element);
+        return ((Element*) (element.peek_pointer ()));
     }
 
     public void draw (Cairo.Context cr) {
-        for (int i = 0; i < paths.length; i++) {
-            paths.index (i).draw (cr);
+        if (iter_n_children (null) > 0) {
+            Gtk.TreeIter iter;
+            iter_nth_child (out iter, null, iter_n_children (null) - 1);
+            do {
+                draw_element (cr, iter);
+            } while (iter_previous (ref iter));
+        }
+    }
+
+    public void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
+        var element = get_element (iter);
+        if (element is Group && element.visible) {
+            if (iter_has_child (iter)) {
+                ((Group) element).setup_draw (cr);
+                Gtk.TreeIter inner_iter;
+                iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1);
+                do {
+                    draw_element (cr, inner_iter);
+                } while (iter_previous (ref inner_iter));
+                ((Group) element).cleanup_draw (cr);
+            }
+        } else {
+            element.draw (cr);
         }
     }
     
@@ -296,8 +259,35 @@ public class Image : Object, ListModel {
         stack.redo ();
     }
 
-    public Path[] get_paths () {
-        return paths.data;
+    private Gtk.TreeIter add_element(Element element, Gtk.TreeIter? root) {
+        element.update.connect (() => { update (); });
+        element.select.connect ((selected) => {
+            Element? select_path;
+            if (selected_path != null) {
+                select_path = get_element (selected_path);
+            } else {
+                select_path = null;
+            }
+            if (element != select_path) {
+                if (select_path != null) {
+                    select_path.select (false);
+                }
+                last_selected_path = element_index[element];
+                selected_path = element_index[element];
+                path_selected (element);
+            } else if (selected == false) {
+                selected_path = null;
+                path_selected (null);
+            }
+        });
+        Gtk.TreeIter iter;
+        insert_with_values (out iter, root, 0, 0, element);
+        element_index[element] = iter;
+        if (already_loaded) {
+            element.select (true);
+        }
+        update ();
+        return iter;
     }
 
     public void new_path () {
@@ -308,61 +298,39 @@ public class Image : Object, ListModel {
                              {0.66, 0.66, 0.66, 1},
                              {0.33, 0.33, 0.33, 1},
                              "New Path");
-        path.update.connect (() => { update (); });
-        path.select.connect ((selected) => {
-            if (path != selected_path) {
-                selected_path.select (false);
-                last_selected_path = path;
-                selected_path = path;
-                path_selected (path);
-            } else if (selected == false) {
-                selected_path = null;
-                path_selected (null);
-            }
-        });
-        paths.append_val (path);
-        items_changed (0, 0, 1);
-        path.select (true);
-        update ();
+        add_element (path, null);
+    }
+
+    public void new_circle () {
+        var circle = new Circle (width / 2, height / 2, double.min (width, height) / 2 - 1,
+                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
+                                 new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        add_element (circle, null);
+    }
+
+    public void new_group () {
+        var group = new Group ();
+        add_element (group, null);
     }
 
     public void duplicate_path () {
-        var path = last_selected_path.copy ();
-        path.update.connect (() => { update (); });
-        path.select.connect ((selected) => {
-            if (path != selected_path) {
-                selected_path.select (false);
-                last_selected_path = path;
-                selected_path = path;
-                path_selected (path);
-            } else if (selected == false) {
-                selected_path = null;
-                path_selected (null);
-            }
-        });
-        paths.append_val (path);
-        items_changed (0, 0, 1);
-        path.select (true);
-        update ();
+        var path = get_element (last_selected_path).copy ();
+        add_element (path, null);
     }
 
     public void path_up () {
-        int i;
-        for (i = 0; i < paths.length - 1; i++) {
-            if (paths.index (i) == last_selected_path) {
-                break;
-            }
+        Gtk.TreeIter next = selected_path;
+        if (iter_next(ref next)) {
+            swap (selected_path, next);
         }
-        if (i == paths.length - 1) {
-            return;
-        }
-        paths.insert_val (i + 1, paths.remove_index (i));
-        items_changed (paths.length - i - 2, 2, 2);
-        last_selected_path.select (true);
-        last_selected_path.select (false);
     }
 
     public void path_down () {
+        Gtk.TreeIter prev = selected_path;
+        if (iter_previous(ref prev)) {
+            swap (selected_path, prev);
+        }
+/* //
         int i;
         for (i = 1; i < paths.length; i++) {
             if (paths.index (i) == last_selected_path) {
@@ -373,28 +341,22 @@ public class Image : Object, ListModel {
             return;
         }
         paths.insert_val (i - 1, paths.remove_index (i));
-        items_changed (paths.length - i - 1, 2, 2);
+        int[] indices = {};
+        for (int j = 0; j < paths.length; j++) {
+             indices += j;
+        }
+        indices [i] = i - 1;
+        indices [i - 1] = i;
+        rows_reordered (new Gtk.TreePath.first (), {0, this, null, null}, indices);
         last_selected_path.select (true);
         last_selected_path.select (false);
+}*/
     }
 
     public void delete_path () {
-        int i;
-        for (i = 0; i < paths.length; i++) {
-            if (paths.index (i) == last_selected_path) {
-                break;
-            }
-        }
-        if (selected_path != null) {
-            selected_path.select (false);
-        }
-        paths.remove_index (i);
-        items_changed (paths.length - i, 1, 0);
-        if (i > 0) {
-            paths.index (i - 1).select (true);
-        } else {
-            paths.index (0).select (true);
-        }
+        remove (ref selected_path);
+        selected_path = null;
+        path_selected (null);
     }
 
     private void save_xml () {
@@ -412,11 +374,31 @@ public class Image : Object, ListModel {
         Xml.Node* defs = new Xml.Node (null, "defs");
         svg->add_child (defs);
         
-        var pattern_index = 0;
-        
-        for (var i = 0; i < paths.length; i++) {
-            var path = paths.index (i);
-            
+        save_children (svg, defs, 0, null);
+
+        var res = doc->save_file (file.get_path ());
+        if (res < 0) {
+            // TODO: communicate error
+        }
+    }
+
+    private int save_children(Xml.Node* root_node, Xml.Node* defs, int pattern_index, Gtk.TreeIter? root) {
+        Gtk.TreeIter iter;
+        var n_children = iter_n_children (root);
+        if (n_children != 0) {
+            iter_nth_child (out iter, root, n_children - 1);
+            do {
+                var path = get_element (iter);
+                Xml.Node* node;
+                pattern_index = path.add_svg(root_node, defs, pattern_index, out node);
+                if (path is Group) {
+                    pattern_index = save_children(node, defs, pattern_index, iter);
+                }
+            } while (iter_previous (ref iter));
+        }
+        return pattern_index;
+    }
+/* //            
             var fill = "";
             var stroke = "";
             
@@ -537,11 +519,6 @@ public class Image : Object, ListModel {
             element->new_prop ("stroke", stroke);
             element->new_prop ("d", path.to_string ());
             svg->add_child (element);
-        }
+}*/
         
-        var res = doc->save_file (file.get_path ());
-        if (res < 0) {
-            // TODO: communicate error
-        }
-    }
 }
