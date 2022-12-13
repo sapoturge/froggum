@@ -353,10 +353,20 @@ public class Image : Gtk.TreeStore {
 }*/
     }
 
-    public void delete_path () {
-        remove (ref selected_path);
-        selected_path = null;
-        path_selected (null);
+    public void delete_path (Gtk.TreeIter? iter=null) {
+        if (iter == null) {
+            iter = last_selected_path;
+        }
+ 
+        if (iter != null) {
+            if (iter == last_selected_path) {
+                last_selected_path = null;
+                selected_path = null;
+                path_selected (null);
+            }
+            remove (ref iter);
+            update ();
+       }
     }
 
     private void save_xml () {
