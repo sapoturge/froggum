@@ -2,6 +2,7 @@ public class EditorView : Gtk.Box {
     public Image image { get; private set; }
 
     private Gtk.TreeView paths_list;
+    private Gtk.TreeSelection selection;
     private Viewport viewport;
 
     public EditorView (Image image) {
@@ -71,6 +72,7 @@ public class EditorView : Gtk.Box {
             var element = image.get_element (iter);
             element.select (true);
         });
+        selection = paths_list.get_selection ();
 
         var list_box_scroll = new Gtk.ScrolledWindow (null, null);
         list_box_scroll.propagate_natural_width = true;
@@ -122,7 +124,10 @@ public class EditorView : Gtk.Box {
         delete_path.tooltip_text = _("Delete path");
         delete_path.relief = NONE;
         delete_path.clicked.connect (() => {
-            image.delete_path ();
+            Gtk.TreeIter iter;
+            if (selection.get_selected (null, out iter)) {
+                image.delete_path (iter);
+            }
         });
 
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
