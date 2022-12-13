@@ -3,6 +3,8 @@ public abstract class Element : Object, Undoable {
 
     public virtual Pattern fill { get; set; }
 
+    public Transform transform { get; set; }
+
     public string title { get; set; }
 
     public bool visible { get; set; }
