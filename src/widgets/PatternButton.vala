@@ -69,7 +69,7 @@ public class PatternButton : Gtk.CellRenderer {
         cr.save ();
         cr.translate (cell_area.x + border.left + margin.left + padding.left, cell_area.y + border.top + margin.top + padding.top);
         cr.rectangle (0, 0, cell_area.width - border.left - border.right - margin.left - margin.right - padding.left - padding.right, cell_area.height - border.top - border.bottom - margin.top - margin.bottom - padding.top - padding.bottom);
-        pattern.apply_custom (cr, {0, 0}, {cell_area.width, cell_area.height});
+        pattern.apply_custom (cr, {0, 0}, {cell_area.width, cell_area.height}, pattern.pattern_type);
         cr.fill ();
         cr.restore ();
 

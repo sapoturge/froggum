@@ -1,8 +1,8 @@
 public enum PatternType {
-    NONE = 0,
-    COLOR = 1,
-    LINEAR = 2,
-    RADIAL = 3,
+    NONE,
+    COLOR,
+    LINEAR,
+    RADIAL,
 }
 
 public class Pattern : Object, ListModel, Undoable {
@@ -147,24 +147,24 @@ public class Pattern : Object, ListModel, Undoable {
         }
         Cairo.Pattern custom_pattern;
         switch (type) {
-            case COLOR:
+            case PatternType.COLOR:
                 custom_pattern = pattern;
                 break;
-            case LINEAR:
+            case PatternType.LINEAR:
                 custom_pattern = new Cairo.Pattern.linear (start.x, start.y, end.x, end.y);
                 for (int i = 0; i < stops.length; i++) {
                     var s = stops.index (i);
                     custom_pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
                 }
                 break;
-            case RADIAL:
+            case PatternType.RADIAL:
                 custom_pattern = new Cairo.Pattern.radial (start.x, start.y, 0, start.x, start.y, Math.hypot (end.x - start.x, end.y - start.y));
                 for (int i = 0; i < stops.length; i++) {
                     var s = stops.index (i);
                     custom_pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
                 }
                 break;
-            default: // NONE
+            case PatternType.NONE:
                 var cx = start.x + (end.x - start.x) / 2;
                 var cy = start.y + (end.y - start.y) / 2;
                 var sx = cx - (end.y - start.y) / 2;
@@ -176,6 +176,16 @@ public class Pattern : Object, ListModel, Undoable {
                 custom_pattern.add_color_stop_rgba (0.43, 1, 0, 0, 1);
                 custom_pattern.add_color_stop_rgba (0.57, 1, 0, 0, 1);
                 custom_pattern.add_color_stop_rgba (0.6, 0, 0, 0, 0);
+                break;
+            default: // This should never happen. Draws a red circle if it does
+                var cx = (start.x + end.x) / 2;
+                var cy = (start.y + end.y) / 2;
+                var height = double.min(end.x - start.x, end.y - start.y) / 2;
+                custom_pattern = new Cairo.Pattern.radial (cx, cy, height - 15, cx, cy, height - 5);
+                custom_pattern.add_color_stop_rgba(0, 1, 1, 1, 1);
+                custom_pattern.add_color_stop_rgba(0, 1, 0, 0, 1);
+                custom_pattern.add_color_stop_rgba(1, 1, 0, 0, 1);
+                custom_pattern.add_color_stop_rgba(1, 1, 1, 1, 1);
                 break;
         }
         cr.set_source (custom_pattern);

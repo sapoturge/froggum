@@ -9,7 +9,7 @@ public class FroggumApplication : Gtk.Application {
     
     public FroggumApplication () {
         Object (
-            application_id: "com.github.sapoturge.froggum",
+            application_id: "io.github.sapoturge.froggum",
             flags: ApplicationFlags.HANDLES_OPEN
         );
     }
@@ -20,7 +20,7 @@ public class FroggumApplication : Gtk.Application {
     public const string ACTION_REDO = "action_redo";
     
     static construct {
-        settings = new Settings ("com.github.sapoturge.froggum");
+        settings = new Settings ("io.github.sapoturge.froggum");
     }
     
     construct {
@@ -54,7 +54,7 @@ public class FroggumApplication : Gtk.Application {
 
     protected override void activate () {
         weak Gtk.IconTheme default_theme = Gtk.IconTheme.get_default ();
-        default_theme.add_resource_path ("/com/github/sapoturge/froggum");
+        default_theme.add_resource_path ("/io/github/sapoturge/froggum");
         
         var main_window = new Gtk.ApplicationWindow (this);
         main_window.insert_action_group ("froggum", actions);

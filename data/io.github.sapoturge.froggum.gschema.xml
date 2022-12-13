@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema path="/com/github/sapoturge/froggum/" id="com.github.sapoturge.froggum">
+  <schema path="/io/github/sapoturge/froggum/" id="io.github.sapoturge.froggum">
    <key name="window-maximized" type="b">
       <default>false</default>
       <summary>Maximized</summary>
