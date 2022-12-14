@@ -390,6 +390,14 @@ public class Path : Element {
     }
 
     public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
+            return;
+        }
+
+        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+            return;
+        }
+
         var s = root_segment;
         var first = true;
         while (first || s != root_segment) {
@@ -457,58 +465,6 @@ public class Path : Element {
                     break;
             }
             s = s.next;
-        }
-
-        if (fill.pattern_type == LINEAR || fill.pattern_type == RADIAL) {
-            for (var i = 0; i < fill.get_n_items (); i++) {
-                var stop = (Stop) fill.get_item (i);
-                if ((x - stop.display.x).abs () <= tolerance &&
-                    (y - stop.display.y).abs () <= tolerance) {
-                    obj = stop;
-                    prop = "display";
-                    return;
-                }
-            }
-
-            if ((x - fill.start.x).abs () <= tolerance &&
-                (y - fill.start.y).abs () <= tolerance) {
-                obj = fill;
-                prop = "start";
-                return;
-            }
-
-            if ((x - fill.end.x).abs () <= tolerance &&
-                (y - fill.end.y).abs () <= tolerance) {
-                obj = fill;
-                prop = "end";
-                return;
-            }
-        }
-
-        if (stroke.pattern_type == LINEAR || stroke.pattern_type == RADIAL) {
-            for (var i = 0; i < stroke.get_n_items (); i++) {
-                var stop = (Stop) stroke.get_item (i);
-                if ((x - stop.display.x).abs () <= tolerance &&
-                    (y - stop.display.y).abs () <= tolerance) {
-                    obj = stop;
-                    prop = "display";
-                    return;
-                }
-            }
-
-            if ((x - stroke.start.x).abs () <= tolerance &&
-                (y - stroke.start.y).abs () <= tolerance) {
-                obj = stroke;
-                prop = "start";
-                return;
-            }
-
-            if ((x - stroke.end.x).abs () <= tolerance &&
-                (y - stroke.end.y).abs () <= tolerance) {
-                obj = stroke;
-                prop = "end";
-                return;
-            }
         }
 
         // TODO: check for clicking on the path itself

@@ -137,6 +137,14 @@ public class Circle : Element {
     }
 
     public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
+            return;
+        }
+
+        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+            return;
+        }
+
         if ((x - this.x).abs () <= tolerance && (y - this.y).abs () <= tolerance) {
             obj = this;
             prop = "center";

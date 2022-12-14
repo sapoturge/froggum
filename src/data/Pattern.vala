@@ -342,6 +342,38 @@ public class Pattern : Object, ListModel, Undoable {
             }
         }
     }
+
+    public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if (pattern_type == LINEAR || pattern_type == RADIAL) {
+            for (var i = 0; i < get_n_items (); i++) {
+                var stop = (Stop) get_item (i);
+                if ((x - stop.display.x).abs () <= tolerance &&
+                    (y - stop.display.y).abs () <= tolerance) {
+                    obj = stop;
+                    prop = "display";
+                    return true;
+                }
+            }
+
+            if ((x - start.x).abs () <= tolerance &&
+                (y - start.y).abs () <= tolerance) {
+                obj = this;
+                prop = "start";
+                return true;
+            }
+
+            if ((x - end.x).abs () <= tolerance &&
+                (y - end.y).abs () <= tolerance) {
+                obj = this;
+                prop = "end";
+                return true;
+            }
+        }
+
+        obj = null;
+        prop = "";
+        return false;
+    }
 }
 
 public class Stop : Object, Undoable {
