@@ -236,6 +236,7 @@ public class Image : Gtk.TreeStore {
 
     public void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
         var element = get_element (iter);
+        element.transform.apply (cr);
         if (element is Group && element.visible) {
             if (iter_has_child (iter)) {
                 ((Group) element).setup_draw (cr);
@@ -249,6 +250,7 @@ public class Image : Gtk.TreeStore {
         } else {
             element.draw (cr);
         }
+        cr.restore ();
     }
     
     public void undo () {

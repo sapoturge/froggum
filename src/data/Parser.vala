@@ -1,8 +1,14 @@
 public enum Keyword {
-    URL,
+    TRANSLATE,
+    MATRIX,
+    ROTATE,
+    SKEW_X,
+    SKEW_Y,
+    SCALE,
     NONE,
-    RGB,
     RGBA,
+    URL,
+    RGB,
     NOT_FOUND = -1,
 }
 
@@ -15,14 +21,30 @@ public class Parser : Object {
 
     public Keyword get_keyword () {
         data = data.strip ();
-        // 4 byte keywords:
-        if (data.has_prefix ("rgba")) {
+        if (data.has_prefix ("translate")) {
+            data = data.substring (9);
+            return Keyword.TRANSLATE;
+        } else if (data.has_prefix ("matrix")) {
+            data = data.substring (6);
+            return Keyword.MATRIX;
+        } else if (data.has_prefix ("rotate")) {
+            data = data.substring (6);
+            return Keyword.ROTATE;
+        } else if (data.has_prefix ("skewX")) {
+            data = data.substring (5);
+            return Keyword.SKEW_X;
+        } else if (data.has_prefix ("skewY")) {
+            data = data.substring (5);
+            return Keyword.SKEW_Y;
+        } else if (data.has_prefix ("scale")) {
+            data = data.substring (5);
+            return Keyword.SCALE;
+        } else if (data.has_prefix ("rgba")) {
             data = data.substring (4);
-            return Keyword.RGB;
+            return Keyword.RGBA;
         } else if (data.has_prefix ("none")) {
             data = data.substring (4);
             return Keyword.NONE;
-        // 3 byte keywords:
         } else if (data.has_prefix ("url")) {
             data = data.substring (3);
             return Keyword.URL;
@@ -49,7 +71,6 @@ public class Parser : Object {
         data = data.strip ();
         int value = 0;
         while (data != "") {
-            print ("Current number: %d, remaining: %s\n", value, data);
             if (data.has_prefix ("0")) {
                 data = data.substring (1);
                 value *= 10;
@@ -215,6 +236,10 @@ public class Parser : Object {
             data = data.substring (length);
             return result;
         }
+    }
+
+    public bool empty () {
+        return data.length == 0;
     }
 
     public void error (string message) {

@@ -45,6 +45,8 @@ public class Circle : Element {
             this.title = title;
         }
 
+        this.transform = new Transform.identity ();
+
         setup_signals ();
     }
 

@@ -30,6 +30,7 @@ public abstract class Element : Object, Undoable {
         visible = true;
         fill = Pattern.get_from_text (node->get_prop ("fill"), patterns);
         stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
+        transform = new Transform.from_string (node->get_prop ("transform"));
 
         setup_signals ();
     }

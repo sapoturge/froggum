@@ -68,6 +68,7 @@ public class Path : Element {
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
+        this.transform = new Transform.identity ();
         visible = true;
         set_segments (segments);
         setup_signals ();
@@ -78,6 +79,7 @@ public class Path : Element {
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
+        this.transform = new Transform.identity ();
         visible = true;
     }
 
