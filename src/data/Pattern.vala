@@ -261,6 +261,62 @@ public class Pattern : Object, ListModel, Undoable {
         }
         add_command (command);
     }
+
+    public string to_xml (Xml.Node* defs, ref int pattern_index) {
+        switch (pattern_type) {
+            case NONE:
+                return "none";
+            case COLOR:
+                return "rgba(%d,%d,%d,%f)".printf ((int) (rgba.red*255), (int) (rgba.green*255), (int) (rgba.blue*255), rgba.alpha);
+            case LINEAR:
+                pattern_index++;
+                Xml.Node* element = new Xml.Node (null, "linearGradient");
+                element->new_prop ("id", "linearGrad%d".printf (pattern_index));
+                element->new_prop ("x1", start.x.to_string ());
+                element->new_prop ("y1", start.y.to_string ());
+                element->new_prop ("x2", end.x.to_string ());
+                element->new_prop ("y2", end.y.to_string ());
+                element->new_prop ("gradientUnits", "userSpaceOnUse");
+                
+                for (int j = 0; j < get_n_items (); j++) {
+                    var stop = (Stop) get_item (j);
+                    Xml.Node* stop_element = new Xml.Node (null, "stop");
+                    stop_element->new_prop ("offset", stop.offset.to_string ());
+                    stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
+                    stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
+                    element->add_child (stop_element);
+                }
+                
+                defs->add_child (element);
+                return "url(#linearGrad%d)".printf (pattern_index);
+            case RADIAL:
+                pattern_index++;
+                Xml.Node* element = new Xml.Node (null, "radialGradient");
+                element->new_prop ("id", "radialGrad%d".printf (pattern_index));
+                element->new_prop ("cx", start.x.to_string ());
+                element->new_prop ("cy", start.y.to_string ());
+                element->new_prop ("fx", start.x.to_string ());
+                element->new_prop ("fy", start.y.to_string ());
+                element->new_prop ("r", Math.hypot (end.x - start.x, end.y - start.y).to_string ());
+                element->new_prop ("fr", "0");
+                element->new_prop ("gradientUnits", "userSpaceOnUse");
+                
+                for (int j = 0; j < get_n_items (); j++) {
+                    var stop = (Stop) get_item (j);
+                    Xml.Node* stop_element = new Xml.Node (null, "stop");
+                    stop_element->new_prop ("offset", stop.offset.to_string ());
+                    stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
+                    stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
+                    element->add_child (stop_element);
+                }
+                
+                defs->add_child (element);
+                return "url(#radialGrad%d)".printf (pattern_index);
+            default:
+                // Assume none
+                return "none";
+        }
+    }
 }
 
 public class Stop : Object, Undoable {

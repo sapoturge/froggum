@@ -1,7 +1,7 @@
 public abstract class Element : Object, Undoable {
-    public virtual Pattern stroke { get; set; }
+    public virtual Pattern? stroke { get; set; }
 
-    public virtual Pattern fill { get; set; }
+    public virtual Pattern? fill { get; set; }
 
     public Transform transform { get; set; }
 
@@ -44,6 +44,27 @@ public abstract class Element : Object, Undoable {
     public abstract void finish (string prop);
 
     public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node);
+
+    protected int add_standard_attributes (Xml.Node* node, Xml.Node* defs, int pattern_index) {
+        node->new_prop ("id", title);
+
+        if (fill != null) {
+            var fill_text = fill.to_xml (defs, ref pattern_index);
+            node->new_prop ("fill", fill_text);
+        }
+
+        if (stroke != null) {
+            var stroke_text = stroke.to_xml (defs, ref pattern_index);
+            node->new_prop ("stroke", stroke_text);
+        }
+
+        var transform_text = transform.to_string ();
+        if (transform_text != null) {
+            node->new_prop ("transform", transform_text);
+        }
+
+        return pattern_index;
+    }
 
     public abstract Element copy ();
 
