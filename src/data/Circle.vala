@@ -96,6 +96,9 @@ public class Circle : Element {
         cr.arc (radius.x, radius.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
+
+        fill.draw_controls (cr, zoom);
+        stroke.draw_controls (cr, zoom);
     }
 
     public override void begin (string prop, Value? start_location) {

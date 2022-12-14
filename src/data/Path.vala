@@ -331,51 +331,8 @@ public class Path : Element {
             s = s.next;
         }
 
-        if (fill.pattern_type == LINEAR || fill.pattern_type == RADIAL) {
-            cr.move_to (fill.start.x, fill.start.y);
-            cr.line_to (fill.end.x, fill.end.y);
-            cr.set_source_rgba (0, 1, 0, 0.9);
-            cr.stroke ();
-
-            cr.arc (fill.start.x, fill.start.y, 6 / zoom, 0, Math.PI * 2);
-            cr.new_sub_path ();
-            cr.arc (fill.end.x, fill.end.y, 6 / zoom, 0, Math.PI * 2);
-            cr.fill ();
-           
-            for (int i = 0; i < fill.get_n_items (); i++) {
-                var stop = (Stop) fill.get_item (i);
-                cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
-                cr.set_source_rgba (0, 1, 0, 0.9);
-                cr.fill ();
-
-                cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
-                cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
-                cr.fill ();
-            }
-        }
-
-        if (stroke.pattern_type == LINEAR || stroke.pattern_type == RADIAL) {
-            cr.move_to (stroke.start.x, stroke.start.y);
-            cr.line_to (stroke.end.x, stroke.end.y);
-            cr.set_source_rgba (0, 1, 0, 0.9);
-            cr.stroke ();
-
-            cr.arc (stroke.start.x, stroke.start.y, 6 / zoom, 0, Math.PI * 2);
-            cr.new_sub_path ();
-            cr.arc (stroke.end.x, stroke.end.y, 6 / zoom, 0, Math.PI * 2);
-            cr.fill ();
-           
-            for (int i = 0; i < stroke.get_n_items (); i++) {
-                var stop = (Stop) stroke.get_item (i);
-                cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
-                cr.set_source_rgba (0, 1, 0, 0.9);
-                cr.fill ();
-
-                cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
-                cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
-                cr.fill ();
-            }
-        }
+        fill.draw_controls (cr, zoom);
+        stroke.draw_controls (cr, zoom);
     }
 
     public override void begin (string prop, Value? start_location) {

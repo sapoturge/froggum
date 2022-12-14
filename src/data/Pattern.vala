@@ -317,6 +317,31 @@ public class Pattern : Object, ListModel, Undoable {
                 return "none";
         }
     }
+
+    public void draw_controls (Cairo.Context cr, double zoom) {
+        if (pattern_type == LINEAR || pattern_type == RADIAL) {
+            cr.move_to (start.x, start.y);
+            cr.line_to (end.x, end.y);
+            cr.set_source_rgba (0, 1, 0, 0.9);
+            cr.stroke ();
+
+            cr.arc (start.x, start.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (end.x, end.y, 6 / zoom, 0, Math.PI * 2);
+            cr.fill ();
+           
+            for (int i = 0; i < get_n_items (); i++) {
+                var stop = (Stop) get_item (i);
+                cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
+                cr.set_source_rgba (0, 1, 0, 0.9);
+                cr.fill ();
+
+                cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
+                cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
+                cr.fill ();
+            }
+        }
+    }
 }
 
 public class Stop : Object, Undoable {
