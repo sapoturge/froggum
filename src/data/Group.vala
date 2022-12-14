@@ -31,6 +31,12 @@ public class Group : Element {
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
         node = new Xml.Node (null, "g");
         node->new_prop ("id", title);
+
+        var transform_text = transform.to_string ();
+        if (transform_text != null) {
+            node->new_prop ("transform", transform_text);
+        }
+
         root->add_child (node);
         return pattern_index;
     }

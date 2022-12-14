@@ -533,13 +533,20 @@ public class Path : Element {
                 defs->add_child (stroke_element);
                 break;
         }
-        
+
         node = new Xml.Node (null, "path");
         
         node->new_prop ("id", title);
         node->new_prop ("fill", fill_text);
         node->new_prop ("stroke", stroke_text);
         node->new_prop ("d", to_string ());
+
+        var transform_text = transform.to_string ();
+        
+        if (transform_text != null) {
+            node->new_prop ("transform", transform_text);
+        }
+
         root->add_child (node);
 
         return pattern_index;

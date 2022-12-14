@@ -133,4 +133,30 @@ public class Transform : Object {
         cr.rotate (angle);
         cr.transform (Cairo.Matrix (1, 0, skew, 1, 0, 0));
     }
+
+    public string? to_string () {
+        string[] pieces = {};
+
+        if (translate.x != 0 || translate.y != 0) {
+            pieces += "translate(%f,%f)".printf (translate.x, translate.y);
+        }
+
+        if (scale.x != 1 || scale.y != 1) {
+            pieces += "scale(%f,%f)".printf (scale.x, scale.y);
+        }
+
+        if (angle != 0) {
+            pieces += "rotate(%f)".printf (angle);
+        }
+
+        if (skew != 0) {
+            pieces += "skewX(%f)".printf (Math.atan (skew) * 180 / Math.PI);
+        }
+
+        if (pieces.length == 0) {
+            return null;
+        } else {
+            return string.joinv (null, pieces);
+        }
+    }
 }
