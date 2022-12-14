@@ -2,8 +2,8 @@ public class Group : Element {
     public Group () {
         title = "Group";
         visible = true;
-        fill = new Pattern.none ();
-        stroke = new Pattern.none ();
+        fill = null;
+        stroke = null;
    
         setup_signals ();
     }

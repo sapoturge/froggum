@@ -68,7 +68,7 @@ public class Parser : Object {
     }
 
     public int get_int () {
-        data = data.strip ();
+        bool negative = match ("-");
         int value = 0;
         while (data != "") {
             if (data.has_prefix ("0")) {
@@ -110,11 +110,18 @@ public class Parser : Object {
                 data = data.substring (1);
                 value *= 10;
                 value += 9;
+            } else if (negative) {
+                return -value;
             } else {
                 return value;
             }
         }
-        return value;
+
+        if (negative) {
+            return -value;
+        } else {
+            return value;
+        }
     }
 
     public double get_double () {
