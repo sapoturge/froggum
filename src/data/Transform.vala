@@ -298,7 +298,22 @@ public class Transform : Object, Undoable {
         }
     }
 
-    public Point rotator { get; set; }
+    public Point rotator {
+        get {
+            return {center.x + Math.sin (angle) * (height * scale_y / 2 + 5),
+                    center.y - Math.cos (angle) * (height * scale_y / 2 + 5)};
+        }
+        set {
+            var c = center;
+            angle = Math.atan2 (value.x - c.x, c.y - value.y);
+
+            update_matrix ();
+
+            // Setting the center property automatically updates the translation
+            center = c;
+        }
+    }
+
     public Point skew_block { get; set; }
 
     public Transform.identity () {
@@ -466,6 +481,11 @@ public class Transform : Object, Undoable {
                 command.add_value (this, "scale_x", scale_x, last_scale.x);
                 command.add_value (this, "scale_y", scale_y, last_scale.y);
                 break;
+            case "rotator":
+                command.add_value (this, "translate_x", translate_x, last_translate.x);
+                command.add_value (this, "translate_y", translate_y, last_translate.y);
+                command.add_value (this, "angle", angle, last_angle);
+                break;
         }
 
         add_command (command);
@@ -507,22 +527,16 @@ public class Transform : Object, Undoable {
 
     public void draw_controls (Cairo.Context cr, double zoom) {
         cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
-        cr.set_source_rgb (0, 0, 1);
-        cr.fill ();
-
+        cr.new_sub_path ();
         cr.arc (top_right.x, top_right.y, 6 / zoom, 0, Math.PI * 2);
-        cr.set_source_rgb (0, 0, 1);
-        cr.fill ();
-
+        cr.new_sub_path ();
         cr.arc (top_left.x, top_left.y, 6 / zoom, 0, Math.PI * 2);
-        cr.set_source_rgb (0, 0, 1);
-        cr.fill ();
-
+        cr.new_sub_path ();
         cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
-        cr.set_source_rgb (0, 0, 1);
-        cr.fill ();
-
+        cr.new_sub_path ();
         cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.new_sub_path ();
+        cr.arc (rotator.x, rotator.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
@@ -531,6 +545,10 @@ public class Transform : Object, Undoable {
         cr.line_to (bottom_right.x, bottom_right.y);
         cr.line_to (bottom_left.x, bottom_left.y);
         cr.close_path ();
+        cr.stroke ();
+
+        cr.move_to (rotator.x, rotator.y);
+        cr.line_to (center.x, center.y);
         cr.stroke ();
     }
 
@@ -562,6 +580,12 @@ public class Transform : Object, Undoable {
         if ((bottom_right.x - x).abs () <= tolerance && (bottom_right.y - y).abs () <= tolerance) {
             obj = this;
             prop = "bottom_right";
+            return true;
+        }
+
+        if ((rotator.x - x).abs () <= tolerance && (rotator.y - y).abs () <= tolerance) {
+            obj = this;
+            prop = "rotator";
             return true;
         }
 
