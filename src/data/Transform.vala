@@ -39,12 +39,56 @@ public class Transform : Object, Undoable {
             return { translate_x, translate_y };
         }
         set {
+            var left = top_left;
             var right = top_right;
             var bottom = bottom_left;
 
-            scale_x = Math.sqrt ((right.x - value.x) * (right.x - value.x) + (right.y - value.y) * (right.y - value.y)) / width;
+            if ((value.x == right.x && value.y == right.y) || (value.x == bottom.x && value.y == bottom.y)) {
+                return;
+            }
 
-            scale_y = Math.sqrt ((bottom.x - value.x) * (bottom.x - value.x) + (bottom.y - value.y) * (bottom.y - value.y)) / height / Math.sqrt (1 + skew * skew);
+            var dx = right.x - left.x;
+            var dy = right.y - left.y;
+
+            var scale = (dx * (value.x - left.x) + dy * (value.y - left.y)) / (dx * dx + dy * dy);
+
+            Point a = { left.x + scale * dx, left.y + scale * dy };
+
+            var ae = a.dist (value);
+
+            // Use a determinant to determine whether the movement was up or down
+            var side = (right.x - left.x) * (value.y - left.y) - (right.y - left.y) * (value.x - left.x);
+
+            if (side < 0) {
+                ae = -ae;
+            }
+
+            if (scale_x < 0) {
+                ae = -ae;
+            }
+
+            var new_scale_y = scale_y - ae / height;
+            
+            var aa = a.dist (left);
+
+            side = (bottom.x - left.x) * (value.y - left.y) - (bottom.y - left.y) * (value.x - left.x);
+
+            if (side > 0) {
+                aa = -aa;
+            }
+
+            if (scale_y < 0) {
+                aa = -aa;
+            }
+            
+            var new_scale_x = scale_x - (aa - ae * skew) / width;
+
+            if (new_scale_x == 0 || new_scale_y == 0) {
+                return;
+            }
+
+            scale_x = new_scale_x;
+            scale_y = new_scale_y;
 
             translate_x = value.x;
             translate_y = value.y;
@@ -291,30 +335,30 @@ public class Transform : Object, Undoable {
     }
 
     public void draw_controls (Cairo.Context cr, double zoom) {
-        cr.arc (center.x, center.y, 4 / zoom, 0, Math.PI * 2);
+        cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
-        cr.arc (top_right.x, top_right.y, 4 / zoom, 0, Math.PI * 2);
+        cr.arc (top_right.x, top_right.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
-        cr.arc (top_left.x, top_left.y, 4 / zoom, 0, Math.PI * 2);
+        cr.arc (top_left.x, top_left.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
-        cr.arc (bottom_right.x, bottom_right.y, 4 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
-        cr.arc (bottom_left.x, bottom_left.y, 4 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
         cr.move_to (top_left.x, top_left.y);
         cr.line_to (top_right.x, top_right.y);
         cr.line_to (bottom_right.x, bottom_right.y);
-        cr.line_to (bottom_left.x, bottom_left.x);
+        cr.line_to (bottom_left.x, bottom_left.y);
         cr.close_path ();
         cr.stroke ();
     }
