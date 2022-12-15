@@ -1,6 +1,8 @@
 public class Transform : Object, Undoable {
-    public Point translate { get; set; }
-    public Point scale { get; set; }
+    public double translate_x { get; set; }
+    public double translate_y { get; set; }
+    public double scale_x { get; set; }
+    public double scale_y { get; set; }
     public double angle { get; set; }
     public double skew { get; set; }
 
@@ -17,8 +19,8 @@ public class Transform : Object, Undoable {
     public Point center {
         get {
             var mat = Cairo.Matrix.identity ();
-            mat.translate (translate.x, translate.y);
-            mat.scale (scale.x, scale.y);
+            mat.translate (translate_x, translate_y);
+            mat.scale (scale_x, scale_y);
             mat.rotate (angle);
             var skew_mat = Cairo.Matrix.identity ();
             skew_mat.xy = skew;
@@ -30,10 +32,8 @@ public class Transform : Object, Undoable {
 
         set {
             Point old = center;
-            Point new_point = { 0, 0 };
-            new_point.x = translate.x + value.x - old.x;
-            new_point.y = translate.y + value.y - old.y;
-            translate = new_point;
+            translate_x += value.x - old.x;
+            translate_y += value.y - old.y;
             update ();
         }
     }
@@ -46,19 +46,22 @@ public class Transform : Object, Undoable {
     public Point skew_block { get; set; }
 
     public Transform.identity () {
-        this.translate = {0, 0};
-        this.scale = {1, 1};
-        this.angle = 0;
-        this.skew = 0;
+        translate_x = 0;
+        translate_y = 0;
+        scale_x = 1;
+        scale_y = 1;
+        angle = 0;
+        skew = 0;
     }
 
     public Transform.from_string (string? description) {
-        if (description == null) {
-            translate = {0, 0};
-            scale = {1, 1};
-            angle = 0;
-            skew = 0;
-        } else {
+        translate_x = 0;
+        translate_y = 0;
+        scale_x = 1;
+        scale_y = 1;
+        angle = 0;
+        skew = 0;
+        if (description != null) {
             var matrix = Cairo.Matrix.identity ();
             var parser = new Parser (description);
             while (!parser.empty ()) {
@@ -118,6 +121,8 @@ public class Transform : Object, Undoable {
                             parser.match (")");
                         }
  
+                        if (sx == 0) { sx = 1; }
+                        if (sy == 0) { sy = 1; }
                         matrix.scale (sx, sy);
                         break;
                     case Keyword.SKEW_X:
@@ -141,9 +146,9 @@ public class Transform : Object, Undoable {
                         break;
                 }
             }
-            
-            translate.x = matrix.x0;
-            translate.y = matrix.y0;
+
+            translate_x = matrix.x0;
+            translate_y = matrix.y0;
             
             // The remaining matrix values are as follows:
             // 
@@ -159,17 +164,17 @@ public class Transform : Object, Undoable {
             //    s = scale in Y direction
             //    K = skew on X axis
             
-            scale.x = Math.sqrt (matrix.xx * matrix.xx + matrix.yx * matrix.yx);
-            angle = Math.atan2 (matrix.yx, matrix.xx);
+            scale_x = Math.sqrt (matrix.xx * matrix.xx + matrix.yx * matrix.yx);
+            this.angle = Math.atan2 (matrix.yx, matrix.xx);
             // I really hope my math is right on these.
             skew = (matrix.xy + matrix.yx * matrix.yy / matrix.xx) / (matrix.xx + matrix.yx * matrix.yx / matrix.xx);
-            scale.y = (matrix.yy - matrix.yx * matrix.xy / matrix.xx) / (matrix.yx * matrix.yx / (scale.x * matrix.xx) + matrix.xx / scale.x);
+            scale_y = (matrix.yy - matrix.yx * matrix.xy / matrix.xx) / (matrix.yx * matrix.yx / (scale_x * matrix.xx) + matrix.xx / scale_x);
         }
     }
 
     public override void begin (string prop, Value? initial_value = null) {
-        last_translate = translate;
-        last_scale = scale;
+        last_translate = {translate_x, translate_y};
+        last_scale = {scale_x, scale_y};
         last_angle = angle;
         last_skew = skew;
     }
@@ -178,7 +183,8 @@ public class Transform : Object, Undoable {
         var command = new Command ();
         switch (prop) {
             case "center":
-                command.add_value (this, "translate", translate, last_translate);
+                command.add_value (this, "translate_x", translate_x, last_translate.x);
+                command.add_value (this, "translate_y", translate_y, last_translate.y);
                 break;
         }
 
@@ -187,8 +193,8 @@ public class Transform : Object, Undoable {
 
     public void apply (Cairo.Context cr) {
         cr.save ();
-        cr.translate (translate.x, translate.y);
-        cr.scale (scale.x, scale.y);
+        cr.translate (translate_x, translate_y);
+        cr.scale (scale_x, scale_y);
         cr.rotate (angle);
         cr.transform (Cairo.Matrix (1, 0, skew, 1, 0, 0));
     }
@@ -196,12 +202,12 @@ public class Transform : Object, Undoable {
     public string? to_string () {
         string[] pieces = {};
 
-        if (translate.x != 0 || translate.y != 0) {
-            pieces += "translate(%f,%f)".printf (translate.x, translate.y);
+        if (translate_x != 0 || translate_y != 0) {
+            pieces += "translate(%f,%f)".printf (translate_x, translate_y);
         }
 
-        if (scale.x != 1 || scale.y != 1) {
-            pieces += "scale(%f,%f)".printf (scale.x, scale.y);
+        if (scale_x != 1 || scale_y != 1) {
+            pieces += "scale(%f,%f)".printf (scale_x, scale_y);
         }
 
         if (angle != 0) {
