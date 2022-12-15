@@ -14,19 +14,14 @@ public class Transform : Object, Undoable {
     private double width = 16;
     private double height = 16;
 
+    private Cairo.Matrix matrix;
+
     public signal void update ();
 
     public Point center {
         get {
-            var mat = Cairo.Matrix.identity ();
-            mat.translate (translate_x, translate_y);
-            mat.scale (scale_x, scale_y);
-            mat.rotate (angle);
-            var skew_mat = Cairo.Matrix.identity ();
-            skew_mat.xy = skew;
-            mat.multiply (skew_mat, mat);
             Point point = {width/2, height/2};
-            mat.transform_point (ref point.x, ref point.y);
+            matrix.transform_point (ref point.x, ref point.y);
             return point;
         }
 
@@ -34,14 +29,63 @@ public class Transform : Object, Undoable {
             Point old = center;
             translate_x += value.x - old.x;
             translate_y += value.y - old.y;
+            update_matrix ();
             update ();
         }
     }
 
-    public Point top_right { get; set; }
-    public Point top_left { get; set; }
-    public Point bottom_right { get; set; }
-    public Point bottom_left { get; set; }
+    public Point top_left {
+        get {
+            return { translate_x, translate_y };
+        }
+        set {
+            var right = top_right;
+            var bottom = bottom_left;
+
+            scale_x = Math.sqrt ((right.x - value.x) * (right.x - value.x) + (right.y - value.y) * (right.y - value.y)) / width;
+
+            scale_y = Math.sqrt ((bottom.x - value.x) * (bottom.x - value.x) + (bottom.y - value.y) * (bottom.y - value.y)) / height / Math.sqrt (1 + skew * skew);
+
+            translate_x = value.x;
+            translate_y = value.y;
+            update_matrix ();
+            update ();
+        }
+    }
+
+    public Point top_right {
+        get {
+            Point point = {width, 0};
+            matrix.transform_point (ref point.x, ref point.y);
+            return point;
+        }
+
+        set {
+        }
+    }
+
+    public Point bottom_left {
+        get {
+            Point point = {0, height};
+            matrix.transform_point (ref point.x, ref point.y);
+            return point;
+        }
+
+        set {
+        }
+    }
+
+    public Point bottom_right {
+        get {
+            Point point = {width, height};
+            matrix.transform_point (ref point.x, ref point.y);
+            return point;
+        }
+
+        set {
+        }
+    }
+
     public Point rotator { get; set; }
     public Point skew_block { get; set; }
 
@@ -52,6 +96,8 @@ public class Transform : Object, Undoable {
         scale_y = 1;
         angle = 0;
         skew = 0;
+
+        matrix = Cairo.Matrix.identity ();
     }
 
     public Transform.from_string (string? description) {
@@ -61,8 +107,8 @@ public class Transform : Object, Undoable {
         scale_y = 1;
         angle = 0;
         skew = 0;
+        matrix = Cairo.Matrix.identity ();
         if (description != null) {
-            var matrix = Cairo.Matrix.identity ();
             var parser = new Parser (description);
             while (!parser.empty ()) {
                 switch (parser.get_keyword ()) {
@@ -172,6 +218,16 @@ public class Transform : Object, Undoable {
         }
     }
 
+    private void update_matrix () {
+        matrix = Cairo.Matrix.identity ();
+        matrix.translate (translate_x, translate_y);
+        matrix.scale (scale_x, scale_y);
+        matrix.rotate (angle);
+        var skew_mat = Cairo.Matrix.identity ();
+        skew_mat.xy = skew;
+        matrix.multiply (skew_mat, matrix);
+    }
+
     public override void begin (string prop, Value? initial_value = null) {
         last_translate = {translate_x, translate_y};
         last_scale = {scale_x, scale_y};
@@ -185,6 +241,15 @@ public class Transform : Object, Undoable {
             case "center":
                 command.add_value (this, "translate_x", translate_x, last_translate.x);
                 command.add_value (this, "translate_y", translate_y, last_translate.y);
+                break;
+            case "top_left":
+            case "bottom_left":
+            case "top_right":
+            case "bottom_right":
+                command.add_value (this, "translate_x", translate_x, last_translate.x);
+                command.add_value (this, "translate_y", translate_y, last_translate.y);
+                command.add_value (this, "scale_x", scale_x, last_scale.x);
+                command.add_value (this, "scale_y", scale_y, last_scale.y);
                 break;
         }
 
@@ -226,9 +291,32 @@ public class Transform : Object, Undoable {
     }
 
     public void draw_controls (Cairo.Context cr, double zoom) {
-        cr.arc (width / 2, height / 2, 4 / zoom, 0, Math.PI * 2);
+        cr.arc (center.x, center.y, 4 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
+
+        cr.arc (top_right.x, top_right.y, 4 / zoom, 0, Math.PI * 2);
+        cr.set_source_rgb (0, 0, 1);
+        cr.fill ();
+
+        cr.arc (top_left.x, top_left.y, 4 / zoom, 0, Math.PI * 2);
+        cr.set_source_rgb (0, 0, 1);
+        cr.fill ();
+
+        cr.arc (bottom_right.x, bottom_right.y, 4 / zoom, 0, Math.PI * 2);
+        cr.set_source_rgb (0, 0, 1);
+        cr.fill ();
+
+        cr.arc (bottom_left.x, bottom_left.y, 4 / zoom, 0, Math.PI * 2);
+        cr.set_source_rgb (0, 0, 1);
+        cr.fill ();
+
+        cr.move_to (top_left.x, top_left.y);
+        cr.line_to (top_right.x, top_right.y);
+        cr.line_to (bottom_right.x, bottom_right.y);
+        cr.line_to (bottom_left.x, bottom_left.x);
+        cr.close_path ();
+        cr.stroke ();
     }
 
     public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
@@ -237,6 +325,32 @@ public class Transform : Object, Undoable {
             prop = "center";
             return true;
         }
+
+        if ((top_left.x - x).abs () <= tolerance && (top_left.y - y).abs () <= tolerance) {
+            obj = this;
+            prop = "top_left";
+            return true;
+        }
+
+        /* // TODO: Uncomment when set methods are implemented.
+        if ((top_right.x - x).abs () <= tolerance && (top_right.y - y).abs () <= tolerance) {
+            obj = this;
+            prop = "top_right";
+            return true;
+        }
+
+        if ((bottom_left.x - x).abs () <= tolerance && (bottom_left.y - y).abs () <= tolerance) {
+            obj = this;
+            prop = "bottom_left";
+            return true;
+        }
+
+        if ((bottom_right.x - x).abs () <= tolerance && (bottom_right.y - y).abs () <= tolerance) {
+            obj = this;
+            prop = "bottom_right";
+            return true;
+        }
+        */
 
         obj = null;
         prop = null;
