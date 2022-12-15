@@ -105,6 +105,66 @@ public class Transform : Object, Undoable {
         }
 
         set {
+            var right = top_right;
+            var left = top_left;
+            var bottom = bottom_right;
+
+            if ((value.x == left.x && value.y == left.y) || (value.x == bottom.x && value.y == bottom.y)) {
+                return;
+            }
+
+            var dx = left.x - right.x;
+            var dy = left.y - right.y;
+
+            var scale = (dx * (value.x - right.x) + dy * (value.y - right.y)) / (dx * dx + dy * dy);
+
+            Point a = { right.x + scale * dx, right.y + scale * dy };
+
+            var ae = a.dist (value);
+
+            // Use a determinant to determine whether the movement was up or down
+            var side = (left.x - right.x) * (value.y - right.y) - (left.y - right.y) * (value.x - right.x);
+
+            if (side > 0) {
+                ae = -ae;
+            }
+
+            if (scale_x < 0) {
+                ae = -ae;
+            }
+
+            var new_scale_y = scale_y - ae / height;
+            
+            var aa = a.dist (right);
+
+            side = (bottom.x - right.x) * (value.y - right.y) - (bottom.y - right.y) * (value.x - right.x);
+
+            if (side < 0) {
+                aa = -aa;
+            }
+
+            if (scale_y < 0) {
+                aa = -aa;
+            }
+            
+            var new_scale_x = scale_x - (aa - ae * skew) / width;
+
+            if (new_scale_x == 0 || new_scale_y == 0) {
+                return;
+            }
+
+            // Calculate the transform by finding the unskewed point on
+            // the top and finding the difference.
+
+            scale = new_scale_x / scale_x;
+            a = { left.x - scale * dx, left.y - scale * dy };
+            translate_x += value.x - a.x;
+            translate_y += value.y - a.y;
+
+            scale_x = new_scale_x;
+            scale_y = new_scale_y;
+            update_matrix ();
+            update ();
         }
     }
 
@@ -116,6 +176,62 @@ public class Transform : Object, Undoable {
         }
 
         set {
+            var left = bottom_left;
+            var right = bottom_right;
+            var top = top_left;
+
+            if ((value.x == right.x && value.y == right.y) || (value.x == top.x && value.y == top.y)) {
+                return;
+            }
+
+            var dx = right.x - left.x;
+            var dy = right.y - left.y;
+
+            var scale = (dx * (value.x - left.x) + dy * (value.y - left.y)) / (dx * dx + dy * dy);
+
+            Point a = { left.x + scale * dx, left.y + scale * dy };
+
+            var ae = a.dist (value);
+
+            // Use a determinant to determine whether the movement was up or down
+            var side = (right.x - left.x) * (value.y - left.y) - (right.y - left.y) * (value.x - left.x);
+
+            if (side > 0) {
+                ae = -ae;
+            }
+
+            if (scale_x < 0) {
+                ae = -ae;
+            }
+
+            var new_scale_y = scale_y - ae / height;
+            
+            var aa = a.dist (left);
+
+            side = (top.x - left.x) * (value.y - left.y) - (top.y - left.y) * (value.x - left.x);
+
+            if (side < 0) {
+                aa = -aa;
+            }
+
+            if (scale_y < 0) {
+                aa = -aa;
+            }
+            
+            var new_scale_x = scale_x - (aa - ae * skew) / width;
+
+            if (new_scale_x == 0 || new_scale_y == 0) {
+                return;
+            }
+
+            scale_x = new_scale_x;
+            scale_y = new_scale_y;
+
+            translate_x = left.x + scale * dx;
+            translate_y = left.y * scale * dy;
+
+            update_matrix ();
+            update ();
         }
     }
 
@@ -127,6 +243,58 @@ public class Transform : Object, Undoable {
         }
 
         set {
+            var right = bottom_right;
+            var left = bottom_left;
+            var top = top_right;
+
+            if ((value.x == left.x && value.y == left.y) || (value.x == top.x && value.y == top.y)) {
+                return;
+            }
+
+            var dx = left.x - right.x;
+            var dy = left.y - right.y;
+
+            var scale = (dx * (value.x - right.x) + dy * (value.y - right.y)) / (dx * dx + dy * dy);
+
+            Point a = { right.x + scale * dx, right.y + scale * dy };
+
+            var ae = a.dist (value);
+
+            // Use a determinant to determine whether the movement was up or down
+            var side = (left.x - right.x) * (value.y - right.y) - (left.y - right.y) * (value.x - right.x);
+
+            if (side < 0) {
+                ae = -ae;
+            }
+
+            if (scale_x < 0) {
+                ae = -ae;
+            }
+
+            var new_scale_y = scale_y - ae / height;
+            
+            var aa = a.dist (right);
+
+            side = (top.x - right.x) * (value.y - right.y) - (top.y - right.y) * (value.x - right.x);
+
+            if (side > 0) {
+                aa = -aa;
+            }
+
+            if (scale_y < 0) {
+                aa = -aa;
+            }
+            
+            var new_scale_x = scale_x - (aa - ae * skew) / width;
+
+            if (new_scale_x == 0 || new_scale_y == 0) {
+                return;
+            }
+
+            scale_x = new_scale_x;
+            scale_y = new_scale_y;
+            update_matrix ();
+            update ();
         }
     }
 
@@ -289,9 +457,12 @@ public class Transform : Object, Undoable {
             case "top_left":
             case "bottom_left":
             case "top_right":
-            case "bottom_right":
                 command.add_value (this, "translate_x", translate_x, last_translate.x);
                 command.add_value (this, "translate_y", translate_y, last_translate.y);
+                command.add_value (this, "scale_x", scale_x, last_scale.x);
+                command.add_value (this, "scale_y", scale_y, last_scale.y);
+                break;
+            case "bottom_right":
                 command.add_value (this, "scale_x", scale_x, last_scale.x);
                 command.add_value (this, "scale_y", scale_y, last_scale.y);
                 break;
@@ -376,7 +547,6 @@ public class Transform : Object, Undoable {
             return true;
         }
 
-        /* // TODO: Uncomment when set methods are implemented.
         if ((top_right.x - x).abs () <= tolerance && (top_right.y - y).abs () <= tolerance) {
             obj = this;
             prop = "top_right";
@@ -394,7 +564,6 @@ public class Transform : Object, Undoable {
             prop = "bottom_right";
             return true;
         }
-        */
 
         obj = null;
         prop = null;
