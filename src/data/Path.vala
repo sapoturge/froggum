@@ -9,6 +9,7 @@ public class Path : Element {
         set {
             _fill = value;
             fill.update.connect (() => { update (); });
+            fill.add_command.connect ((c) => { add_command(c); });
         }
     }
 
@@ -20,6 +21,7 @@ public class Path : Element {
         set {
             _stroke = value;
             stroke.update.connect (() => { update (); });
+            stroke.add_command.connect ((c) => { add_command(c); });
         }
     }
 
@@ -333,6 +335,8 @@ public class Path : Element {
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
+
+        transform.draw_controls (cr, zoom);
     }
 
     public override void begin (string prop, Value? start_location) {
@@ -395,6 +399,10 @@ public class Path : Element {
         }
 
         if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+            return;
+        }
+
+        if (transform.check_controls (x, y, tolerance, out obj, out prop)) {
             return;
         }
 

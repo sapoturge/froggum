@@ -17,6 +17,7 @@ public class Group : Element {
     }
 
     public override void draw_controls (Cairo.Context cr, double zoom) {
+        transform.draw_controls (cr, zoom);
         return;
     }
 
@@ -42,6 +43,10 @@ public class Group : Element {
     }
 
     public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if (transform.check_controls (x, y, tolerance, out obj, out prop)) {
+            return;
+        }
+
         obj = null;
         prop = "";
         return;

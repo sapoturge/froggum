@@ -145,6 +145,10 @@ public class Circle : Element {
             return;
         }
 
+        if (transform.check_controls (x, y, tolerance, out obj, out prop)) {
+            return;
+        }
+
         if ((x - this.x).abs () <= tolerance && (y - this.y).abs () <= tolerance) {
             obj = this;
             prop = "center";

@@ -3,7 +3,15 @@ public abstract class Element : Object, Undoable {
 
     public virtual Pattern? fill { get; set; }
 
-    public Transform transform { get; set; }
+    private Transform _transform;
+    public Transform transform {
+        get { return _transform; }
+        set {
+            _transform = value;
+            transform.update.connect (() => { update (); });
+            transform.add_command.connect ((c) => { add_command (c); });
+        }
+     }
 
     public string title { get; set; }
 

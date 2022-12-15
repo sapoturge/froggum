@@ -1,8 +1,49 @@
-public class Transform : Object {
-    private Point translate;
-    private Point scale;
-    private double angle;
-    private double skew;
+public class Transform : Object, Undoable {
+    public Point translate { get; set; }
+    public Point scale { get; set; }
+    public double angle { get; set; }
+    public double skew { get; set; }
+
+    private Point last_translate;
+    private Point last_scale;
+    private double last_angle;
+    private double last_skew;
+
+    private double width = 16;
+    private double height = 16;
+
+    public signal void update ();
+
+    public Point center {
+        get {
+            var mat = Cairo.Matrix.identity ();
+            mat.translate (translate.x, translate.y);
+            mat.scale (scale.x, scale.y);
+            mat.rotate (angle);
+            var skew_mat = Cairo.Matrix.identity ();
+            skew_mat.xy = skew;
+            mat.multiply (skew_mat, mat);
+            Point point = {width/2, height/2};
+            mat.transform_point (ref point.x, ref point.y);
+            return point;
+        }
+
+        set {
+            Point old = center;
+            Point new_point = { 0, 0 };
+            new_point.x = translate.x + value.x - old.x;
+            new_point.y = translate.y + value.y - old.y;
+            translate = new_point;
+            update ();
+        }
+    }
+
+    public Point top_right { get; set; }
+    public Point top_left { get; set; }
+    public Point bottom_right { get; set; }
+    public Point bottom_left { get; set; }
+    public Point rotator { get; set; }
+    public Point skew_block { get; set; }
 
     public Transform.identity () {
         this.translate = {0, 0};
@@ -126,6 +167,24 @@ public class Transform : Object {
         }
     }
 
+    public override void begin (string prop, Value? initial_value = null) {
+        last_translate = translate;
+        last_scale = scale;
+        last_angle = angle;
+        last_skew = skew;
+    }
+
+    public override void finish (string prop) {
+        var command = new Command ();
+        switch (prop) {
+            case "center":
+                command.add_value (this, "translate", translate, last_translate);
+                break;
+        }
+
+        add_command (command);
+    }
+
     public void apply (Cairo.Context cr) {
         cr.save ();
         cr.translate (translate.x, translate.y);
@@ -158,5 +217,23 @@ public class Transform : Object {
         } else {
             return string.joinv (null, pieces);
         }
+    }
+
+    public void draw_controls (Cairo.Context cr, double zoom) {
+        cr.arc (width / 2, height / 2, 4 / zoom, 0, Math.PI * 2);
+        cr.set_source_rgb (0, 0, 1);
+        cr.fill ();
+    }
+
+    public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if ((center.x - x).abs () <= tolerance && (center.y - y).abs () <= tolerance) {
+            obj = this;
+            prop = "center";
+            return true;
+        }
+
+        obj = null;
+        prop = null;
+        return false;
     }
 }
