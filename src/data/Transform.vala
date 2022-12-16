@@ -227,8 +227,8 @@ public class Transform : Object, Undoable {
             scale_x = new_scale_x;
             scale_y = new_scale_y;
 
-            translate_x = left.x + scale * dx;
-            translate_y = left.y * scale * dy;
+            translate_x = top.x + scale * dx;
+            translate_y = top.y + scale * dy;
 
             update_matrix ();
             update ();
@@ -300,8 +300,8 @@ public class Transform : Object, Undoable {
 
     public Point rotator {
         get {
-            return {center.x + Math.sin (angle) * (height * scale_y / 2 + 5),
-                    center.y - Math.cos (angle) * (height * scale_y / 2 + 5)};
+            return {center.x + Math.sin (angle) * ((height * scale_y / 2).abs () + 5),
+                    center.y - Math.cos (angle) * ((height * scale_y / 2).abs () + 5)};
         }
         set {
             var c = center;
@@ -448,8 +448,8 @@ public class Transform : Object, Undoable {
     private void update_matrix () {
         matrix = Cairo.Matrix.identity ();
         matrix.translate (translate_x, translate_y);
-        matrix.scale (scale_x, scale_y);
         matrix.rotate (angle);
+        matrix.scale (scale_x, scale_y);
         var skew_mat = Cairo.Matrix.identity ();
         skew_mat.xy = skew;
         matrix.multiply (skew_mat, matrix);
@@ -494,17 +494,13 @@ public class Transform : Object, Undoable {
     public void apply (Cairo.Context cr) {
         cr.save ();
         cr.translate (translate_x, translate_y);
-        cr.scale (scale_x, scale_y);
         cr.rotate (angle);
+        cr.scale (scale_x, scale_y);
         cr.transform (Cairo.Matrix (1, 0, skew, 1, 0, 0));
     }
 
     public string? to_string () {
         string[] pieces = {};
-
-        if (translate_x != 0 || translate_y != 0) {
-            pieces += "translate(%f,%f)".printf (translate_x, translate_y);
-        }
 
         if (scale_x != 1 || scale_y != 1) {
             pieces += "scale(%f,%f)".printf (scale_x, scale_y);
@@ -512,6 +508,10 @@ public class Transform : Object, Undoable {
 
         if (angle != 0) {
             pieces += "rotate(%f)".printf (angle);
+        }
+
+        if (translate_x != 0 || translate_y != 0) {
+            pieces += "translate(%f,%f)".printf (translate_x, translate_y);
         }
 
         if (skew != 0) {
