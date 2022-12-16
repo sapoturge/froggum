@@ -359,7 +359,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 if (clicked) {
                     path.select (true);
                 }
-                show_context_menu (segment, event);
+                show_context_menu (path, segment, event);
                 return false;
             }
             // Check for double-clicking on a path
@@ -517,7 +517,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         return false;
     }
         
-    private void show_context_menu (Segment? segment, Gdk.EventButton event) {
+    private void show_context_menu (Element element, Segment? segment, Gdk.EventButton event) {
         // Menu contents:
         // + Delete Path
         // ---
@@ -528,6 +528,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         //    + Arc
         // + Flip Arc
         // + Split Path
+        // ---
+        // + Show Transform
         var menu = new Gtk.Popover (this);
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
@@ -621,6 +623,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     return;
             }
         }
+
+        var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
+        menu_layout.pack_start (separator, false, false, 0);
+
+        var show_transform = new Gtk.CheckButton.with_label (_("Show Transformation"));
+        show_transform.set_active (element.transform_enabled);
+        show_transform.toggled.connect (() => {
+            element.transform_enabled = !element.transform_enabled;
+            menu.popdown ();
+        });
+        menu_layout.pack_start (show_transform, false, false, 0);
 
         menu_layout.show_all ();
 

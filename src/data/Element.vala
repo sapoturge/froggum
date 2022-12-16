@@ -13,6 +13,8 @@ public abstract class Element : Object, Undoable {
         }
      }
 
+    public bool transform_enabled { get; set; }
+
     public string title { get; set; }
 
     public bool visible { get; set; }

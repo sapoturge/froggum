@@ -336,7 +336,9 @@ public class Path : Element {
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
 
-        transform.draw_controls (cr, zoom);
+        if (transform_enabled) {
+            transform.draw_controls (cr, zoom);
+        }
     }
 
     public override void begin (string prop, Value? start_location) {
@@ -402,7 +404,7 @@ public class Path : Element {
             return;
         }
 
-        if (transform.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
             return;
         }
 

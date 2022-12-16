@@ -6,10 +6,14 @@ public class Group : Element {
         stroke = null;
    
         setup_signals ();
+
+        transform_enabled = true;
     }
 
     public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
         base.from_xml (node, patterns);
+
+        transform_enabled = true;
     }
     
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
