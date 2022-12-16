@@ -147,7 +147,7 @@ public class Transform : Object, Undoable {
                 aa = -aa;
             }
             
-            var new_scale_x = scale_x - (aa - ae * skew) / width;
+            var new_scale_x = scale_x - (aa + ae * skew) / width;
 
             if (new_scale_x == 0 || new_scale_y == 0) {
                 return;
@@ -218,7 +218,7 @@ public class Transform : Object, Undoable {
                 aa = -aa;
             }
             
-            var new_scale_x = scale_x - (aa - ae * skew) / width;
+            var new_scale_x = scale_x - (aa + ae * skew) / width;
 
             if (new_scale_x == 0 || new_scale_y == 0) {
                 return;
@@ -314,7 +314,22 @@ public class Transform : Object, Undoable {
         }
     }
 
-    public Point skew_block { get; set; }
+    public Point skewer {
+        get {
+            Point point = { width / 2, 3 * height / 4 };
+            matrix.transform_point (ref point.x, ref point.y);
+            return point;
+        }
+        set {
+            var c = center;
+            skew = Math.tan (angle - Math.atan2 (value.x - c.x, c.y - value.y));
+
+            update_matrix ();
+
+            // Setting the center property automatically updates the translation
+            center = c;
+        }
+    }
 
     public Transform.identity () {
         translate_x = 0;
@@ -449,10 +464,10 @@ public class Transform : Object, Undoable {
         matrix = Cairo.Matrix.identity ();
         matrix.translate (translate_x, translate_y);
         matrix.rotate (angle);
-        matrix.scale (scale_x, scale_y);
         var skew_mat = Cairo.Matrix.identity ();
         skew_mat.xy = skew;
         matrix.multiply (skew_mat, matrix);
+        matrix.scale (scale_x, scale_y);
     }
 
     public override void begin (string prop, Value? initial_value = null) {
@@ -486,6 +501,11 @@ public class Transform : Object, Undoable {
                 command.add_value (this, "translate_y", translate_y, last_translate.y);
                 command.add_value (this, "angle", angle, last_angle);
                 break;
+            case "skewer":
+                command.add_value (this, "translate_x", translate_x, last_translate.x);
+                command.add_value (this, "translate_y", translate_y, last_translate.y);
+                command.add_value (this, "skew", skew, last_skew);
+                break;
         }
 
         add_command (command);
@@ -495,8 +515,8 @@ public class Transform : Object, Undoable {
         cr.save ();
         cr.translate (translate_x, translate_y);
         cr.rotate (angle);
-        cr.scale (scale_x, scale_y);
         cr.transform (Cairo.Matrix (1, 0, skew, 1, 0, 0));
+        cr.scale (scale_x, scale_y);
     }
 
     public string? to_string () {
@@ -537,6 +557,8 @@ public class Transform : Object, Undoable {
         cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
         cr.arc (rotator.x, rotator.y, 6 / zoom, 0, Math.PI * 2);
+        cr.new_sub_path ();
+        cr.arc (skewer.x, skewer.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
@@ -549,6 +571,7 @@ public class Transform : Object, Undoable {
 
         cr.move_to (rotator.x, rotator.y);
         cr.line_to (center.x, center.y);
+        cr.line_to (skewer.x, skewer.y);
         cr.stroke ();
     }
 
@@ -586,6 +609,12 @@ public class Transform : Object, Undoable {
         if ((rotator.x - x).abs () <= tolerance && (rotator.y - y).abs () <= tolerance) {
             obj = this;
             prop = "rotator";
+            return true;
+        }
+
+        if ((skewer.x - x).abs () <= tolerance && (skewer.y - y).abs () <= tolerance) {
+            obj = this;
+            prop = "skewer";
             return true;
         }
 
