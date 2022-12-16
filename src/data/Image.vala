@@ -182,6 +182,9 @@ public class Image : Gtk.TreeStore {
             } else if (iter->name == "g") {
                 var g = new Group.from_xml (iter, patterns);
                 load_elements (iter, patterns, add_element (g, root));
+            } else if (iter->name == "rect") {
+                var rect = new Rectangle.from_xml (iter, patterns);
+                add_element (rect, root);
             }
         }
     }
