@@ -239,13 +239,11 @@ public class Image : Gtk.TreeStore {
         element.transform.apply (cr);
         if (element is Group && element.visible) {
             if (iter_has_child (iter)) {
-                ((Group) element).setup_draw (cr);
                 Gtk.TreeIter inner_iter;
                 iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1);
                 do {
                     draw_element (cr, inner_iter);
                 } while (iter_previous (ref inner_iter));
-                ((Group) element).cleanup_draw (cr);
             }
         } else {
             element.draw (cr);
@@ -334,27 +332,6 @@ public class Image : Gtk.TreeStore {
         if (iter_previous(ref prev)) {
             swap (selected_path, prev);
         }
-/* //
-        int i;
-        for (i = 1; i < paths.length; i++) {
-            if (paths.index (i) == last_selected_path) {
-                break;
-            }
-        }
-        if (i == paths.length) {
-            return;
-        }
-        paths.insert_val (i - 1, paths.remove_index (i));
-        int[] indices = {};
-        for (int j = 0; j < paths.length; j++) {
-             indices += j;
-        }
-        indices [i] = i - 1;
-        indices [i - 1] = i;
-        rows_reordered (new Gtk.TreePath.first (), {0, this, null, null}, indices);
-        last_selected_path.select (true);
-        last_selected_path.select (false);
-}*/
     }
 
     public void delete_path (Gtk.TreeIter? iter=null) {
@@ -412,127 +389,4 @@ public class Image : Gtk.TreeStore {
         }
         return pattern_index;
     }
-/* //            
-            var fill = "";
-            var stroke = "";
-            
-            switch (path.fill.pattern_type) {
-                case NONE:
-                    fill = "none";
-                    break;
-                case COLOR:
-                    fill = "rgba(%d,%d,%d,%f)".printf ((int) (path.fill.rgba.red*255), (int) (path.fill.rgba.green*255), (int) (path.fill.rgba.blue*255), path.fill.rgba.alpha);
-                    break;
-                case LINEAR:
-                    pattern_index++;
-                    fill = "url(#linearGrad%d)".printf (pattern_index);
-                    Xml.Node* fill_element = new Xml.Node (null, "linearGradient");
-                    fill_element->new_prop ("id", "linearGrad%d".printf (pattern_index));
-                    fill_element->new_prop ("x1", path.fill.start.x.to_string ());
-                    fill_element->new_prop ("y1", path.fill.start.y.to_string ());
-                    fill_element->new_prop ("x2", path.fill.end.x.to_string ());
-                    fill_element->new_prop ("y2", path.fill.end.y.to_string ());
-                    fill_element->new_prop ("gradientUnits", "userSpaceOnUse");
-                    
-                    for (int j = 0; j < path.fill.get_n_items (); j++) {
-                        var stop = (Stop) path.fill.get_item (j);
-                        Xml.Node* stop_element = new Xml.Node (null, "stop");
-                        stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
-                        stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
-                        fill_element->add_child (stop_element);
-                    }
-                    
-                    defs->add_child (fill_element);
-                    break;
-                case RADIAL:
-                    pattern_index++;
-                    fill = "url(#radialGrad%d)".printf (pattern_index);
-                    Xml.Node* fill_element = new Xml.Node (null, "radialGradient");
-                    fill_element->new_prop ("id", "radialGrad%d".printf (pattern_index));
-                    fill_element->new_prop ("cx", path.fill.start.x.to_string ());
-                    fill_element->new_prop ("cy", path.fill.start.y.to_string ());
-                    fill_element->new_prop ("fx", path.fill.start.x.to_string ());
-                    fill_element->new_prop ("fy", path.fill.start.y.to_string ());
-                    fill_element->new_prop ("r", Math.hypot (path.fill.end.x - path.fill.start.x, path.fill.end.y - path.fill.start.y).to_string ());
-                    fill_element->new_prop ("fr", "0");
-                    fill_element->new_prop ("gradientUnits", "userSpaceOnUse");
-                    
-                    for (int j = 0; j < path.fill.get_n_items (); j++) {
-                        var stop = (Stop) path.fill.get_item (j);
-                        Xml.Node* stop_element = new Xml.Node (null, "stop");
-                        stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
-                        stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
-                        fill_element->add_child (stop_element);
-                    }
-                    
-                    defs->add_child (fill_element);
-                    break;
-            }
-            
-            switch (path.stroke.pattern_type) {
-                case NONE:
-                    stroke = "none";
-                    break;
-                case COLOR:
-                    stroke = "rgba(%d,%d,%d,%f)".printf ((int) (path.stroke.rgba.red*255), (int) (path.stroke.rgba.green*255), (int) (path.stroke.rgba.blue*255), path.stroke.rgba.alpha);
-                    break;
-                case LINEAR:
-                    pattern_index++;
-                    stroke = "url(#linearGrad%d)".printf (pattern_index);
-                    Xml.Node* stroke_element = new Xml.Node (null, "linearGradient");
-                    stroke_element->new_prop ("id", "linearGrad%d".printf (pattern_index));
-                    stroke_element->new_prop ("x1", path.stroke.start.x.to_string ());
-                    stroke_element->new_prop ("y1", path.stroke.start.y.to_string ());
-                    stroke_element->new_prop ("x2", path.stroke.end.x.to_string ());
-                    stroke_element->new_prop ("y2", path.stroke.end.y.to_string ());
-                    stroke_element->new_prop ("gradientUnits", "userSpaceOnUse");
-                    
-                    for (int j = 0; j < path.stroke.get_n_items (); j++) {
-                        var stop = (Stop) path.stroke.get_item (j);
-                        Xml.Node* stop_element = new Xml.Node (null, "stop");
-                        stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
-                        stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
-                        stroke_element->add_child (stop_element);
-                    }
-                    
-                    defs->add_child (stroke_element);
-                    break;
-                case RADIAL:
-                    pattern_index++;
-                    stroke = "url(#radialGrad%d)".printf (pattern_index);
-                    Xml.Node* stroke_element = new Xml.Node (null, "radialGradient");
-                    stroke_element->new_prop ("id", "radialGrad%d".printf (pattern_index));
-                    stroke_element->new_prop ("cx", path.stroke.start.x.to_string ());
-                    stroke_element->new_prop ("cy", path.stroke.start.y.to_string ());
-                    stroke_element->new_prop ("fx", path.stroke.start.x.to_string ());
-                    stroke_element->new_prop ("fy", path.stroke.start.y.to_string ());
-                    stroke_element->new_prop ("r", Math.hypot (path.stroke.end.x - path.stroke.start.x, path.stroke.end.y - path.stroke.start.y).to_string ());
-                    stroke_element->new_prop ("fr", "0");
-                    stroke_element->new_prop ("gradientUnits", "userSpaceOnUse");
-                    
-                    for (int j = 0; j < path.stroke.get_n_items (); j++) {
-                        var stop = (Stop) path.stroke.get_item (j);
-                        Xml.Node* stop_element = new Xml.Node (null, "stop");
-                        stop_element->new_prop ("offset", stop.offset.to_string ());
-                        stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
-                        stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
-                        stroke_element->add_child (stop_element);
-                    }
-                    
-                    defs->add_child (stroke_element);
-                    break;
-            }
-            
-            Xml.Node* element = new Xml.Node (null, "path");
-            
-            element->new_prop ("id", path.title);
-            element->new_prop ("fill", fill);
-            element->new_prop ("stroke", stroke);
-            element->new_prop ("d", path.to_string ());
-            svg->add_child (element);
-}*/
-        
 }
