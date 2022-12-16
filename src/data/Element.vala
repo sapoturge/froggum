@@ -42,6 +42,8 @@ public abstract class Element : Object, Undoable {
         stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
         transform = new Transform.from_string (node->get_prop ("transform"));
 
+        transform_enabled = !transform.is_identity ();
+
         setup_signals ();
     }
 

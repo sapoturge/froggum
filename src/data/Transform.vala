@@ -460,6 +460,13 @@ public class Transform : Object, Undoable {
         }
     }
 
+    public bool is_identity () {
+        return (translate_x == 0 && translate_y == 0
+             && scale_x == 1 && scale_y == 1
+             && angle == 0
+             && skew == 0);
+    }
+
     private void update_matrix () {
         matrix = Cairo.Matrix.identity ();
         matrix.translate (translate_x, translate_y);
