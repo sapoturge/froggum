@@ -207,120 +207,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Draw Control Handles
             if (selected_path != null) {
                 selected_path.draw_controls (cr, zoom);
-                /*
-                selected_path.draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
-
-                cr.set_line_width (1 / zoom);
-                var s = selected_path.root_segment;
-                var first = true;
-                while (first || s != selected_path.root_segment) {
-                    first = false;
-                    switch (s.segment_type) {
-                        case SegmentType.CURVE:
-                            cr.move_to (s.start.x, s.start.y);
-                            cr.line_to (s.p1.x, s.p1.y);
-                            cr.line_to (s.p2.x, s.p2.y);
-                            cr.line_to (s.end.x, s.end.y);
-                            cr.set_source_rgba (0, 0.5, 1, 0.8);
-                            cr.stroke ();
-                            cr.arc (s.p1.x, s.p1.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            cr.arc (s.p2.x, s.p2.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            break;
-                        case SegmentType.LINE:
-                            // Lines have no additional controls.
-                            break;
-                        case SegmentType.ARC:
-                            cr.move_to (s.topleft.x, s.topleft.y);
-                            cr.line_to (s.topright.x, s.topright.y);
-                            cr.line_to (s.bottomright.x, s.bottomright.y);
-                            cr.line_to (s.bottomleft.x, s.bottomleft.y);
-                            cr.close_path ();
-                            cr.new_sub_path ();
-                            cr.save ();
-                            cr.translate (s.center.x, s.center.y);
-                            cr.rotate (s.angle);
-                            cr.scale (s.rx, s.ry);
-                            cr.arc (0, 0, 1, s.end_angle, s.start_angle);
-                            cr.restore ();
-                            cr.set_source_rgba (0, 0.5, 1, 0.8);
-                            cr.stroke ();
-                            cr.arc (s.controller.x, s.controller.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            cr.arc (s.topleft.x, s.topleft.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            cr.arc (s.topright.x, s.topright.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            cr.arc (s.bottomleft.x, s.bottomleft.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            cr.arc (s.bottomright.x, s.bottomright.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            cr.arc (s.center.x, s.center.y, 6 / zoom, 0, Math.PI * 2);
-                            cr.new_sub_path ();
-                            break;
-                    }
-                    cr.arc (s.end.x, s.end.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.set_source_rgba (1, 0, 0, 0.9);
-                    cr.fill ();
-                    s = s.next;
-                }
-
-                if (selected_path.fill.pattern_type == PatternType.LINEAR ||
-                    selected_path.fill.pattern_type == PatternType.RADIAL) {
-                    cr.move_to (selected_path.fill.start.x, selected_path.fill.start.y);
-                    cr.line_to (selected_path.fill.end.x, selected_path.fill.end.y);
-                    cr.set_source_rgba (0, 1, 0, 0.9);
-                    cr.stroke ();
-
-                    cr.arc (selected_path.fill.start.x, selected_path.fill.start.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (selected_path.fill.end.x, selected_path.fill.end.y, 6 / zoom, 0, Math.PI * 2);
-                 
-                    for (int i = 0; i < selected_path.fill.get_n_items (); i++) {
-                        var stop = (Stop) selected_path.fill.get_item (i);
-                        cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
-                    }
-
-                    cr.fill ();
-
-                    for (int i = 0; i < selected_path.fill.get_n_items (); i++) {
-                        var stop = (Stop) selected_path.fill.get_item (i);
-                        cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
-                        cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
-                        cr.fill ();
-                    }
-                }
-
-                if (selected_path.stroke.pattern_type == PatternType.LINEAR ||
-                    selected_path.stroke.pattern_type == PatternType.RADIAL) {
-                    cr.move_to (selected_path.stroke.start.x, selected_path.stroke.start.y);
-                    cr.line_to (selected_path.stroke.end.x, selected_path.stroke.end.y);
-                    cr.set_source_rgba (0, 1, 0, 0.9);
-                    cr.stroke ();
-
-                    cr.arc (selected_path.stroke.start.x, selected_path.stroke.start.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (selected_path.stroke.end.x, selected_path.stroke.end.y, 6 / zoom, 0, Math.PI * 2);
-
-                    for (int i = 0; i < selected_path.stroke.get_n_items (); i++) {
-                        var stop = (Stop) selected_path.stroke.get_item (i);
-                        cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
-                    }
-
-                    cr.fill ();
-
-                    for (int i = 0; i < selected_path.stroke.get_n_items (); i++) {
-                        var stop = (Stop) selected_path.stroke.get_item (i);
-                        cr.new_sub_path ();
-                        cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
-                        cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
-                        cr.fill ();
-                    }
-                } */
             }
             cr.restore();
             return false;
@@ -359,7 +245,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 if (clicked) {
                     path.select (true);
                 }
-                show_context_menu (segment, event);
+                show_context_menu (path, segment, event);
                 return false;
             }
             // Check for double-clicking on a path
@@ -517,7 +403,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         return false;
     }
         
-    private void show_context_menu (Segment? segment, Gdk.EventButton event) {
+    private void show_context_menu (Element element, Segment? segment, Gdk.EventButton event) {
         // Menu contents:
         // + Delete Path
         // ---
@@ -528,6 +414,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         //    + Arc
         // + Flip Arc
         // + Split Path
+        // ---
+        // + Show Transform
         var menu = new Gtk.Popover (this);
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
@@ -543,7 +431,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             menu_layout.pack_start (separator, false, false, 0);
 
-            /*
+            /* // Leaving this for when I figure out how to delete segments
             var delete_segment = new Gtk.Button ();
             delete_segment.label = _("Delete Segment");
             delete_segment.clicked.connect (() => {
@@ -621,6 +509,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     return;
             }
         }
+
+        var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
+        menu_layout.pack_start (separator, false, false, 0);
+
+        var show_transform = new Gtk.CheckButton.with_label (_("Show Transformation"));
+        show_transform.set_active (element.transform_enabled);
+        show_transform.toggled.connect (() => {
+            element.transform_enabled = !element.transform_enabled;
+            menu.popdown ();
+        });
+        menu_layout.pack_start (show_transform, false, false, 0);
 
         menu_layout.show_all ();
 

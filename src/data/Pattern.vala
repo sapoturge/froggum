@@ -49,31 +49,47 @@ public class Pattern : Object, ListModel, Undoable {
         if (text == null) {
             return new Pattern.none ();
         } else {
-            if (text.has_prefix ("url(#")) {
-                return patterns.@get (text.substring (5, text.length - 6));
-            } else if (text == "none") {
+            Parser parser = new Parser (text);
+            switch (parser.get_keyword ()) {
+            case Keyword.URL:
+                parser.match ("(");
+                parser.match ("#");
+                var name = parser.get_string ();
+                return patterns.@get (name.substring (0, name.length - 1));
+            case Keyword.NONE:
                 return new Pattern.none ();
-            } else {
+            case Keyword.RGB:
                 var rgba = Gdk.RGBA ();
-                if (text.has_prefix ("rgb(")) {
-                    var channels = text.substring (4, text.length - 5).split (",");
-                    rgba.red = int.parse (channels[0]) / 255.0;
-                    rgba.green = int.parse (channels[1]) / 255.0;
-                    rgba.blue = int.parse (channels[2]) / 255.0;
-                } else if (text.has_prefix ("rgba(")) {
-                    var channels = text.substring (5, text.length - 6).split (",");
-                    rgba.red = int.parse (channels[0]) / 255.0;
-                    rgba.green = int.parse (channels[1]) / 255.0;
-                    rgba.blue = int.parse (channels[2]) / 255.0;
-                    rgba.alpha = double.parse (channels[3]);
-                } else if (text.has_prefix ("#")) {
-                    var color_length = (text.length - 1) / 3;
+                parser.match ("(");
+                rgba.red = parser.get_int () / 255.0;
+                parser.match (",");
+                rgba.green = parser.get_int () / 255.0;
+                parser.match (",");
+                rgba.blue = parser.get_int () / 255.0;
+                rgba.alpha = 1.0;
+                return new Pattern.color (rgba);
+            case Keyword.RGBA:
+                var rgba = Gdk.RGBA ();
+                parser.match ("(");
+                rgba.red = parser.get_int () / 255.0;
+                parser.match (",");
+                rgba.green = parser.get_int () / 255.0;
+                parser.match (",");
+                rgba.blue = parser.get_int () / 255.0;
+                parser.match (",");
+                rgba.alpha = parser.get_double ();
+                return new Pattern.color (rgba);
+             case Keyword.NOT_FOUND:
+                 if (parser.match ("#")) {
+                    var rgba = Gdk.RGBA ();
+                    var color = parser.get_string (6);
+                    var color_length = color.length / 3;
                     var red = 0;
                     var green = 0;
                     var blue = 0;
-                    text.substring (1, color_length).scanf ("%x", &red);
-                    text.substring (1 + color_length, color_length).scanf ("%x", &green);
-                    text.substring (1 + color_length * 2, color_length).scanf ("%x", &blue);
+                    color.substring (1, color_length).scanf ("%x", &red);
+                    color.substring (1 + color_length, color_length).scanf ("%x", &green);
+                    color.substring (1 + color_length * 2, color_length).scanf ("%x", &blue);
                     if (color_length == 1) {
                         red *= 17;
                         green *= 17;
@@ -82,8 +98,15 @@ public class Pattern : Object, ListModel, Undoable {
                     rgba.red = red / 255.0;
                     rgba.green = green / 255.0;
                     rgba.blue = blue / 255.0;
+                    rgba.alpha = 1.0;
+                    return new Pattern.color (rgba);
+                } else {
+                    parser.error ("Unknown pattern");
+                    return new Pattern.none ();
                 }
-                return new Pattern.color (rgba);
+            default:
+                parser.error ("Unknown pattern");
+                return new Pattern.none ();
             }
         }
     }
@@ -237,6 +260,119 @@ public class Pattern : Object, ListModel, Undoable {
                 break;
         }
         add_command (command);
+    }
+
+    public string to_xml (Xml.Node* defs, ref int pattern_index) {
+        switch (pattern_type) {
+            case NONE:
+                return "none";
+            case COLOR:
+                return "rgba(%d,%d,%d,%f)".printf ((int) (rgba.red*255), (int) (rgba.green*255), (int) (rgba.blue*255), rgba.alpha);
+            case LINEAR:
+                pattern_index++;
+                Xml.Node* element = new Xml.Node (null, "linearGradient");
+                element->new_prop ("id", "linearGrad%d".printf (pattern_index));
+                element->new_prop ("x1", start.x.to_string ());
+                element->new_prop ("y1", start.y.to_string ());
+                element->new_prop ("x2", end.x.to_string ());
+                element->new_prop ("y2", end.y.to_string ());
+                element->new_prop ("gradientUnits", "userSpaceOnUse");
+                
+                for (int j = 0; j < get_n_items (); j++) {
+                    var stop = (Stop) get_item (j);
+                    Xml.Node* stop_element = new Xml.Node (null, "stop");
+                    stop_element->new_prop ("offset", stop.offset.to_string ());
+                    stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
+                    stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
+                    element->add_child (stop_element);
+                }
+                
+                defs->add_child (element);
+                return "url(#linearGrad%d)".printf (pattern_index);
+            case RADIAL:
+                pattern_index++;
+                Xml.Node* element = new Xml.Node (null, "radialGradient");
+                element->new_prop ("id", "radialGrad%d".printf (pattern_index));
+                element->new_prop ("cx", start.x.to_string ());
+                element->new_prop ("cy", start.y.to_string ());
+                element->new_prop ("fx", start.x.to_string ());
+                element->new_prop ("fy", start.y.to_string ());
+                element->new_prop ("r", Math.hypot (end.x - start.x, end.y - start.y).to_string ());
+                element->new_prop ("fr", "0");
+                element->new_prop ("gradientUnits", "userSpaceOnUse");
+                
+                for (int j = 0; j < get_n_items (); j++) {
+                    var stop = (Stop) get_item (j);
+                    Xml.Node* stop_element = new Xml.Node (null, "stop");
+                    stop_element->new_prop ("offset", stop.offset.to_string ());
+                    stop_element->new_prop ("stop-color", "rgb(%d,%d,%d)".printf ((int) (stop.rgba.red*255), (int) (stop.rgba.green*255), (int) (stop.rgba.blue*255)));
+                    stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
+                    element->add_child (stop_element);
+                }
+                
+                defs->add_child (element);
+                return "url(#radialGrad%d)".printf (pattern_index);
+            default:
+                // Assume none
+                return "none";
+        }
+    }
+
+    public void draw_controls (Cairo.Context cr, double zoom) {
+        if (pattern_type == LINEAR || pattern_type == RADIAL) {
+            cr.move_to (start.x, start.y);
+            cr.line_to (end.x, end.y);
+            cr.set_source_rgba (0, 1, 0, 0.9);
+            cr.stroke ();
+
+            cr.arc (start.x, start.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (end.x, end.y, 6 / zoom, 0, Math.PI * 2);
+            cr.fill ();
+           
+            for (int i = 0; i < get_n_items (); i++) {
+                var stop = (Stop) get_item (i);
+                cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
+                cr.set_source_rgba (0, 1, 0, 0.9);
+                cr.fill ();
+
+                cr.arc (stop.display.x, stop.display.y, 4 / zoom, 0, Math.PI * 2);
+                cr.set_source_rgba (stop.rgba.red, stop.rgba.green, stop.rgba.blue, stop.rgba.alpha);
+                cr.fill ();
+            }
+        }
+    }
+
+    public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if (pattern_type == LINEAR || pattern_type == RADIAL) {
+            for (var i = 0; i < get_n_items (); i++) {
+                var stop = (Stop) get_item (i);
+                if ((x - stop.display.x).abs () <= tolerance &&
+                    (y - stop.display.y).abs () <= tolerance) {
+                    obj = stop;
+                    prop = "display";
+                    return true;
+                }
+            }
+
+            if ((x - start.x).abs () <= tolerance &&
+                (y - start.y).abs () <= tolerance) {
+                obj = this;
+                prop = "start";
+                return true;
+            }
+
+            if ((x - end.x).abs () <= tolerance &&
+                (y - end.y).abs () <= tolerance) {
+                obj = this;
+                prop = "end";
+                return true;
+            }
+        }
+
+        obj = null;
+        prop = "";
+        return false;
     }
 }
 
