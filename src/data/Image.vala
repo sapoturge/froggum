@@ -262,6 +262,8 @@ public class Image : Gtk.TreeStore {
     }
 
     private Gtk.TreeIter add_element(Element element, Gtk.TreeIter? root) {
+        element.transform.width = width;
+        element.transform.height = height;
         element.update.connect (() => { update (); });
         element.select.connect ((selected) => {
             Element? select_path;

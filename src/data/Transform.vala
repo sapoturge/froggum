@@ -11,8 +11,8 @@ public class Transform : Object, Undoable {
     private double last_angle;
     private double last_skew;
 
-    private double width = 16;
-    private double height = 16;
+    public double width;
+    public double height;
 
     private Cairo.Matrix matrix;
 
