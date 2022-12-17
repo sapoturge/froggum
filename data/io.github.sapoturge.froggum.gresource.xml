@@ -5,5 +5,6 @@
     <file alias="gradient-radial.svg" compressed="true" preprocess="xml-stripblanks">icons/gradient-radial.svg</file>
     <file alias="circle-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/circle-new-symbolic.svg</file>
     <file alias="rectangle-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/rectangle-new-symbolic.svg</file>
+    <file alias="ellipse-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/ellipse-new-symbolic.svg</file>
   </gresource>
 </gresources>

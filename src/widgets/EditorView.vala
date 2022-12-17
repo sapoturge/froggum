@@ -125,10 +125,25 @@ public class EditorView : Gtk.Box {
             new_button_handler = new_button.clicked.connect (image.new_rectangle);
         });
 
+        var new_ellipse = new Gtk.MenuItem ();
+        var new_ellipse_icon = new Gtk.Image.from_icon_name ("ellipse-new-symbolic", Gtk.IconSize.MENU);
+        var new_ellipse_label = new Gtk.Label (_("New Ellipse"));
+        var new_ellipse_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        new_ellipse_box.add (new_ellipse_icon);
+        new_ellipse_box.add (new_ellipse_label);
+        new_ellipse.add (new_ellipse_box);
+        new_ellipse.activate.connect (() => {
+            image.new_ellipse ();
+            new_button.icon_widget = new_ellipse_icon;
+            new_button.disconnect (new_button_handler);
+            new_button_handler = new_button.clicked.connect (image.new_ellipse);
+        });
+
         var new_menu = new Gtk.Menu ();
         new_menu.add (new_path);
         new_menu.add (new_circle);
         new_menu.add (new_rectangle);
+        new_menu.add (new_ellipse);
  
         new_menu.show_all ();
 
