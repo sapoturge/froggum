@@ -4,11 +4,14 @@ public class EditorView : Gtk.Box {
     private Gtk.TreeView paths_list;
     private Gtk.TreeSelection selection;
     private Viewport viewport;
+    private ulong new_button_handler;
+    private Gtk.MenuToolButton new_button;
 
     public EditorView (Image image) {
         this.image = image;
         paths_list.model = image;
         viewport.image = image;
+        new_button_handler = new_button.clicked.connect (image.new_path);
     }
     
     construct {
@@ -78,8 +81,8 @@ public class EditorView : Gtk.Box {
         list_box_scroll.propagate_natural_width = true;
         list_box_scroll.add (paths_list);
 
-        var new_menu = new Gtk.Menu ();
-        
+        new_button = new Gtk.MenuToolButton (null, null);
+
         var new_path = new Gtk.MenuItem ();
         var new_path_icon = new Gtk.Image.from_icon_name ("list-add-symbolic", Gtk.IconSize.MENU);
         var new_path_label = new Gtk.Label (_("New Path"));
@@ -89,6 +92,9 @@ public class EditorView : Gtk.Box {
         new_path.add (new_path_box);
         new_path.activate.connect (() => {
             image.new_path ();
+            new_button.icon_widget = new_path_icon;
+            new_button.disconnect (new_button_handler);
+            new_button_handler = new_button.clicked.connect (image.new_path);
         });
 
         var new_circle = new Gtk.MenuItem ();
@@ -100,6 +106,9 @@ public class EditorView : Gtk.Box {
         new_circle.add (new_circle_box);
         new_circle.activate.connect (() => {
             image.new_circle ();
+            new_button.icon_widget = new_circle_icon;
+            new_button.disconnect (new_button_handler);
+            new_button_handler = new_button.clicked.connect (image.new_circle);
         });
 
         var new_rectangle = new Gtk.MenuItem ();
@@ -111,16 +120,20 @@ public class EditorView : Gtk.Box {
         new_rectangle.add (new_rectangle_box);
         new_rectangle.activate.connect (() => {
             image.new_rectangle ();
+            new_button.icon_widget = new_rectangle_icon;
+            new_button.disconnect (new_button_handler);
+            new_button_handler = new_button.clicked.connect (image.new_rectangle);
         });
 
+        var new_menu = new Gtk.Menu ();
         new_menu.add (new_path);
         new_menu.add (new_circle);
         new_menu.add (new_rectangle);
-
+ 
         new_menu.show_all ();
 
-        var new_button = new Gtk.MenuToolButton (null, null);
         new_button.set_menu (new_menu);
+        new_button.icon_name = "list-add-symbolic";
 
         var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
         new_group.tooltip_text = _("New group");
