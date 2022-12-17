@@ -78,19 +78,49 @@ public class EditorView : Gtk.Box {
         list_box_scroll.propagate_natural_width = true;
         list_box_scroll.add (paths_list);
 
-        var new_path = new Gtk.Button.from_icon_name ("list-add-symbolic");
-        new_path.tooltip_text = _("New path");
-        new_path.relief = NONE;
-        new_path.clicked.connect (() => {
+        var new_menu = new Gtk.Menu ();
+        
+        var new_path = new Gtk.MenuItem ();
+        var new_path_icon = new Gtk.Image.from_icon_name ("list-add-symbolic", Gtk.IconSize.MENU);
+        var new_path_label = new Gtk.Label (_("New Path"));
+        var new_path_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        new_path_box.add (new_path_icon);
+        new_path_box.add (new_path_label);
+        new_path.add (new_path_box);
+        new_path.activate.connect (() => {
             image.new_path ();
         });
 
-        var new_circle = new Gtk.Button.from_icon_name ("circle-new-symbolic");
-        new_circle.tooltip_text = _("New circle");
-        new_circle.relief = NONE;
-        new_circle.clicked.connect (() => {
+        var new_circle = new Gtk.MenuItem ();
+        var new_circle_icon = new Gtk.Image.from_icon_name ("circle-new-symbolic", Gtk.IconSize.MENU);
+        var new_circle_label = new Gtk.Label (_("New Circle"));
+        var new_circle_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        new_circle_box.add (new_circle_icon);
+        new_circle_box.add (new_circle_label);
+        new_circle.add (new_circle_box);
+        new_circle.activate.connect (() => {
             image.new_circle ();
         });
+
+        var new_rectangle = new Gtk.MenuItem ();
+        var new_rectangle_icon = new Gtk.Image.from_icon_name ("rectangle-new-symbolic", Gtk.IconSize.MENU);
+        var new_rectangle_label = new Gtk.Label (_("New Rectangle"));
+        var new_rectangle_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        new_rectangle_box.add (new_rectangle_icon);
+        new_rectangle_box.add (new_rectangle_label);
+        new_rectangle.add (new_rectangle_box);
+        new_rectangle.activate.connect (() => {
+            image.new_rectangle ();
+        });
+
+        new_menu.add (new_path);
+        new_menu.add (new_circle);
+        new_menu.add (new_rectangle);
+
+        new_menu.show_all ();
+
+        var new_button = new Gtk.MenuToolButton (null, null);
+        new_button.set_menu (new_menu);
 
         var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
         new_group.tooltip_text = _("New group");
@@ -131,8 +161,7 @@ public class EditorView : Gtk.Box {
         });
 
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        task_bar.pack_start (new_path);
-        task_bar.pack_start (new_circle);
+        task_bar.pack_start (new_button);
         task_bar.pack_start (new_group);
         task_bar.pack_start (duplicate_path);
         task_bar.pack_start (path_up);

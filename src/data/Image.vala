@@ -313,6 +313,11 @@ public class Image : Gtk.TreeStore {
         add_element (circle, null);
     }
 
+    public void new_rectangle () {
+        var rectangle = new Rectangle (2.5, 2.5, width - 5, height - 5, new Pattern.color ({0.66, 0.66, 0.66, 1}), new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        add_element (rectangle, null);
+    }
+
     public void new_group () {
         var group = new Group ();
         add_element (group, null);
