@@ -84,8 +84,8 @@ public class Ellipse : Element {
         base.from_xml (node, patterns);
         cx = double.parse (node->get_prop ("cx"));
         cy = double.parse (node->get_prop ("cy"));
-        rx = double.parse (node->get_prop ("ry"));
-        ry = double.parse (node->get_prop ("rx"));
+        rx = double.parse (node->get_prop ("rx"));
+        ry = double.parse (node->get_prop ("ry"));
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
@@ -196,8 +196,8 @@ public class Ellipse : Element {
 
         node->new_prop ("cx", cx.to_string ());
         node->new_prop ("cy", cy.to_string ());
-        node->new_prop ("rx", ry.to_string ());
-        node->new_prop ("ry", rx.to_string ());
+        node->new_prop ("rx", rx.to_string ());
+        node->new_prop ("ry", ry.to_string ());
 
         root->add_child (node);
 
