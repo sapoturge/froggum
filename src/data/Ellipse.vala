@@ -61,6 +61,16 @@ public class Ellipse : Element {
         }
     }
 
+    public Point center {
+        get {
+            return { cx, cy };
+        }
+        set {
+            cx = value.x;
+            cy = value.y;
+        }
+    }
+
     public Ellipse (double cx, double cy, double rx, double ry, Pattern fill, Pattern stroke, string? title = null) {
         this.cx = cx;
         this.cy = cy;
@@ -126,8 +136,17 @@ public class Ellipse : Element {
         cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
         cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.new_sub_path ();
+        cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
+
+        cr.move_to (top_left.x, top_left.y);
+        cr.line_to (top_right.x, top_right.y);
+        cr.line_to (bottom_right.x, bottom_right.y);
+        cr.line_to (bottom_left.x, bottom_left.y);
+        cr.close_path ();
+        cr.stroke ();
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
@@ -167,6 +186,9 @@ public class Ellipse : Element {
         } else if (bottom_close && right_close) {
             obj = this;
             prop = "bottom_right";
+        } else if ((x - cx).abs () <= tolerance && (y - cy).abs () <= tolerance) {
+            obj = this;
+            prop = "center";
         } else {
             obj = null;
             prop = "";

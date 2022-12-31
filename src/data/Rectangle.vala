@@ -57,6 +57,16 @@ public class Rectangle : Element {
         }
     } 
 
+    public Point center {
+        get {
+            return { x + width / 2, y + height / 2 };
+        }
+        set {
+            x = value.x - width / 2;
+            y = value.y - height / 2;
+        }
+    }
+
     public Rectangle (double x, double y, double width, double height, Pattern fill, Pattern stroke, string? title = null) {
         this.x = x;
         this.y = y;
@@ -121,6 +131,8 @@ public class Rectangle : Element {
         cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
         cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.new_sub_path ();
+        cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
@@ -162,6 +174,9 @@ public class Rectangle : Element {
         } else if (bottom_close && right_close) {
             obj = this;
             prop = "bottom_right";
+        } else if ((x - center.x).abs () <= tolerance && (y - center.y).abs () <= tolerance) {
+            obj = this;
+            prop = "center";
         } else {
             obj = null;
             prop = "";
@@ -177,15 +192,21 @@ public class Rectangle : Element {
 
     public override void finish (string prop) {
         var command = new Command ();
-        command.add_value (this, "width", width, last_width);
-        command.add_value (this, "height", height, last_height);
 
-        if (prop == "top_left" || prop == "top_right") {
-            command.add_value (this, "y", y, last_y);
-        }
-
-        if (prop == "top_left" || prop == "bottom_left") {
+        if (prop == "center") {
             command.add_value (this, "x", x, last_x);
+            command.add_value (this, "y", y, last_y);
+        } else {
+            command.add_value (this, "width", width, last_width);
+            command.add_value (this, "height", height, last_height);
+
+            if (prop == "top_left" || prop == "top_right") {
+                command.add_value (this, "y", y, last_y);
+            }
+
+            if (prop == "top_left" || prop == "bottom_left") {
+                command.add_value (this, "x", x, last_x);
+            }
         }
 
         add_command (command);
