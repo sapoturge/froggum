@@ -67,9 +67,42 @@ public class Parser : Object {
         return false;
     }
 
-    public int get_int () {
+    public bool get_int (out int value) {
         bool negative = match ("-");
-        int value = 0;
+        if (data.has_prefix ("0")) {
+            data = data.substring (1);
+            value = 0;
+        } else if (data.has_prefix ("1")) {
+            data = data.substring (1);
+            value = 1;
+        } else if (data.has_prefix ("2")) {
+            data = data.substring (1);
+            value = 2;
+        } else if (data.has_prefix ("3")) {
+            data = data.substring (1);
+            value = 3;
+        } else if (data.has_prefix ("4")) {
+            data = data.substring (1);
+            value = 4;
+        } else if (data.has_prefix ("5")) {
+            data = data.substring (1);
+            value = 5;
+        } else if (data.has_prefix ("6")) {
+            data = data.substring (1);
+            value = 6;
+        } else if (data.has_prefix ("7")) {
+            data = data.substring (1);
+            value = 7;
+        } else if (data.has_prefix ("8")) {
+            data = data.substring (1);
+            value = 8;
+        } else if (data.has_prefix ("9")) {
+            data = data.substring (1);
+            value = 9;
+        } else {
+            value = 0;
+            return false;
+        }
         while (data != "") {
             if (data.has_prefix ("0")) {
                 data = data.substring (1);
@@ -111,21 +144,23 @@ public class Parser : Object {
                 value *= 10;
                 value += 9;
             } else if (negative) {
-                return -value;
+                value = -value;
+                return true;
             } else {
-                return value;
+                return true;
             }
         }
 
         if (negative) {
-            return -value;
-        } else {
-            return value;
+            value = -value;
         }
+        return true;
     }
 
     public double get_double () {
-        double value = get_int ();
+        int base_val;
+        get_int (out base_val);
+        double value = base_val;
         match (".", false);
         double exponent = 0;
         while (data != "") {

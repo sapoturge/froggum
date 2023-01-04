@@ -60,22 +60,36 @@ public class Pattern : Object, ListModel, Undoable {
                 return new Pattern.none ();
             case Keyword.RGB:
                 var rgba = Gdk.RGBA ();
+                int value;
                 parser.match ("(");
-                rgba.red = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.red = value / 255.0;
+                }
                 parser.match (",");
-                rgba.green = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.green = value / 255.0;
+                }
                 parser.match (",");
-                rgba.blue = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.blue = value / 255.0;
+                }
                 rgba.alpha = 1.0;
                 return new Pattern.color (rgba);
             case Keyword.RGBA:
                 var rgba = Gdk.RGBA ();
+                int value;
                 parser.match ("(");
-                rgba.red = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.red = value / 255.0;
+                }
                 parser.match (",");
-                rgba.green = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.green = value / 255.0;
+                }
                 parser.match (",");
-                rgba.blue = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.blue = value / 255.0;
+                }
                 parser.match (",");
                 rgba.alpha = parser.get_double ();
                 return new Pattern.color (rgba);
