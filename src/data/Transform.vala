@@ -357,41 +357,43 @@ public class Transform : Object, Undoable {
                     case Keyword.MATRIX:
                         var new_matrix = Cairo.Matrix.identity ();
                         parser.match ("(");
-                        new_matrix.xx = parser.get_double ();
+                        parser.get_double (out new_matrix.xx);
                         parser.match (",");
-                        new_matrix.yx = parser.get_double ();
+                        parser.get_double (out new_matrix.yx);
                         parser.match (",");
-                        new_matrix.xy = parser.get_double ();
+                        parser.get_double (out new_matrix.xy);
                         parser.match (",");
-                        new_matrix.yy = parser.get_double ();
+                        parser.get_double (out new_matrix.yy);
                         parser.match (",");
-                        new_matrix.x0 = parser.get_double ();
+                        parser.get_double (out new_matrix.x0);
                         parser.match (",");
-                        new_matrix.y0 = parser.get_double ();
+                        parser.get_double (out new_matrix.y0);
                         parser.match (")");
                         matrix.multiply (matrix, new_matrix);
                         break;
                     case Keyword.TRANSLATE:
                         parser.match ("(");
-                        var translate_x = parser.get_double ();
-                        var translate_y = 0.0;
+                        double translate_x;
+                        parser.get_double (out translate_x);
+                        double translate_y = 0.0;
                         if (!parser.match (")")) {
                             parser.match (",");
-                            translate_y = parser.get_double ();
+                            parser.get_double (out translate_y);
                             parser.match (")");
                         }
                         matrix.translate (translate_x, translate_y);
                         break;
                     case Keyword.ROTATE:
                         parser.match ("(");
-                        var angle = parser.get_double ();
+                        double angle;
+                        parser.get_double (out angle);
                         double cx = 0;
                         double cy = 0;
                         if (!parser.match (")")) {
                             parser.match (",");
-                            cx = parser.get_double ();
+                            parser.get_double (out cx);
                             parser.match (",");
-                            cy = parser.get_double ();
+                            parser.get_double (out cy);
                             parser.match (")");
                         }
                
@@ -401,11 +403,12 @@ public class Transform : Object, Undoable {
                         break;
                     case Keyword.SCALE:
                         parser.match ("(");
-                        var sx = parser.get_double ();
+                        double sx;
+                        parser.get_double (out sx);
                         var sy = sx;
                         if (!parser.match (")")) {
                             parser.match (",");
-                            sy = parser.get_double ();
+                            parser.get_double (out sy);
                             parser.match (")");
                         }
  
@@ -416,14 +419,18 @@ public class Transform : Object, Undoable {
                     case Keyword.SKEW_X:
                         parser.match ("(");
                         var new_mat = Cairo.Matrix.identity ();
-                        new_mat.xy = Math.tan (parser.get_double () * Math.PI / 180.0);
+                        var angle = 0.0;
+                        parser.get_double (out angle);
+                        new_mat.xy = Math.tan (angle * Math.PI / 180.0);
                         parser.match (")");
                         matrix.multiply (new_mat, matrix);
                         break;
                     case Keyword.SKEW_Y:
                         parser.match ("(");
                         var new_mat = Cairo.Matrix.identity ();
-                        new_mat.yx = Math.tan (parser.get_double () * Math.PI / 180.0);
+                        var angle = 0.0;
+                        parser.get_double (out angle);
+                        new_mat.yx = Math.tan (angle * Math.PI / 180.0);
                         parser.match (")");
                         matrix.multiply (new_mat, matrix);
                         break;

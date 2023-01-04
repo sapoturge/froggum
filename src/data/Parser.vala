@@ -157,11 +157,18 @@ public class Parser : Object {
         return true;
     }
 
-    public double get_double () {
+    public bool get_double (out double value) {
+        double multiplier = 1;
+        if (match ("-")) {
+            multiplier = -1;
+        }
         int base_val;
-        get_int (out base_val);
-        double value = base_val;
-        match (".", false);
+        var has_int_part = get_int (out base_val);
+        value = base_val;
+        var has_decimal_part = match (".", false);
+        if (!(has_int_part || has_decimal_part)) {
+            return false;
+        }
         double exponent = 0;
         while (data != "") {
             if (data.has_prefix ("0")) {
@@ -170,44 +177,44 @@ public class Parser : Object {
             } else if (data.has_prefix ("1")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 1 * Math.exp10 (exponent);
+                value += multiplier * 1 * Math.exp10 (exponent);
             } else if (data.has_prefix ("2")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 2 * Math.exp10 (exponent);
+                value += multiplier * 2 * Math.exp10 (exponent);
             } else if (data.has_prefix ("3")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 3 * Math.exp10 (exponent);
+                value += multiplier * 3 * Math.exp10 (exponent);
             } else if (data.has_prefix ("4")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 4 * Math.exp10 (exponent);
+                value += multiplier * 4 * Math.exp10 (exponent);
             } else if (data.has_prefix ("5")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 5 * Math.exp10 (exponent);
+                value += multiplier * 5 * Math.exp10 (exponent);
             } else if (data.has_prefix ("6")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 6 * Math.exp10 (exponent);
+                value += multiplier * 6 * Math.exp10 (exponent);
             } else if (data.has_prefix ("7")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 7 * Math.exp10 (exponent);
+                value += multiplier * 7 * Math.exp10 (exponent);
             } else if (data.has_prefix ("8")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 8 * Math.exp10 (exponent);
+                value += multiplier * 8 * Math.exp10 (exponent);
             } else if (data.has_prefix ("9")) {
                 data = data.substring (1);
                 exponent -= 1;
-                value += 9 * Math.exp10 (exponent);
+                value += multiplier * 9 * Math.exp10 (exponent);
             } else {
-                return value;
+                return true;
             }
         }
-        return value;
+        return true;
     }
 
     public int get_hex () {

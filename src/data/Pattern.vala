@@ -91,7 +91,7 @@ public class Pattern : Object, ListModel, Undoable {
                     rgba.blue = value / 255.0;
                 }
                 parser.match (",");
-                rgba.alpha = parser.get_double ();
+                parser.get_double (out rgba.alpha);
                 return new Pattern.color (rgba);
              case Keyword.NOT_FOUND:
                  if (parser.match ("#")) {
