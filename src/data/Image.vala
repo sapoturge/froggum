@@ -188,6 +188,9 @@ public class Image : Gtk.TreeStore {
             } else if (iter->name == "ellipse") {
                 var ellipse = new Ellipse.from_xml (iter, patterns);
                 add_element (ellipse, root);
+            } else if (iter->name == "line") {
+                var line = new Line.from_xml (iter, patterns);
+                add_element (line, root);
             }
         }
     }
@@ -324,6 +327,11 @@ public class Image : Gtk.TreeStore {
     public void new_ellipse () {
         var ellipse = new Ellipse (width / 2, height / 2, width / 2 - 5, height / 2 - 5, new Pattern.color ({0.66, 0.66, 0.66, 1}), new Pattern.color ({0.33, 0.33, 0.33, 1}));
         add_element (ellipse, null);
+    }
+
+    public void new_line () {
+        var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        add_element (line, null);
     }
 
     public void new_group () {

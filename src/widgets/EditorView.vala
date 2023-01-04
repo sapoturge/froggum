@@ -139,11 +139,26 @@ public class EditorView : Gtk.Box {
             new_button_handler = new_button.clicked.connect (image.new_ellipse);
         });
 
+        var new_line = new Gtk.MenuItem ();
+        var new_line_icon = new Gtk.Image.from_icon_name ("line-new-symbolic", Gtk.IconSize.MENU);
+        var new_line_label = new Gtk.Label (_("New Line"));
+        var new_line_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        new_line_box.add (new_line_icon);
+        new_line_box.add (new_line_label);
+        new_line.add (new_line_box);
+        new_line.activate.connect (() => {
+            image.new_line ();
+            new_button.icon_widget = new_line_icon;
+            new_button.disconnect (new_button_handler);
+            new_button_handler = new_button.clicked.connect (image.new_line);
+        });
+
         var new_menu = new Gtk.Menu ();
         new_menu.add (new_path);
         new_menu.add (new_circle);
         new_menu.add (new_rectangle);
         new_menu.add (new_ellipse);
+        new_menu.add (new_line);
  
         new_menu.show_all ();
 

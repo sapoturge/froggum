@@ -37,6 +37,7 @@ executable(
     'src/data/Parser.vala',
     'src/data/Rectangle.vala',
     'src/data/Ellipse.vala',
+    'src/data/Line.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),
