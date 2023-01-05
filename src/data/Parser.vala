@@ -169,47 +169,37 @@ public class Parser : Object {
         if (!(has_int_part || has_decimal_part)) {
             return false;
         }
-        double exponent = 0;
         while (data != "") {
+            multiplier /= 10;
             if (data.has_prefix ("0")) {
                 data = data.substring (1);
-                exponent -= 1;
             } else if (data.has_prefix ("1")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 1 * Math.exp10 (exponent);
+                value += multiplier * 1;
             } else if (data.has_prefix ("2")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 2 * Math.exp10 (exponent);
+                value += multiplier * 2;
             } else if (data.has_prefix ("3")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 3 * Math.exp10 (exponent);
+                value += multiplier * 3;
             } else if (data.has_prefix ("4")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 4 * Math.exp10 (exponent);
+                value += multiplier * 4;
             } else if (data.has_prefix ("5")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 5 * Math.exp10 (exponent);
+                value += multiplier * 5;
             } else if (data.has_prefix ("6")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 6 * Math.exp10 (exponent);
+                value += multiplier * 6;
             } else if (data.has_prefix ("7")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 7 * Math.exp10 (exponent);
+                value += multiplier * 7;
             } else if (data.has_prefix ("8")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 8 * Math.exp10 (exponent);
+                value += multiplier * 8;
             } else if (data.has_prefix ("9")) {
                 data = data.substring (1);
-                exponent -= 1;
-                value += multiplier * 9 * Math.exp10 (exponent);
+                value += multiplier * 9;
             } else {
                 return true;
             }
