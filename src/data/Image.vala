@@ -191,6 +191,9 @@ public class Image : Gtk.TreeStore {
             } else if (iter->name == "line") {
                 var line = new Line.from_xml (iter, patterns);
                 add_element (line, root);
+            } else if (iter->name == "polyline") {
+                var line = new Polyline.from_xml (iter, patterns);
+                add_element (line, root);
             }
         }
     }
@@ -331,6 +334,17 @@ public class Image : Gtk.TreeStore {
 
     public void new_line () {
         var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        add_element (line, null);
+    }
+
+    public void new_polyline () {
+        var line = new Polyline ({Point (1.5, 1.5),
+                                  Point (1.5, height - 1.5 ),
+                                  Point (width - 1.5, 1.5 ),
+                                  Point (width - 1.5, height - 1.5 )},
+                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
+                                 new Pattern.color ({0.33, 0.33, 0.33, 1}),
+                                 "New Polyline");
         add_element (line, null);
     }
 

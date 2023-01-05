@@ -153,12 +153,27 @@ public class EditorView : Gtk.Box {
             new_button_handler = new_button.clicked.connect (image.new_line);
         });
 
+        var new_polyline = new Gtk.MenuItem ();
+        var new_polyline_icon = new Gtk.Image.from_icon_name ("polyline-new-symbolic", Gtk.IconSize.MENU);
+        var new_polyline_label = new Gtk.Label (_("New Polyline"));
+        var new_polyline_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        new_polyline_box.add (new_polyline_icon);
+        new_polyline_box.add (new_polyline_label);
+        new_polyline.add (new_polyline_box);
+        new_polyline.activate.connect (() => {
+            image.new_polyline ();
+            new_button.icon_widget = new_polyline_icon;
+            new_button.disconnect (new_button_handler);
+            new_button_handler = new_button.clicked.connect (image.new_polyline);
+        });
+
         var new_menu = new Gtk.Menu ();
         new_menu.add (new_path);
         new_menu.add (new_circle);
         new_menu.add (new_rectangle);
         new_menu.add (new_ellipse);
         new_menu.add (new_line);
+        new_menu.add (new_polyline);
  
         new_menu.show_all ();
 

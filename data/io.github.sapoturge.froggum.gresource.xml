@@ -7,5 +7,6 @@
     <file alias="rectangle-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/rectangle-new-symbolic.svg</file>
     <file alias="ellipse-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/ellipse-new-symbolic.svg</file>
     <file alias="line-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/line-new-symbolic.svg</file>
+    <file alias="polyline-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/polyline-new-symbolic.svg</file>
   </gresource>
 </gresources>
