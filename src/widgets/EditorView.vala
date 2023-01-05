@@ -167,6 +167,20 @@ public class EditorView : Gtk.Box {
             new_button_handler = new_button.clicked.connect (image.new_polyline);
         });
 
+        var new_polygon = new Gtk.MenuItem ();
+        var new_polygon_icon = new Gtk.Image.from_icon_name ("polygon-new-symbolic", Gtk.IconSize.MENU);
+        var new_polygon_label = new Gtk.Label (_("New Polygon"));
+        var new_polygon_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        new_polygon_box.add (new_polygon_icon);
+        new_polygon_box.add (new_polygon_label);
+        new_polygon.add (new_polygon_box);
+        new_polygon.activate.connect (() => {
+            image.new_polygon ();
+            new_button.icon_widget = new_polygon_icon;
+            new_button.disconnect (new_button_handler);
+            new_button_handler = new_button.clicked.connect (image.new_polygon);
+        });
+
         var new_menu = new Gtk.Menu ();
         new_menu.add (new_path);
         new_menu.add (new_circle);
@@ -174,6 +188,7 @@ public class EditorView : Gtk.Box {
         new_menu.add (new_ellipse);
         new_menu.add (new_line);
         new_menu.add (new_polyline);
+        new_menu.add (new_polygon);
  
         new_menu.show_all ();
 
