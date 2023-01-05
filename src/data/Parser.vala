@@ -207,6 +207,23 @@ public class Parser : Object {
         return true;
     }
 
+    public bool get_digit (out int value, int num_base=10, bool strip = true) {
+        if (strip) {
+            data = data.strip ();
+        }
+
+        string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for (value = 0; value < num_base && value < digits.length; value++) {
+            string digit_value = digits.substring (value, 1);
+            if (match (digit_value, false) || match (digit_value.down (), false)) {
+                return true;
+            }
+        }
+        
+        value = 0;
+        return false;
+    }
+
     public int get_hex () {
         data = data.strip ();
         int value = 0;
