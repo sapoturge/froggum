@@ -367,23 +367,65 @@ public class Image : Gtk.TreeStore {
         add_element (group, null);
     }
 
-    public void duplicate_path () {
-        var path = get_element (last_selected_path).copy ();
-        add_element (path, null);
-    }
+    public void duplicate_path (Gtk.TreeIter? iter=null) {
+        if (iter == null) {
+            iter = last_selected_path;
+        }
+ 
+        if (iter != null) {
+            if (iter == last_selected_path) {
+                last_selected_path = null;
+                selected_path = null;
+                path_selected (null);
+            }
 
-    public void path_up () {
-        Gtk.TreeIter next = selected_path;
-        if (iter_next(ref next)) {
-            swap (selected_path, next);
+            var path = get_element (iter).copy ();
+            add_element (path, null);
+            update ();
         }
     }
 
-    public void path_down () {
-        Gtk.TreeIter prev = selected_path;
-        if (iter_previous(ref prev)) {
-            swap (selected_path, prev);
+    public void path_up (Gtk.TreeIter? iter=null) {
+        if (iter == null) {
+            iter = last_selected_path;
         }
+ 
+        if (iter != null) {
+            if (iter == last_selected_path) {
+                last_selected_path = null;
+                selected_path = null;
+                path_selected (null);
+            }
+
+            Gtk.TreeIter prev = iter;
+
+            if (iter_next(ref prev)) {
+                swap (iter, prev);
+            }
+
+            update ();
+       }
+    }
+
+    public void path_down (Gtk.TreeIter? iter=null) {
+        if (iter == null) {
+            iter = last_selected_path;
+        }
+ 
+        if (iter != null) {
+            if (iter == last_selected_path) {
+                last_selected_path = null;
+                selected_path = null;
+                path_selected (null);
+            }
+
+            Gtk.TreeIter next = iter;
+            if (iter_previous(ref next)) {
+                swap (iter, next);
+            }
+
+            update ();
+       }
     }
 
     public void delete_path (Gtk.TreeIter? iter=null) {
@@ -397,6 +439,7 @@ public class Image : Gtk.TreeStore {
                 selected_path = null;
                 path_selected (null);
             }
+
             remove (ref iter);
             update ();
        }

@@ -206,21 +206,30 @@ public class EditorView : Gtk.Box {
         duplicate_path.tooltip_text = _("Duplicate path");
         duplicate_path.relief = NONE;
         duplicate_path.clicked.connect (() => {
-            image.duplicate_path ();
+            Gtk.TreeIter iter;
+            if (selection.get_selected (null, out iter)) {
+                image.duplicate_path (iter);
+            }
         });
 
         var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
         path_up.tooltip_text = _("Move path up");
         path_up.relief = NONE;
         path_up.clicked.connect (() => {
-            image.path_up ();
+            Gtk.TreeIter iter;
+            if (selection.get_selected (null, out iter)) {
+                image.path_up (iter);
+            }
         });
 
         var path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
         path_down.tooltip_text = _("Move path down");
         path_down.relief = NONE;
         path_down.clicked.connect (() => {
-            image.path_down ();
+            Gtk.TreeIter iter;
+            if (selection.get_selected (null, out iter)) {
+                image.path_down (iter);
+            }
         });
 
         var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
