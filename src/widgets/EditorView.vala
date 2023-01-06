@@ -92,7 +92,7 @@ public class EditorView : Gtk.Box {
         new_path.add (new_path_box);
         new_path.activate.connect (() => {
             image.new_path ();
-            new_button.icon_widget = new_path_icon;
+            new_button.icon_name = "list-add-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_path);
         });
@@ -106,7 +106,7 @@ public class EditorView : Gtk.Box {
         new_circle.add (new_circle_box);
         new_circle.activate.connect (() => {
             image.new_circle ();
-            new_button.icon_widget = new_circle_icon;
+            new_button.icon_name = "circle-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_circle);
         });
@@ -120,7 +120,7 @@ public class EditorView : Gtk.Box {
         new_rectangle.add (new_rectangle_box);
         new_rectangle.activate.connect (() => {
             image.new_rectangle ();
-            new_button.icon_widget = new_rectangle_icon;
+            new_button.icon_name = "rectangle-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_rectangle);
         });
@@ -134,7 +134,7 @@ public class EditorView : Gtk.Box {
         new_ellipse.add (new_ellipse_box);
         new_ellipse.activate.connect (() => {
             image.new_ellipse ();
-            new_button.icon_widget = new_ellipse_icon;
+            new_button.icon_name = "ellipse-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_ellipse);
         });
@@ -148,7 +148,7 @@ public class EditorView : Gtk.Box {
         new_line.add (new_line_box);
         new_line.activate.connect (() => {
             image.new_line ();
-            new_button.icon_widget = new_line_icon;
+            new_button.icon_name = "line-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_line);
         });
@@ -162,7 +162,7 @@ public class EditorView : Gtk.Box {
         new_polyline.add (new_polyline_box);
         new_polyline.activate.connect (() => {
             image.new_polyline ();
-            new_button.icon_widget = new_polyline_icon;
+            new_button.icon_name = "polyline-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_polyline);
         });
@@ -176,7 +176,7 @@ public class EditorView : Gtk.Box {
         new_polygon.add (new_polygon_box);
         new_polygon.activate.connect (() => {
             image.new_polygon ();
-            new_button.icon_widget = new_polygon_icon;
+            new_button.icon_name = "polygon-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_polygon);
         });
