@@ -11,6 +11,11 @@ public class EditorView : Gtk.Box {
         this.image = image;
         paths_list.model = image;
         viewport.image = image;
+        image.path_selected.connect ((e, i) => {
+            if (i != null) {
+                selection.select_iter (i);
+            }
+        });
         new_button_handler = new_button.clicked.connect (image.new_path);
     }
     

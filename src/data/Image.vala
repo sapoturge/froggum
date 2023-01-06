@@ -13,7 +13,7 @@ public class Image : Gtk.TreeStore {
 
     public signal void update ();
 
-    public signal void path_selected (Element? path);
+    public signal void path_selected (Element? path, Gtk.TreeIter? iter);
 
     private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
 
@@ -291,10 +291,10 @@ public class Image : Gtk.TreeStore {
                 }
                 last_selected_path = element_index[element];
                 selected_path = element_index[element];
-                path_selected (element);
+                path_selected (element, selected_path);
             } else if (selected == false) {
                 selected_path = null;
-                path_selected (null);
+                path_selected (null, null);
             }
         });
         Gtk.TreeIter iter;
@@ -376,7 +376,7 @@ public class Image : Gtk.TreeStore {
             if (iter == last_selected_path) {
                 last_selected_path = null;
                 selected_path = null;
-                path_selected (null);
+                path_selected (null, null);
             }
 
             var path = get_element (iter).copy ();
@@ -394,7 +394,7 @@ public class Image : Gtk.TreeStore {
             if (iter == last_selected_path) {
                 last_selected_path = null;
                 selected_path = null;
-                path_selected (null);
+                path_selected (null, null);
             }
 
             Gtk.TreeIter prev = iter;
@@ -416,7 +416,7 @@ public class Image : Gtk.TreeStore {
             if (iter == last_selected_path) {
                 last_selected_path = null;
                 selected_path = null;
-                path_selected (null);
+                path_selected (null, null);
             }
 
             Gtk.TreeIter next = iter;
@@ -437,7 +437,7 @@ public class Image : Gtk.TreeStore {
             if (iter == last_selected_path) {
                 last_selected_path = null;
                 selected_path = null;
-                path_selected (null);
+                path_selected (null, null);
             }
 
             remove (ref iter);
