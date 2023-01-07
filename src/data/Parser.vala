@@ -69,91 +69,20 @@ public class Parser : Object {
 
     public bool get_int (out int value) {
         bool negative = match ("-");
-        if (data.has_prefix ("0")) {
-            data = data.substring (1);
-            value = 0;
-        } else if (data.has_prefix ("1")) {
-            data = data.substring (1);
-            value = 1;
-        } else if (data.has_prefix ("2")) {
-            data = data.substring (1);
-            value = 2;
-        } else if (data.has_prefix ("3")) {
-            data = data.substring (1);
-            value = 3;
-        } else if (data.has_prefix ("4")) {
-            data = data.substring (1);
-            value = 4;
-        } else if (data.has_prefix ("5")) {
-            data = data.substring (1);
-            value = 5;
-        } else if (data.has_prefix ("6")) {
-            data = data.substring (1);
-            value = 6;
-        } else if (data.has_prefix ("7")) {
-            data = data.substring (1);
-            value = 7;
-        } else if (data.has_prefix ("8")) {
-            data = data.substring (1);
-            value = 8;
-        } else if (data.has_prefix ("9")) {
-            data = data.substring (1);
-            value = 9;
-        } else {
+        if (!get_digit (out value, 10, false)) {
             value = 0;
             return false;
         }
-        while (data != "") {
-            if (data.has_prefix ("0")) {
-                data = data.substring (1);
-                value *= 10;
-            } else if (data.has_prefix ("1")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 1;
-            } else if (data.has_prefix ("2")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 2;
-            } else if (data.has_prefix ("3")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 3;
-            } else if (data.has_prefix ("4")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 4;
-            } else if (data.has_prefix ("5")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 5;
-            } else if (data.has_prefix ("6")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 6;
-            } else if (data.has_prefix ("7")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 7;
-            } else if (data.has_prefix ("8")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 8;
-            } else if (data.has_prefix ("9")) {
-                data = data.substring (1);
-                value *= 10;
-                value += 9;
-            } else if (negative) {
-                value = -value;
-                return true;
-            } else {
-                return true;
-            }
+        int next_digit = 0;
+        while (data != "" && get_digit (out next_digit, 10, false)) {
+            value *= 10;
+            value += next_digit;
         }
 
         if (negative) {
             value = -value;
         }
+
         return true;
     }
 
@@ -162,6 +91,7 @@ public class Parser : Object {
         if (match ("-")) {
             multiplier = -1;
         }
+
         int base_val;
         var has_int_part = get_int (out base_val);
         value = base_val;
@@ -169,40 +99,11 @@ public class Parser : Object {
         if (!(has_int_part || has_decimal_part)) {
             return false;
         }
-        while (data != "") {
+
+        int next_digit = 0;
+        while (data != "" && get_digit (out next_digit, 10, false)) {
             multiplier /= 10;
-            if (data.has_prefix ("0")) {
-                data = data.substring (1);
-            } else if (data.has_prefix ("1")) {
-                data = data.substring (1);
-                value += multiplier * 1;
-            } else if (data.has_prefix ("2")) {
-                data = data.substring (1);
-                value += multiplier * 2;
-            } else if (data.has_prefix ("3")) {
-                data = data.substring (1);
-                value += multiplier * 3;
-            } else if (data.has_prefix ("4")) {
-                data = data.substring (1);
-                value += multiplier * 4;
-            } else if (data.has_prefix ("5")) {
-                data = data.substring (1);
-                value += multiplier * 5;
-            } else if (data.has_prefix ("6")) {
-                data = data.substring (1);
-                value += multiplier * 6;
-            } else if (data.has_prefix ("7")) {
-                data = data.substring (1);
-                value += multiplier * 7;
-            } else if (data.has_prefix ("8")) {
-                data = data.substring (1);
-                value += multiplier * 8;
-            } else if (data.has_prefix ("9")) {
-                data = data.substring (1);
-                value += multiplier * 9;
-            } else {
-                return true;
-            }
+            value += multiplier * next_digit;
         }
         return true;
     }
@@ -224,62 +125,20 @@ public class Parser : Object {
         return false;
     }
 
-    public int get_hex () {
+    public bool get_hex (out int value) {
         data = data.strip ();
-        int value = 0;
-        while (data != "") {
-            if (match ("0", false)) {
-                value *= 16;
-            } else if (match ("1", false)) {
-                value *= 16;
-                value += 1;
-            } else if (match ("2", false)) {
-                value *= 16;
-                value += 2;
-            } else if (match ("3", false)) {
-                value *= 16;
-                value += 3;
-            } else if (match ("4", false)) {
-                value *= 16;
-                value += 4;
-            } else if (match ("5", false)) {
-                value *= 16;
-                value += 5;
-            } else if (match ("6", false)) {
-                value *= 16;
-                value += 6;
-            } else if (match ("7", false)) {
-                value *= 16;
-                value += 7;
-            } else if (match ("8", false)) {
-                value *= 16;
-                value += 8;
-            } else if (match ("9", false)) {
-                value *= 16;
-                value += 9;
-            } else if (match ("a", false) || match ("A", false)) {
-                value *= 16;
-                value += 10;
-            } else if (match ("b", false) || match ("B", false)) {
-                value *= 16;
-                value += 11;
-            } else if (match ("c", false) || match ("C", false)) {
-                value *= 16;
-                value += 12;
-            } else if (match ("d", false) || match ("D", false)) {
-                value *= 16;
-                value += 13;
-            } else if (match ("e", false) || match ("E", false)) {
-                value *= 16;
-                value += 14;
-            } else if (match ("f", false) || match ("F", false)) {
-                value *= 16;
-                value += 15;
-            } else {
-                return value;
-            }
+        if (!get_digit (out value, 16)) {
+            value = 0;
+            return false;
         }
-        return value;
+
+        int next_digit = 0;
+        while (data != "" && get_digit (out next_digit, 16, false)) {
+            value *= 16;
+            value += next_digit;
+        }
+
+        return true;
     }
 
     public string get_string (int length=0) {
