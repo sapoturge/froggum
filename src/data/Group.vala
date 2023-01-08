@@ -4,6 +4,7 @@ public class Group : Element {
         visible = true;
         fill = null;
         stroke = null;
+        transform = new Transform.identity ();
    
         setup_signals ();
 

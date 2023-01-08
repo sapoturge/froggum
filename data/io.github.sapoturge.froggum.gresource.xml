@@ -4,5 +4,10 @@
     <file alias="gradient-linear.svg" compressed="true" preprocess="xml-stripblanks">icons/gradient-linear.svg</file>
     <file alias="gradient-radial.svg" compressed="true" preprocess="xml-stripblanks">icons/gradient-radial.svg</file>
     <file alias="circle-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/circle-new-symbolic.svg</file>
+    <file alias="rectangle-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/rectangle-new-symbolic.svg</file>
+    <file alias="ellipse-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/ellipse-new-symbolic.svg</file>
+    <file alias="line-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/line-new-symbolic.svg</file>
+    <file alias="polyline-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/polyline-new-symbolic.svg</file>
+    <file alias="polygon-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/polygon-new-symbolic.svg</file>
   </gresource>
 </gresources>

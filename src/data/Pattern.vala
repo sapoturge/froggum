@@ -60,41 +60,61 @@ public class Pattern : Object, ListModel, Undoable {
                 return new Pattern.none ();
             case Keyword.RGB:
                 var rgba = Gdk.RGBA ();
+                int value;
                 parser.match ("(");
-                rgba.red = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.red = value / 255.0;
+                }
                 parser.match (",");
-                rgba.green = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.green = value / 255.0;
+                }
                 parser.match (",");
-                rgba.blue = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.blue = value / 255.0;
+                }
                 rgba.alpha = 1.0;
                 return new Pattern.color (rgba);
             case Keyword.RGBA:
                 var rgba = Gdk.RGBA ();
+                int value;
                 parser.match ("(");
-                rgba.red = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.red = value / 255.0;
+                }
                 parser.match (",");
-                rgba.green = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.green = value / 255.0;
+                }
                 parser.match (",");
-                rgba.blue = parser.get_int () / 255.0;
+                if (parser.get_int (out value)) {
+                    rgba.blue = value / 255.0;
+                }
                 parser.match (",");
-                rgba.alpha = parser.get_double ();
+                parser.get_double (out rgba.alpha);
                 return new Pattern.color (rgba);
              case Keyword.NOT_FOUND:
                  if (parser.match ("#")) {
                     var rgba = Gdk.RGBA ();
-                    var color = parser.get_string (6);
-                    var color_length = color.length / 3;
-                    var red = 0;
-                    var green = 0;
-                    var blue = 0;
-                    color.substring (1, color_length).scanf ("%x", &red);
-                    color.substring (1 + color_length, color_length).scanf ("%x", &green);
-                    color.substring (1 + color_length * 2, color_length).scanf ("%x", &blue);
-                    if (color_length == 1) {
-                        red *= 17;
-                        green *= 17;
-                        blue *= 17;
+                    int red = 0, red2 = 0;
+                    int green = 0, green2 = 0;
+                    int blue = 0, blue2 = 0;
+                    parser.get_digit (out red, 16, false);
+                    parser.get_digit (out red2, 16, false);
+                    parser.get_digit (out green, 16, false);
+                    if (parser.get_digit (out green2, 16, false) &&
+                        parser.get_digit (out blue, 16, false) &&
+                        parser.get_digit (out blue2, 16, false)) {
+                        red = red * 16 + red2;
+                        green = green * 16 + green2;
+                        blue = blue * 16 + blue2;
+                    } else {
+                        // Not enough digits for 6; must be three digits
+                        blue = green * 17;
+                        green = red2 * 17;
+                        red = red * 17;
                     }
+
                     rgba.red = red / 255.0;
                     rgba.green = green / 255.0;
                     rgba.blue = blue / 255.0;

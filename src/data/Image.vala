@@ -13,7 +13,7 @@ public class Image : Gtk.TreeStore {
 
     public signal void update ();
 
-    public signal void path_selected (Element? path);
+    public signal void path_selected (Element? path, Gtk.TreeIter? iter);
 
     private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
 
@@ -182,6 +182,21 @@ public class Image : Gtk.TreeStore {
             } else if (iter->name == "g") {
                 var g = new Group.from_xml (iter, patterns);
                 load_elements (iter, patterns, add_element (g, root));
+            } else if (iter->name == "rect") {
+                var rect = new Rectangle.from_xml (iter, patterns);
+                add_element (rect, root);
+            } else if (iter->name == "ellipse") {
+                var ellipse = new Ellipse.from_xml (iter, patterns);
+                add_element (ellipse, root);
+            } else if (iter->name == "line") {
+                var line = new Line.from_xml (iter, patterns);
+                add_element (line, root);
+            } else if (iter->name == "polyline") {
+                var line = new Polyline.from_xml (iter, patterns);
+                add_element (line, root);
+            } else if (iter->name == "polygon") {
+                var polygon = new Polygon.from_xml (iter, patterns);
+                add_element (polygon, root);
             }
         }
     }
@@ -276,10 +291,10 @@ public class Image : Gtk.TreeStore {
                 }
                 last_selected_path = element_index[element];
                 selected_path = element_index[element];
-                path_selected (element);
+                path_selected (element, selected_path);
             } else if (selected == false) {
                 selected_path = null;
-                path_selected (null);
+                path_selected (null, null);
             }
         });
         Gtk.TreeIter iter;
@@ -310,28 +325,107 @@ public class Image : Gtk.TreeStore {
         add_element (circle, null);
     }
 
+    public void new_rectangle () {
+        var rectangle = new Rectangle (2.5, 2.5, width - 5, height - 5, new Pattern.color ({0.66, 0.66, 0.66, 1}), new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        add_element (rectangle, null);
+    }
+
+    public void new_ellipse () {
+        var ellipse = new Ellipse (width / 2, height / 2, width / 2 - 5, height / 2 - 5, new Pattern.color ({0.66, 0.66, 0.66, 1}), new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        add_element (ellipse, null);
+    }
+
+    public void new_line () {
+        var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        add_element (line, null);
+    }
+
+    public void new_polyline () {
+        var line = new Polyline ({Point (1.5, 1.5),
+                                  Point (1.5, height - 1.5 ),
+                                  Point (width - 1.5, 1.5 ),
+                                  Point (width - 1.5, height - 1.5 )},
+                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
+                                 new Pattern.color ({0.33, 0.33, 0.33, 1}),
+                                 "New Polyline");
+        add_element (line, null);
+    }
+
+    public void new_polygon () {
+        var shape = new Polygon ({Point (width / 2, 1.5),
+                                  Point (1.5, height / 2 ),
+                                  Point (width / 2, height - 1.5 ),
+                                  Point (width - 1.5, height / 2 )},
+                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
+                                 new Pattern.color ({0.33, 0.33, 0.33, 1}),
+                                 "New Polygon");
+        add_element (shape, null);
+    }
+
     public void new_group () {
         var group = new Group ();
         add_element (group, null);
     }
 
-    public void duplicate_path () {
-        var path = get_element (last_selected_path).copy ();
-        add_element (path, null);
-    }
+    public void duplicate_path (Gtk.TreeIter? iter=null) {
+        if (iter == null) {
+            iter = last_selected_path;
+        }
+ 
+        if (iter != null) {
+            if (iter == last_selected_path) {
+                last_selected_path = null;
+                selected_path = null;
+                path_selected (null, null);
+            }
 
-    public void path_up () {
-        Gtk.TreeIter next = selected_path;
-        if (iter_next(ref next)) {
-            swap (selected_path, next);
+            var path = get_element (iter).copy ();
+            add_element (path, null);
+            update ();
         }
     }
 
-    public void path_down () {
-        Gtk.TreeIter prev = selected_path;
-        if (iter_previous(ref prev)) {
-            swap (selected_path, prev);
+    public void path_up (Gtk.TreeIter? iter=null) {
+        if (iter == null) {
+            iter = last_selected_path;
         }
+ 
+        if (iter != null) {
+            if (iter == last_selected_path) {
+                last_selected_path = null;
+                selected_path = null;
+                path_selected (null, null);
+            }
+
+            Gtk.TreeIter prev = iter;
+
+            if (iter_next(ref prev)) {
+                swap (iter, prev);
+            }
+
+            update ();
+       }
+    }
+
+    public void path_down (Gtk.TreeIter? iter=null) {
+        if (iter == null) {
+            iter = last_selected_path;
+        }
+ 
+        if (iter != null) {
+            if (iter == last_selected_path) {
+                last_selected_path = null;
+                selected_path = null;
+                path_selected (null, null);
+            }
+
+            Gtk.TreeIter next = iter;
+            if (iter_previous(ref next)) {
+                swap (iter, next);
+            }
+
+            update ();
+       }
     }
 
     public void delete_path (Gtk.TreeIter? iter=null) {
@@ -343,8 +437,9 @@ public class Image : Gtk.TreeStore {
             if (iter == last_selected_path) {
                 last_selected_path = null;
                 selected_path = null;
-                path_selected (null);
+                path_selected (null, null);
             }
+
             remove (ref iter);
             update ();
        }
