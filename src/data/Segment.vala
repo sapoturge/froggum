@@ -366,6 +366,36 @@ public class Segment : Object, Undoable {
         add_command (command);
     }
 
+    public string command_text () {
+        switch (segment_type) {
+            case LINE:
+                return "L %f %f".printf (end.x, end.y);
+            case CURVE:
+                return "C %f %f %f %f %f %f".printf (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+            case ARC:
+                var start = start_angle;
+                var end = end_angle;
+                int large_arc;
+                int sweep;
+                if (reverse) {
+                    sweep = 0;
+                } else {
+                    sweep = 1;
+                }
+                if (end < start) {
+                    end += 2 * Math.PI;
+                }
+                if (end - start > Math.PI) {
+                    large_arc = sweep;
+                } else {
+                    large_arc = 1 - sweep;
+                }
+                return "A %f %f %f %d %d %f %f".printf (rx, ry, 180 * angle / Math.PI, large_arc, sweep, this.end.x, this.end.y);
+            default:
+                return "";
+        }
+    }
+
     public Segment copy () {
         switch (segment_type) {
             case LINE:
@@ -509,5 +539,126 @@ public class Segment : Object, Undoable {
         context.move_to(start.x, start.y);
         do_command(context);
         return context.in_stroke(x, y);
+    }
+
+    public void draw_controls (Cairo.Context cr, double zoom) {
+        // Unlike Elements, this assumes the segment outlines
+        // have already been drawn by the containing element.
+        
+        switch (segment_type) {
+            case SegmentType.CURVE:
+                cr.move_to (start.x, start.y);
+                cr.line_to (p1.x, p1.y);
+                cr.line_to (p2.x, p2.y);
+                cr.line_to (end.x, end.y);
+                cr.set_source_rgba(0, 0.5, 1, 0.8);
+                cr.stroke ();
+                cr.arc (p1.x, p1.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                cr.arc (p2.x, p2.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                break;
+            case SegmentType.ARC:
+                cr.move_to (topleft.x, topleft.y);
+                cr.line_to (topright.x, topright.y);
+                cr.line_to (bottomright.x, bottomright.y);
+                cr.line_to (bottomleft.x, bottomleft.y);
+                cr.close_path ();
+                cr.new_sub_path ();
+                cr.save ();
+                cr.translate (center.x, center.y);
+                cr.rotate (angle);
+                cr.scale (rx, ry);
+                cr.arc (0, 0, 1, end_angle, start_angle);
+                cr.restore ();
+                cr.set_source_rgba (0, 0.5, 1, 0.8);
+                cr.stroke ();
+                cr.arc (controller.x, controller.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                cr.arc (topleft.x, topleft.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                cr.arc (topright.x, topright.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                cr.arc (bottomleft.x, bottomleft.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                cr.arc (bottomright.x, bottomright.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                break;
+            default:
+                break;
+        }
+
+        cr.arc (end.x, end.y, 6 / zoom, 0, Math.PI * 2);
+        cr.set_source_rgba (1, 0, 0, 0.9);
+        cr.fill ();
+    }
+
+    public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if ((x - end.x).abs () <= tolerance &&
+            (y - end.y).abs () <= tolerance) {
+            obj = this;
+            prop = "end";
+            return true;
+        }
+        switch (segment_type) {
+            case CURVE:
+                if ((x - p1.x).abs () <= tolerance &&
+                    (y - p1.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "p1";
+                    return true;
+                }
+                if ((x - p2.x).abs () <= tolerance && 
+                    (y - p2.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "p2";
+                    return true;
+                }
+                break;
+            case ARC:
+                if ((x - controller.x).abs () <= tolerance &&
+                    (y - controller.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "controller";
+                    return true;
+                }
+                if ((x - topleft.x).abs () <= tolerance &&
+                    (y - topleft.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "topleft";
+                    return true;
+                }
+                if ((x - topright.x).abs () <= tolerance &&
+                    (y - topright.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "topright";
+                    return true;
+                }
+                if ((x - bottomleft.x).abs () <= tolerance &&
+                    (y - bottomleft.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "bottomleft";
+                    return true;
+                }
+                if ((x - bottomright.x).abs () <= tolerance &&
+                    (y - bottomright.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "bottomright";
+                    return true;
+                }
+                if ((x - center.x).abs () <= tolerance &&
+                    (y - center.y).abs () <= tolerance) {
+                    obj = this;
+                    prop = "center";
+                    return true;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return false;
     }
 }

@@ -27,37 +27,38 @@ public class Path : Element {
 
     private Point last_reference;
 
-    public Point reference {
-        set {
-            var dx = value.x - last_reference.x;
-            var dy = value.y - last_reference.y;
-            var segment = root_segment;
-            var first = true;
-            while (first || segment != root_segment) {
-                first = false;
-                if (segment.segment_type == ARC) {
-                    segment.topleft = {segment.topleft.x + dx, segment.topleft.y + dy};
-                    segment.bottomright = {segment.bottomright.x + dx, segment.bottomright.y + dy};
-                }
-                segment = segment.next;
-            }
-            first = true;
-            while (first || segment != root_segment) {
-                first = false;
-                if (segment.segment_type != ARC) {
-                    if (segment.next.segment_type != ARC) {
-                        segment.end = {segment.end.x + dx, segment.end.y + dy};
-                    }
-                    if (segment.segment_type == CURVE) {
-                        segment.p1 = {segment.p1.x + dx, segment.p1.y + dy};
-                        segment.p2 = {segment.p2.x + dx, segment.p2.y + dy};
-                    }
-                }
-                segment = segment.next;
-            }
-            last_reference = value;
-        }
-    }
+    // I'll probably remove this entirely later.
+    // public Point reference {
+    //     set {
+    //         var dx = value.x - last_reference.x;
+    //         var dy = value.y - last_reference.y;
+    //         var segment = root_segment;
+    //         var first = true;
+    //         while (first || segment != root_segment) {
+    //             first = false;
+    //             if (segment.segment_type == ARC) {
+    //                 segment.topleft = {segment.topleft.x + dx, segment.topleft.y + dy};
+    //                 segment.bottomright = {segment.bottomright.x + dx, segment.bottomright.y + dy};
+    //             }
+    //             segment = segment.next;
+    //         }
+    //         first = true;
+    //         while (first || segment != root_segment) {
+    //             first = false;
+    //             if (segment.segment_type != ARC) {
+    //                 if (segment.next.segment_type != ARC) {
+    //                     segment.end = {segment.end.x + dx, segment.end.y + dy};
+    //                 }
+    //                 if (segment.segment_type == CURVE) {
+    //                     segment.p1 = {segment.p1.x + dx, segment.p1.y + dy};
+    //                     segment.p2 = {segment.p2.x + dx, segment.p2.y + dy};
+    //                 }
+    //             }
+    //             segment = segment.next;
+    //         }
+    //         last_reference = value;
+    //     }
+    // }
 
     public Path (Segment[] segments = {},
                  Gdk.RGBA fill = {0, 0, 0, 0},
@@ -182,36 +183,7 @@ public class Path : Element {
         var first = true;
         while (first || s != root_segment) {
             first = false;
-            switch (s.segment_type) {
-                case LINE:
-                    data += "L %f %f".printf (s.end.x, s.end.y);
-                    break;
-                case CURVE:
-                    data += "C %f %f %f %f %f %f".printf (s.p1.x, s.p1.y, s.p2.x, s.p2.y, s.end.x, s.end.y);
-                    break;
-                case ARC:
-                    var start = s.start_angle;
-                    var end = s.end_angle;
-                    int large_arc;
-                    int sweep;
-                    if (s.reverse) {
-                        sweep = 0;
-                    } else {
-                        sweep = 1;
-                    }
-                    if (end < start) {
-                        end += 2 * Math.PI;
-                    }
-                    if (end - start > Math.PI) {
-                        large_arc = sweep;
-                    } else {
-                        large_arc = 1 - sweep;
-                    }
-                    data += "A %f %f %f %d %d %f %f".printf (s.rx, s.ry, 180 * s.angle / Math.PI, large_arc, sweep, s.end.x, s.end.y);
-                    break;
-                default:
-                    break;
-            }
+            data += s.command_text ();
             s = s.next;
         }
         data += "Z";
@@ -281,55 +253,7 @@ public class Path : Element {
         var first = true;
         while (first || s != root_segment) {
             first = false;
-            switch (s.segment_type) {
-                case SegmentType.CURVE:
-                    cr.move_to (s.start.x, s.start.y);
-                    cr.line_to (s.p1.x, s.p1.y);
-                    cr.line_to (s.p2.x, s.p2.y);
-                    cr.line_to (s.end.x, s.end.y);
-                    cr.set_source_rgba(0, 0.5, 1, 0.8);
-                    cr.stroke ();
-                    cr.arc (s.p1.x, s.p1.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (s.p2.x, s.p2.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    break;
-                case SegmentType.ARC:
-                    cr.move_to (s.topleft.x, s.topleft.y);
-                    cr.line_to (s.topright.x, s.topright.y);
-                    cr.line_to (s.bottomright.x, s.bottomright.y);
-                    cr.line_to (s.bottomleft.x, s.bottomleft.y);
-                    cr.close_path ();
-                    cr.new_sub_path ();
-                    cr.save ();
-                    cr.translate (s.center.x, s.center.y);
-                    cr.rotate (s.angle);
-                    cr.scale (s.rx, s.ry);
-                    cr.arc (0, 0, 1, s.end_angle, s.start_angle);
-                    cr.restore ();
-                    cr.set_source_rgba (0, 0.5, 1, 0.8);
-                    cr.stroke ();
-                    cr.arc (s.controller.x, s.controller.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (s.topleft.x, s.topleft.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (s.topright.x, s.topright.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (s.bottomleft.x, s.bottomleft.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (s.bottomright.x, s.bottomright.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    cr.arc (s.center.x, s.center.y, 6 / zoom, 0, Math.PI * 2);
-                    cr.new_sub_path ();
-                    break;
-                default:
-                    break;
-            }
-
-            cr.arc (s.end.x, s.end.y, 6 / zoom, 0, Math.PI * 2);
-            cr.set_source_rgba (1, 0, 0, 0.9);
-            cr.fill ();
-
+            s.draw_controls (cr, zoom);
             s = s.next;
         }
 
@@ -412,68 +336,11 @@ public class Path : Element {
         var first = true;
         while (first || s != root_segment) {
             first = false;
-            if ((x - s.end.x).abs () <= tolerance &&
-                (y - s.end.y).abs () <= tolerance) {
-                obj = s;
-                prop = "end";
+
+            if (s.check_controls (x, y, tolerance, out obj, out prop)) {
                 return;
             }
-            switch (s.segment_type) {
-                case CURVE:
-                    if ((x - s.p1.x).abs () <= tolerance &&
-                        (y - s.p1.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "p1";
-                        return;
-                    }
-                    if ((x - s.p2.x).abs () <= tolerance && 
-                        (y - s.p2.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "p2";
-                        return;
-                    }
-                    break;
-                case ARC:
-                    if ((x - s.controller.x).abs () <= tolerance &&
-                        (y - s.controller.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "controller";
-                        return;
-                    }
-                    if ((x - s.topleft.x).abs () <= tolerance &&
-                        (y - s.topleft.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "topleft";
-                        return;
-                    }
-                    if ((x - s.topright.x).abs () <= tolerance &&
-                        (y - s.topright.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "topright";
-                        return;
-                    }
-                    if ((x - s.bottomleft.x).abs () <= tolerance &&
-                        (y - s.bottomleft.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "bottomleft";
-                        return;
-                    }
-                    if ((x - s.bottomright.x).abs () <= tolerance &&
-                        (y - s.bottomright.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "bottomright";
-                        return;
-                    }
-                    if ((x - s.center.x).abs () <= tolerance &&
-                        (y - s.center.y).abs () <= tolerance) {
-                        obj = s;
-                        prop = "center";
-                        return;
-                    }
-                    break;
-                default:
-                    break;
-            }
+ 
             s = s.next;
         }
 
