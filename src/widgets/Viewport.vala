@@ -419,7 +419,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var menu = new Gtk.Popover (this);
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
-        var options = new ContextOption[]{};
+        var options = element.options ();
+        // var options = new ContextOption[]{};
 
         // var delete_path = new Gtk.Button ();
         // delete_path.label = "Delete Path";
@@ -429,12 +430,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         // });
         // menu_layout.pack_start (delete_path, false, false, 0);
 
-        options += new ContextOption.action (_("Delete Path"), () => { image.delete_path (); });
+        // options += new ContextOption.action (_("Delete Path"), () => { image.delete_path (); });
 
         if (segment != null) {
             // var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             // menu_layout.pack_start (separator, false, false, 0);
-            options += new ContextOption.separator ();
+            // options += new ContextOption.separator ();
 
             /* // Leaving this for when I figure out how to delete segments
             var delete_segment = new Gtk.Button ();
@@ -456,7 +457,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 // });
                 // menu_layout.pack_start (split_segment, false, false, 0);
 
-                options += new ContextOption.action (_("Split Segment"), () => { path.split_segment (segment); });
+                // options += new ContextOption.action (_("Split Segment"), () => { path.split_segment (segment); });
             }
 
             if (segment.segment_type == ARC) {
@@ -468,13 +469,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 // });
                 // menu_layout.pack_start (flip_arc, false, false, 0);
 
-                options += new ContextOption.action (_("Flip Arc"), () => { segment.reverse = !segment.reverse; });
+                // options += new ContextOption.action (_("Flip Arc"), () => { segment.reverse = !segment.reverse; });
             }
 
             // var separator2 = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             // menu_layout.pack_start (separator2, false, false, 0);
 
-            options += new ContextOption.separator ();
+            // options += new ContextOption.separator ();
 
             // var switch_mode = new Gtk.Label (_("Change segment to:"));
             // menu_layout.pack_start (switch_mode, false, false, 0);
@@ -525,12 +526,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             segment_type_options.set (_("Line"), SegmentType.LINE);
             segment_type_options.set (_("Curve"), SegmentType.CURVE);
             segment_type_options.set (_("Arc"), SegmentType.ARC);
-            options += new ContextOption.options (_("Change segment to:"), segment, "segment_type", segment_type_options);
+            // options += new ContextOption.options (_("Change segment to:"), segment, "segment_type", segment_type_options);
         }
 
         // var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
         // menu_layout.pack_start (separator, false, false, 0);
-        options += new ContextOption.separator ();
+        // options += new ContextOption.separator ();
 
         // var show_transform = new Gtk.CheckButton.with_label (_("Show Transformation"));
         // show_transform.set_active (element.transform_enabled);
@@ -540,7 +541,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         // });
         // menu_layout.pack_start (show_transform, false, false, 0);
 
-        options += new ContextOption.toggle (_("Show Transformation"), element, "transform_enabled");
+        // options += new ContextOption.toggle (_("Show Transformation"), element, "transform_enabled");
+
+
+        if (segment != null) {
+            options.add_all (segment.options ());
+        }
 
         foreach (ContextOption option in options) {
             switch (option.option_type) {

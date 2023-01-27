@@ -107,6 +107,13 @@ public class Polyline : Element {
         add_command (command);
     }
 
+    public override Gee.List<ContextOption> options () {
+        return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+            new ContextOption.action (_("Delete Polyline"), () => { request_delete(); }),
+            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+        });
+    }
+
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
         node = new Xml.Node (null, "polyline");
 

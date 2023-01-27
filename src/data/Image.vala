@@ -278,6 +278,10 @@ public class Image : Gtk.TreeStore {
         element.transform.width = width;
         element.transform.height = height;
         element.update.connect (() => { update (); });
+        element.request_delete.connect (() => {
+            element.select (false);
+            delete_path (element_index[element]);
+        });
         element.select.connect ((selected) => {
             Element? select_path;
             if (selected_path != null) {

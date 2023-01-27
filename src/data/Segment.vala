@@ -264,6 +264,8 @@ public class Segment : Object, Undoable {
     private double previous_rx;
     private double previous_ry;
     private double previous_angle;
+
+    public signal void request_split ();
             
     // Constructors
     public Segment.line (double x, double y) {
@@ -660,5 +662,25 @@ public class Segment : Object, Undoable {
         }
 
         return false;
+    }
+
+    public Gee.List<ContextOption> options () {
+        var options = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+            new ContextOption.separator (),
+            // TODO: Add a delete segment button
+            new ContextOption.action (_("Split Segment"), () => { request_split (); })
+        });
+
+        if (segment_type == ARC) {
+            options.add (new ContextOption.action (_("Flip Arc"), () => { reverse = !reverse; }));
+        }
+
+        options.add (new ContextOption.separator ());
+        var segment_type_options = new Gee.HashMap<string, int> ();
+        segment_type_options.set (_("Line"), SegmentType.LINE);
+        segment_type_options.set (_("Curve"), SegmentType.CURVE);
+        segment_type_options.set (_("Arc"), SegmentType.ARC);
+        options.add (new ContextOption.options (_("Change segment to:"), this, "segment_type", segment_type_options));
+        return options;
     }
 }

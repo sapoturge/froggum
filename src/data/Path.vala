@@ -174,6 +174,7 @@ public class Path : Element {
             segments[i].notify.connect (() => { update (); });
             segments[i].add_command.connect ((c) => { add_command (c); });
             segments[i].next = segments[(i + 1) % segments.length];
+            segments[i].request_split.connect (() => { split_segment (segments[i]); });
         }
     }
         
@@ -205,7 +206,9 @@ public class Path : Element {
         Segment last;
         segment.split (out first, out last);
         first.notify.connect (() => { update (); });
+        first.request_split.connect (() => { split_segment (first); });
         last.notify.connect (() => { update (); });
+        last.request_split.connect (() => { split_segment (last); });
         if (segment == root_segment) {
             root_segment = first;
         }
@@ -270,6 +273,13 @@ public class Path : Element {
     }
     
     public override void finish (string prop) {
+    }
+
+    public override Gee.List<ContextOption> options () {
+        return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+            new ContextOption.action (_("Delete Path"), () => { request_delete(); }),
+            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+        });
     }
 
     private static int skip_whitespace (string source, int start) {
