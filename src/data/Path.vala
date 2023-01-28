@@ -174,7 +174,7 @@ public class Path : Element {
             segments[i].notify.connect (() => { update (); });
             segments[i].add_command.connect ((c) => { add_command (c); });
             segments[i].next = segments[(i + 1) % segments.length];
-            segments[i].request_split.connect (() => { split_segment (segments[i]); });
+            segments[i].request_split.connect (split_segment);
         }
     }
         
@@ -206,9 +206,9 @@ public class Path : Element {
         Segment last;
         segment.split (out first, out last);
         first.notify.connect (() => { update (); });
-        first.request_split.connect (() => { split_segment (first); });
+        first.request_split.connect (split_segment);
         last.notify.connect (() => { update (); });
-        last.request_split.connect (() => { split_segment (last); });
+        last.request_split.connect (split_segment);
         if (segment == root_segment) {
             root_segment = first;
         }

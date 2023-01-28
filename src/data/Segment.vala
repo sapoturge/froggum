@@ -265,7 +265,7 @@ public class Segment : Object, Undoable {
     private double previous_ry;
     private double previous_angle;
 
-    public signal void request_split ();
+    public signal void request_split (Segment s);
             
     // Constructors
     public Segment.line (double x, double y) {
@@ -667,7 +667,7 @@ public class Segment : Object, Undoable {
     public Gee.List<ContextOption> options () {
         var options = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             // TODO: Add a delete segment button
-            new ContextOption.action (_("Split Segment"), () => { request_split (); })
+            new ContextOption.action (_("Split Segment"), () => { request_split (this); })
         });
 
         if (segment_type == ARC) {
