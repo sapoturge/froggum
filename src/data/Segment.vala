@@ -666,7 +666,6 @@ public class Segment : Object, Undoable {
 
     public Gee.List<ContextOption> options () {
         var options = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.separator (),
             // TODO: Add a delete segment button
             new ContextOption.action (_("Split Segment"), () => { request_split (); })
         });
@@ -675,7 +674,6 @@ public class Segment : Object, Undoable {
             options.add (new ContextOption.action (_("Flip Arc"), () => { reverse = !reverse; }));
         }
 
-        options.add (new ContextOption.separator ());
         var segment_type_options = new Gee.HashMap<string, int> ();
         segment_type_options.set (_("Line"), SegmentType.LINE);
         segment_type_options.set (_("Curve"), SegmentType.CURVE);

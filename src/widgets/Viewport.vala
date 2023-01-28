@@ -407,10 +407,53 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var menu = new Gtk.Popover (this);
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
-        var options = element.options ();
+        var elem_options = element.options (); // Using the full name "element_options" causes a name collision with "Element.options"
+
+        Gee.List<ContextOption>? seg_options;
 
         if (segment != null) {
-            options.add_all (segment.options ());
+            seg_options = segment.options ();
+        } else {
+            seg_options = null;
+        }
+
+        var options = new Gee.ArrayList<ContextOption> ();
+
+        bool needs_separator = false;
+        bool will_need_separator = false;
+
+        ContextOptionType[] op_types = {ACTION, OPTIONS, TOGGLE};
+
+        foreach (int op_type in op_types) {
+            foreach (ContextOption op in elem_options) {
+                if (op.option_type == op_type) {
+                    if (needs_separator) {
+                        needs_separator = false;
+                        options.add (new ContextOption.separator ());
+                    }
+
+                    options.add (op);
+                    will_need_separator = true;
+                }
+            }
+
+            needs_separator = will_need_separator;
+
+            if (seg_options != null) {
+                foreach (ContextOption op in seg_options) {
+                    if (op.option_type == op_type) {
+                        if (needs_separator) {
+                            needs_separator = false;
+                            options.add (new ContextOption.separator ());
+                        }
+
+                        options.add (op);
+                        will_need_separator = true;
+                    }
+                }
+
+                needs_separator = will_need_separator;
+            }
         }
 
         foreach (ContextOption option in options) {
