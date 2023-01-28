@@ -20,8 +20,8 @@ public abstract class Element : Object, Undoable {
     public bool visible { get; set; }
 
     public signal void update ();
-
     public signal void select (bool selected);
+    public signal void request_delete ();
 
     protected void setup_signals () {
         stroke.update.connect (() => { update (); });
@@ -54,6 +54,8 @@ public abstract class Element : Object, Undoable {
     public abstract void begin (string prop, Value? start_location);
 
     public abstract void finish (string prop);
+
+    public abstract Gee.List<ContextOption> options ();
 
     public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node);
 

@@ -404,122 +404,116 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
         
     private void show_context_menu (Element element, Segment? segment, Gdk.EventButton event) {
-        // Menu contents:
-        // + Delete Path
-        // ---
-        // + Delete Segment
-        // + Change segment to:
-        //    + Line
-        //    + Curve
-        //    + Arc
-        // + Flip Arc
-        // + Split Path
-        // ---
-        // + Show Transform
         var menu = new Gtk.Popover (this);
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
-        var delete_path = new Gtk.Button ();
-        delete_path.label = "Delete Path";
-        delete_path.clicked.connect (() => {
-            image.delete_path ();
-            menu.popdown ();
-        });
-        menu_layout.pack_start (delete_path, false, false, 0);
+        var elem_options = element.options (); // Using the full name "element_options" causes a name collision with "Element.options"
+
+        Gee.List<ContextOption>? seg_options;
 
         if (segment != null) {
-            var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
-            menu_layout.pack_start (separator, false, false, 0);
+            seg_options = segment.options ();
+        } else {
+            seg_options = null;
+        }
 
-            /* // Leaving this for when I figure out how to delete segments
-            var delete_segment = new Gtk.Button ();
-            delete_segment.label = _("Delete Segment");
-            delete_segment.clicked.connect (() => {
-                // TODO: Delete segment.
-                menu.popdown ();
-            });
-            menu_layout.pack_start (delete_segment, false, false, 0);
-            */
+        var options = new Gee.ArrayList<ContextOption> ();
 
-            if (selected_path is Path) {
-                var split_segment = new Gtk.Button ();
-                split_segment.label = _("Split Segment");
-                split_segment.clicked.connect (() => {
-                    (selected_path as Path).split_segment (segment);
-                    menu.popdown ();
-                });
-                menu_layout.pack_start (split_segment, false, false, 0);
+        bool needs_separator = false;
+        bool will_need_separator = false;
+
+        ContextOptionType[] op_types = {ACTION, OPTIONS, TOGGLE};
+
+        foreach (int op_type in op_types) {
+            foreach (ContextOption op in elem_options) {
+                if (op.option_type == op_type) {
+                    if (needs_separator) {
+                        needs_separator = false;
+                        options.add (new ContextOption.separator ());
+                    }
+
+                    options.add (op);
+                    will_need_separator = true;
+                }
             }
 
-            if (segment.segment_type == ARC) {
-                var flip_arc = new Gtk.Button ();
-                flip_arc.label = _("Flip Arc");
-                flip_arc.clicked.connect (() => {
-                    segment.reverse = !segment.reverse;
-                    menu.popdown ();
-                });
-                menu_layout.pack_start (flip_arc, false, false, 0);
-            }
+            needs_separator = will_need_separator;
 
-            var separator2 = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
-            menu_layout.pack_start (separator2, false, false, 0);
+            if (seg_options != null) {
+                foreach (ContextOption op in seg_options) {
+                    if (op.option_type == op_type) {
+                        if (needs_separator) {
+                            needs_separator = false;
+                            options.add (new ContextOption.separator ());
+                        }
 
-            var switch_mode = new Gtk.Label (_("Change segment to:"));
-            menu_layout.pack_start (switch_mode, false, false, 0);
-
-            var line_mode = new Gtk.RadioButton.with_label (null, _("Line"));
-            line_mode.toggled.connect (() => {
-                if (line_mode.get_active ()) {
-                    segment.segment_type = LINE;
-                    menu.popdown ();
+                        options.add (op);
+                        will_need_separator = true;
+                    }
                 }
-            });
-            menu_layout.pack_start (line_mode, false, false, 0);
 
-            var curve_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, _("Curve"));
-            curve_mode.toggled.connect (() => {
-                if (curve_mode.get_active ()) {
-                    segment.segment_type = CURVE;
-                    menu.popdown ();
-                }
-            });
-            menu_layout.pack_start (curve_mode, false, false, 0);
-
-            var arc_mode = new Gtk.RadioButton.with_label_from_widget (line_mode, _("Arc"));
-            arc_mode.toggled.connect (() => {
-                if (arc_mode.get_active ()) {
-                    segment.segment_type = ARC;
-                    menu.popdown ();
-                }
-            });
-            menu_layout.pack_start (arc_mode, false, false, 0);
-
-            switch (segment.segment_type) {
-                case LINE:
-                    line_mode.active = true;
-                    break;
-                case CURVE:
-                    curve_mode.active = true;
-                    break;
-                case ARC:
-                    arc_mode.active = true;
-                    break;
-                default:
-                    log (null, LogLevelFlags.LEVEL_ERROR, "Selected an uninitialized segment.");
-                    return;
+                needs_separator = will_need_separator;
             }
         }
 
-        var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
-        menu_layout.pack_start (separator, false, false, 0);
+        foreach (ContextOption option in options) {
+            switch (option.option_type) {
+            case SEPARATOR:
+                var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
+                menu_layout.pack_start (separator, false, false, 0);
+                break;
+            case ACTION:
+                var button = new Gtk.Button ();
+                button.label = option.label;
+                button.clicked.connect (() => {
+                    option.activate ();
+                    menu.popdown ();
+                });
+                menu_layout.pack_start (button, false, false, 0);
+                break;
+            case TOGGLE:
+                var button = new Gtk.CheckButton.with_label (option.label);
+                bool value = false;
+                option.target.get(option.prop, &value);
+                button.set_active (value);
+                button.toggled.connect (() => {
+                    bool val = false;
+                    option.target.get(option.prop, &val);
+                    option.target.set(option.prop, !val);
+                    menu.popdown ();
+                });
+                menu_layout.pack_start (button, false, false, 0);
+                break;
+            case OPTIONS:
+                var caption = new Gtk.Label (option.label);
+                menu_layout.pack_start (caption, false, false, 0);
+                int value = 0;
+                option.target.get(option.prop, &value);
+                Gtk.RadioButton first_button = null;
 
-        var show_transform = new Gtk.CheckButton.with_label (_("Show Transformation"));
-        show_transform.set_active (element.transform_enabled);
-        show_transform.toggled.connect (() => {
-            element.transform_enabled = !element.transform_enabled;
-            menu.popdown ();
-        });
-        menu_layout.pack_start (show_transform, false, false, 0);
+                foreach (Gee.Map.Entry<string, int> variant in option.option_values) {
+                    Gtk.RadioButton button;
+                    if (first_button == null) {
+                        button = new Gtk.RadioButton.with_label (null, variant.key);
+                        first_button = button;
+                    } else {
+                        button = new Gtk.RadioButton.with_label_from_widget(first_button, variant.key);
+                    }
+
+                    button.toggled.connect (() => {
+                        if (button.get_active ()) {
+                            option.target.set(option.prop, variant.value);
+                            menu.popdown ();
+                        }
+                    });
+                    menu_layout.pack_start (button, false, false, 0);
+                    if (value == variant.value) {
+                        button.active = true;
+                    }
+                }
+                break;
+            }
+        }
 
         menu_layout.show_all ();
 
