@@ -442,13 +442,14 @@ public class Segment : Object, Undoable {
                 return;
         }
         prev.next = first;
-        first.prev = prev;
-        first.next = last;
         last.prev = first;
         last.next = next;
         next.prev = last;
-        first.start = prev.end;
         last.start = first.end;
+        // Since first is sometimes this, updating its value needs to be last
+        first.start = prev.end;
+        first.prev = prev;
+        first.next = last;
     }
 
     public void do_command (Cairo.Context cr) {
