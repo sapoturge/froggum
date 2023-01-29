@@ -3,11 +3,16 @@ public class Rectangle : Element {
     public double y { get; set; }
     public double width { get; set; }
     public double height { get; set; }
+    public double rx { get; set; }
+    public double ry { get; set; }
+    public bool rounded { get; set; }
 
     private double last_x;
     private double last_y;
     private double last_width;
     private double last_height;
+    private double last_rx;
+    private double last_ry;
 
     public Point top_left {
         get {
@@ -84,6 +89,10 @@ public class Rectangle : Element {
         this.transform = new Transform.identity ();
 
         setup_signals ();
+
+        this.rounded = true;
+        this.rx = 1.5;
+        this.ry = 1.5;
     }
 
     public Rectangle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
@@ -92,15 +101,43 @@ public class Rectangle : Element {
         y = double.parse (node->get_prop ("y"));
         width = double.parse (node->get_prop ("width"));
         height = double.parse (node->get_prop ("height"));
+
+        this.rounded = true;
+        this.rx = 1.5;
+        this.ry = 1.5;
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         if (always_draw || visible) {
-            cr.move_to (x, y);
-            cr.line_to (x+this.width, y);
-            cr.line_to (x+this.width, y+height);
-            cr.line_to (x, y+height);
-            cr.close_path ();
+            if (rounded) {
+                cr.save ();
+                cr.translate (x + rx, y + ry);
+                cr.scale (rx, ry);
+                cr.arc (0, 0, 1, Math.PI, 3 * Math.PI / 2);
+                cr.restore ();
+                cr.save ();
+                cr.translate (x + this.width - rx, y + ry);
+                cr.scale (rx, ry);
+                cr.arc (0, 0, 1, 3 * Math.PI / 2, 0);
+                cr.restore ();
+                cr.save ();
+                cr.translate (x + this.width - rx, y + this.height - ry);
+                cr.scale (rx, ry);
+                cr.arc (0, 0, 1, 0, Math.PI / 2);
+                cr.restore ();
+                cr.save ();
+                cr.translate (x + rx, y + this.height - ry);
+                cr.scale (rx, ry);
+                cr.arc (0, 0, 1, Math.PI / 2, Math.PI);
+                cr.restore ();
+                cr.close_path ();
+            } else {
+                cr.move_to (x, y);
+                cr.line_to (x+this.width, y);
+                cr.line_to (x+this.width, y+height);
+                cr.line_to (x, y+height);
+                cr.close_path ();
+            }
     
             if (fill == null) {
                 this.fill.apply (cr);
