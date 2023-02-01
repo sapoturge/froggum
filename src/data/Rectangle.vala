@@ -174,9 +174,26 @@ public class Rectangle : Element {
         width = double.parse (node->get_prop ("width"));
         height = double.parse (node->get_prop ("height"));
 
-        this.rounded = true;
-        this.rx = 3.5;
-        this.ry = 2.5;
+        var rx = node->get_prop ("rx");
+        var ry = node->get_prop ("ry");
+        if (rx != null || ry != null) {
+            if (rx == null) {
+                rx = ry;
+            }
+
+            if (ry == null) {
+                ry = rx;
+            }
+
+            this.rx = double.parse (rx);
+            this.ry = double.parse (ry);
+
+            rounded = this.rx > 0 && this.ry > 0;
+        } else {
+            rounded = false;
+            this.rx = 0;
+            this.ry = 0;
+        }
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
@@ -415,6 +432,11 @@ public class Rectangle : Element {
         node->new_prop ("y", y.to_string ());
         node->new_prop ("width", width.to_string ());
         node->new_prop ("height", height.to_string ());
+
+        if (rounded && rx > 0 && ry > 0) {
+            node->new_prop ("rx", rx.to_string ());
+            node->new_prop ("ry", ry.to_string ());
+        }
 
         root->add_child (node);
 
