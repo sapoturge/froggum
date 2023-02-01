@@ -72,6 +72,78 @@ public class Rectangle : Element {
         }
     }
 
+    public Point top_left_round {
+        get {
+            return { x + rx, y };
+        }
+        set {
+            rx = double.max (0, double.min (width/2, value.x - x));
+        }
+    }
+
+    public Point top_right_round {
+        get {
+            return { x + width - rx, y };
+        }
+        set {
+            rx = double.max (0, double.min (width/2, x + width - value.x));
+        }
+    }
+
+    public Point left_top_round {
+        get {
+            return { x, y + ry };
+        }
+        set {
+            ry = double.max (0, double.min (height/2, value.y - y));
+        }
+    }
+
+    public Point left_bottom_round {
+        get {
+            return { x, y + height - ry };
+        }
+        set {
+            ry = double.max (0, double.min (width/2, y + height - value.y));
+        }
+    }
+
+    public Point bottom_left_round {
+        get {
+            return { x + rx, y + height };
+        }
+        set {
+            rx = double.max (0, double.min (width/2, value.x - x));
+        }
+    }
+
+    public Point bottom_right_round {
+        get {
+            return { x + width - rx, y + height };
+        }
+        set {
+            rx = double.max (0, double.min (width/2, x + width - value.x));
+        }
+    }
+
+    public Point right_top_round {
+        get {
+            return { x + width, y + ry };
+        }
+        set {
+            ry = double.max (0, double.min (height/2, value.y - y));
+        }
+    }
+
+    public Point right_bottom_round {
+        get {
+            return { x + width, y + height - ry };
+        }
+        set {
+            ry = double.max (0, double.min (height/2, y + height - value.y));
+        }
+    }
+
     public Rectangle (double x, double y, double width, double height, Pattern fill, Pattern stroke, string? title = null) {
         this.x = x;
         this.y = y;
@@ -91,8 +163,8 @@ public class Rectangle : Element {
         setup_signals ();
 
         this.rounded = true;
-        this.rx = 1.5;
-        this.ry = 1.5;
+        this.rx = 3.5;
+        this.ry = 2.5;
     }
 
     public Rectangle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
@@ -103,13 +175,13 @@ public class Rectangle : Element {
         height = double.parse (node->get_prop ("height"));
 
         this.rounded = true;
-        this.rx = 1.5;
-        this.ry = 1.5;
+        this.rx = 3.5;
+        this.ry = 2.5;
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         if (always_draw || visible) {
-            if (rounded) {
+            if (rounded && rx > 0 && ry > 0) {
                 cr.save ();
                 cr.translate (x + rx, y + ry);
                 cr.scale (rx, ry);
@@ -170,6 +242,26 @@ public class Rectangle : Element {
         cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
         cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
+
+        if (rounded) {
+            cr.new_sub_path ();
+            cr.arc (top_left_round.x, top_left_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (top_right_round.x, top_right_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (left_top_round.x, left_top_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (left_bottom_round.x, left_bottom_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (bottom_left_round.x, bottom_left_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (bottom_right_round.x, bottom_right_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (right_top_round.x, right_top_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.new_sub_path ();
+            cr.arc (right_bottom_round.x, right_bottom_round.y, 6 / zoom, 0, Math.PI * 2);
+        }
+
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
@@ -198,6 +290,46 @@ public class Rectangle : Element {
         var right_close = (x - this.x - width).abs () <= tolerance;
         var top_close = (y - this.y).abs () <= tolerance;
         var bottom_close = (y - this.y - height).abs () <= tolerance;
+
+        if (rounded) {
+            var rx_left_close = (x - this.x - rx).abs () <= tolerance;
+            var rx_right_close = (x - this.x - width + rx).abs () <= tolerance;
+            var ry_top_close = (y - this.y - ry).abs () <= tolerance;
+            var ry_bottom_close = (y - this.y - height + ry).abs () <= tolerance;
+            if (top_close && rx_left_close) {
+                obj = this;
+                prop = "top_left_round";
+                return;
+            } else if (top_close && rx_right_close) {
+                obj = this;
+                prop = "top_right_round";
+                return;
+            } else if (left_close && ry_top_close) {
+                obj = this;
+                prop = "left_top_round";
+                return;
+            } else if (left_close && ry_bottom_close) {
+                obj = this;
+                prop = "left_bottom_round";
+                return;
+            } else if (bottom_close && rx_left_close) {
+                obj = this;
+                prop = "bottom_left_round";
+                return;
+            } else if (bottom_close && rx_right_close) {
+                obj = this;
+                prop = "bottom_right_round";
+                return;
+            } else if (right_close && ry_top_close) {
+                obj = this;
+                prop = "right_top_round";
+                return;
+            } else if (right_close && ry_bottom_close) {
+                obj = this;
+                prop = "right_bottom_round";
+                return;
+            }
+        }
 
         if (top_close && left_close) {
             obj = this;
