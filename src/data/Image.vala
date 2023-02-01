@@ -301,6 +301,9 @@ public class Image : Gtk.TreeStore {
                 path_selected (null, null);
             }
         });
+        element.add_command.connect ((c) => {
+            stack.add_command (c);
+        });
         Gtk.TreeIter iter;
         insert_with_values (out iter, root, 0, 0, element);
         element_index[element] = iter;

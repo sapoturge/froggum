@@ -357,15 +357,31 @@ public class Rectangle : Element {
         last_y = y;
         last_width = width;
         last_height = height;
+        last_rx = rx;
+        last_ry = ry;
     }
 
     public override void finish (string prop) {
         var command = new Command ();
 
-        if (prop == "center") {
+        switch (prop) {
+        case "center":
             command.add_value (this, "x", x, last_x);
             command.add_value (this, "y", y, last_y);
-        } else {
+            break;
+        case "top_left_round":
+        case "top_right_round":
+        case "bottom_left_round":
+        case "bottom_right_round":
+            command.add_value (this, "rx", rx, last_rx);
+            break;
+        case "left_top_round":
+        case "left_bottom_round":
+        case "right_top_round":
+        case "right_bottom_round":
+            command.add_value (this, "ry", ry, last_ry);
+            break;
+        default:
             command.add_value (this, "width", width, last_width);
             command.add_value (this, "height", height, last_height);
 
@@ -376,6 +392,8 @@ public class Rectangle : Element {
             if (prop == "top_left" || prop == "bottom_left") {
                 command.add_value (this, "x", x, last_x);
             }
+
+            break;
         }
 
         add_command (command);
