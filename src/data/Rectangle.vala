@@ -179,9 +179,9 @@ public class Rectangle : Element {
 
         setup_signals ();
 
-        this.rounded = true;
-        this.rx = 3.5;
-        this.ry = 2.5;
+        this.rounded = false;
+        this.rx = 0;
+        this.ry = 0;
     }
 
     public Rectangle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
