@@ -41,6 +41,10 @@ public class Rectangle : Element {
             y = value.y;
             width = opposite.x - value.x;
             height = opposite.y - value.y;
+            if (rounded) {
+                rx = double.max (double.min (rx, width / 2), 0);
+                ry = double.max (double.min (ry, height / 2), 0);
+            }
         }
     }
 
@@ -53,6 +57,10 @@ public class Rectangle : Element {
             y = value.y;
             width = value.x - opposite.x;
             height = opposite.y - value.y;
+            if (rounded) {
+                rx = double.max (double.min (rx, width / 2), 0);
+                ry = double.max (double.min (ry, height / 2), 0);
+            }
         }
     }
 
@@ -65,6 +73,10 @@ public class Rectangle : Element {
             x = value.x;
             width = opposite.x - value.x;
             height = value.y - opposite.y;
+            if (rounded) {
+                rx = double.max (double.min (rx, width / 2), 0);
+                ry = double.max (double.min (ry, height / 2), 0);
+            }
         }
     }
 
@@ -76,6 +88,10 @@ public class Rectangle : Element {
             var opposite = top_left;
             width = value.x - opposite.x;
             height = value.y - opposite.y;
+            if (rounded) {
+                rx = double.max (double.min (rx, width / 2), 0);
+                ry = double.max (double.min (ry, height / 2), 0);
+            }
         }
     } 
 
