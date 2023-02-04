@@ -487,10 +487,45 @@ public class Rectangle : Element {
         segment = null;
         var in_x = this.x - tolerance < x && x < this.x + width + tolerance;
         var in_y = this.y - tolerance < y && y < this.y + height + tolerance;
-        var on_top = y < this.y + tolerance;
-        var on_bottom = this.y + height - tolerance < y;
-        var on_left = x < this.x + tolerance;
-        var on_right = this.x + width - tolerance < x;
-        return (in_x && in_y && (on_top || on_bottom || on_left || on_right));
+
+        if (in_x && in_y) {
+            if (rounded && rx > 0 && ry > 0) {
+                // Dealing with clicking on rounding is more complex
+                // than I want to deal with manually.
+                var surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, 1, 1);
+                var context = new Cairo.Context (surf);
+                context.set_line_width (tolerance);
+                context.save ();
+                context.translate (this.x + rx, this.y + ry);
+                context.scale (rx, ry);
+                context.arc (0, 0, 1, Math.PI, 3 * Math.PI / 2);
+                context.restore ();
+                context.save ();
+                context.translate (this.x + width - rx, this.y + ry);
+                context.scale (rx, ry);
+                context.arc (0, 0, 1, 3 * Math.PI / 2, 0);
+                context.restore ();
+                context.save ();
+                context.translate (this.x + width - rx, this.y + height - ry);
+                context.scale (rx, ry);
+                context.arc (0, 0, 1, 0, Math.PI / 2);
+                context.restore ();
+                context.save ();
+                context.translate (this.x + rx, this.y + height - ry);
+                context.scale (rx, ry);
+                context.arc (0, 0, 1, Math.PI / 2, Math.PI);
+                context.restore ();
+                context.close_path ();
+                return context.in_stroke (x, y);
+            } else {
+                var on_top = y < this.y + tolerance;
+                var on_bottom = this.y + height - tolerance < y;
+                var on_left = x < this.x + tolerance;
+                var on_right = this.x + width - tolerance < x;
+                return (in_x && in_y && (on_top || on_bottom || on_left || on_right));
+            }
+        } else {
+            return false;
+        }
     }
 }
