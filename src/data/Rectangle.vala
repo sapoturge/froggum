@@ -5,7 +5,24 @@ public class Rectangle : Element {
     public double height { get; set; }
     public double rx { get; set; }
     public double ry { get; set; }
-    public bool rounded { get; set; }
+    private bool _rounded;
+    public bool rounded {
+        get {
+            return _rounded;
+        }
+        set {
+            _rounded = value;
+            if (value) {
+                if (rx == 0) {
+                    rx = 1.5;
+                }
+
+                if (ry == 0) {
+                    ry = 1.5;
+                }
+            }
+        }
+    }
 
     private double last_x;
     private double last_y;
@@ -419,6 +436,7 @@ public class Rectangle : Element {
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.action (_("Delete Rectangle"), () => { request_delete(); }),
+            new ContextOption.toggle (_("Round Corners"), this, "rounded"),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
     }
