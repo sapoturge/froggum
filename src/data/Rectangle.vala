@@ -267,6 +267,24 @@ public class Rectangle : Element {
     public override void draw_controls (Cairo.Context cr, double zoom) {
         draw (cr, 1 / zoom, { 0, 0, 0}, {1, 0, 0, 1}, true);
 
+        if (rounded) {
+            cr.move_to (top_left_round.x, top_left_round.y);
+            cr.line_to (top_left.x, top_left.y);
+            cr.line_to (left_top_round.x, left_top_round.y);
+            cr.move_to (top_right_round.x, top_right_round.y);
+            cr.line_to (top_right.x, top_right.y);
+            cr.line_to (right_top_round.x, right_top_round.y);
+            cr.move_to (bottom_left_round.x, bottom_left_round.y);
+            cr.line_to (bottom_left.x, bottom_left.y);
+            cr.line_to (left_bottom_round.x, left_bottom_round.y);
+            cr.move_to (bottom_right_round.x, bottom_right_round.y);
+            cr.line_to (bottom_right.x, bottom_right.y);
+            cr.line_to (right_bottom_round.x, right_bottom_round.y);
+
+            cr.set_source_rgba (0, 0.5, 1, 0.8);
+            cr.stroke ();
+        }
+
         cr.arc (top_left.x, top_left.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
         cr.arc (top_right.x, top_right.y, 6 / zoom, 0, Math.PI * 2);
