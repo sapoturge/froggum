@@ -438,12 +438,15 @@ public class Image : Gtk.TreeStore {
         }
  
         if (iter != null) {
+            if (iter == selected_path) {
+                path_selected (null, null);
+                selected_path = null;
+            }
+
             remove (ref iter);
 
             if (iter == last_selected_path) {
                 last_selected_path = null;
-                selected_path = null;
-                path_selected (null, null);
             }
 
             update ();
