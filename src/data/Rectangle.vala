@@ -450,6 +450,16 @@ public class Rectangle : Element {
             command.add_value (this, "ry", ry, last_ry);
             break;
         default:
+            if (width < 0) {
+                width = -width;
+                x = x - width;
+            }
+
+            if (height < 0) {
+                height = -height;
+                y = y - height;
+            }
+
             command.add_value (this, "width", width, last_width);
             command.add_value (this, "height", height, last_height);
 
