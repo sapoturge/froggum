@@ -419,6 +419,9 @@ public class Rectangle : Element {
         var command = new Command ();
 
         switch (prop) {
+        case "rounded":
+            command.add_value (this, "rounded", rounded, !rounded);
+            break;
         case "center":
             command.add_value (this, "x", x, last_x);
             command.add_value (this, "y", y, last_y);
