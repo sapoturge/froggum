@@ -41,10 +41,6 @@ public class Rectangle : Element {
             y = value.y;
             width = opposite.x - value.x;
             height = opposite.y - value.y;
-            if (rounded) {
-                rx = double.max (double.min (rx, width / 2), 0);
-                ry = double.max (double.min (ry, height / 2), 0);
-            }
         }
     }
 
@@ -57,10 +53,6 @@ public class Rectangle : Element {
             y = value.y;
             width = value.x - opposite.x;
             height = opposite.y - value.y;
-            if (rounded) {
-                rx = double.max (double.min (rx, width / 2), 0);
-                ry = double.max (double.min (ry, height / 2), 0);
-            }
         }
     }
 
@@ -73,10 +65,6 @@ public class Rectangle : Element {
             x = value.x;
             width = opposite.x - value.x;
             height = value.y - opposite.y;
-            if (rounded) {
-                rx = double.max (double.min (rx, width / 2), 0);
-                ry = double.max (double.min (ry, height / 2), 0);
-            }
         }
     }
 
@@ -88,10 +76,6 @@ public class Rectangle : Element {
             var opposite = top_left;
             width = value.x - opposite.x;
             height = value.y - opposite.y;
-            if (rounded) {
-                rx = double.max (double.min (rx, width / 2), 0);
-                ry = double.max (double.min (ry, height / 2), 0);
-            }
         }
     } 
 
@@ -107,7 +91,7 @@ public class Rectangle : Element {
 
     public Point top_left_round {
         get {
-            return { x + rx, y };
+            return { x + Math.copysign (double.min (rx, width.abs () / 2), width), y };
         }
         set {
             rx = double.max (0, double.min (width/2, value.x - x));
@@ -116,7 +100,7 @@ public class Rectangle : Element {
 
     public Point top_right_round {
         get {
-            return { x + width - rx, y };
+            return { x + width - Math.copysign (double.min (rx, width.abs () / 2), width), y };
         }
         set {
             rx = double.max (0, double.min (width/2, x + width - value.x));
@@ -125,7 +109,7 @@ public class Rectangle : Element {
 
     public Point left_top_round {
         get {
-            return { x, y + ry };
+            return { x, y + Math.copysign (double.min (ry, height.abs () / 2), height) };
         }
         set {
             ry = double.max (0, double.min (height/2, value.y - y));
@@ -134,7 +118,7 @@ public class Rectangle : Element {
 
     public Point left_bottom_round {
         get {
-            return { x, y + height - ry };
+            return { x, y + height - Math.copysign (double.min (ry, height.abs () / 2), height) };
         }
         set {
             ry = double.max (0, double.min (width/2, y + height - value.y));
@@ -143,7 +127,7 @@ public class Rectangle : Element {
 
     public Point bottom_left_round {
         get {
-            return { x + rx, y + height };
+            return { x + Math.copysign (double.min (rx, width.abs () / 2), width), y + height };
         }
         set {
             rx = double.max (0, double.min (width/2, value.x - x));
@@ -152,7 +136,7 @@ public class Rectangle : Element {
 
     public Point bottom_right_round {
         get {
-            return { x + width - rx, y + height };
+            return { x + width - Math.copysign (double.min (rx, width.abs () / 2), width), y + height };
         }
         set {
             rx = double.max (0, double.min (width/2, x + width - value.x));
@@ -161,7 +145,7 @@ public class Rectangle : Element {
 
     public Point right_top_round {
         get {
-            return { x + width, y + ry };
+            return { x + width, y + Math.copysign (double.min (ry, height.abs () / 2), height) };
         }
         set {
             ry = double.max (0, double.min (height/2, value.y - y));
@@ -170,7 +154,7 @@ public class Rectangle : Element {
 
     public Point right_bottom_round {
         get {
-            return { x + width, y + height - ry };
+            return { x + width, y + height - Math.copysign (double.min (ry, height.abs () / 2), height) };
         }
         set {
             ry = double.max (0, double.min (height/2, y + height - value.y));
@@ -231,7 +215,9 @@ public class Rectangle : Element {
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         if (always_draw || visible) {
-            if (rounded && rx > 0 && ry > 0) {
+            if (rounded && this.width != 0 && this.height != 0 && this.rx > 0 && this.ry > 0) {
+                var rx = Math.copysign (double.min (this.rx, this.width.abs () / 2), this.width);
+                var ry = Math.copysign (double.min (this.ry, this.height.abs () / 2), this.height);
                 cr.save ();
                 cr.translate (x + rx, y + ry);
                 cr.scale (rx, ry);
@@ -469,6 +455,16 @@ public class Rectangle : Element {
 
             if (prop == "top_left" || prop == "bottom_left") {
                 command.add_value (this, "x", x, last_x);
+            }
+
+            if (rx > width / 2) {
+                rx = width / 2;
+                command.add_value (this, "rx", rx, last_rx);
+            }
+
+            if (ry > height / 2) {
+                ry = height / 2;
+                command.add_value (this, "ry", ry, last_ry);
             }
 
             break;
