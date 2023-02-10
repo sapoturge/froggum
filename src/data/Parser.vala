@@ -94,7 +94,7 @@ public class Parser : Object {
 
         int base_val;
         var has_int_part = get_int (out base_val);
-        value = base_val;
+        value = base_val * multiplier;
         var has_decimal_part = match (".", false);
         if (!(has_int_part || has_decimal_part)) {
             return false;
