@@ -1,5 +1,5 @@
 public class Path : Element {
-    public Segment root_segment;
+    public PathSegment root_segment;
 
     private Pattern _fill;
     public override Pattern? fill {
@@ -60,14 +60,14 @@ public class Path : Element {
     //     }
     // }
 
-    public Path (Segment[] segments = {},
+    public Path (PathSegment[] segments = {},
                  Gdk.RGBA fill = {0, 0, 0, 0},
                  Gdk.RGBA stroke = {0, 0, 0, 0},
                  string title = "Path") {
         this.with_pattern (segments, new Pattern.color (fill), new Pattern.color (stroke), title);
     }
 
-    public Path.with_pattern (Segment[] segments, Pattern fill, Pattern stroke, string title) {
+    public Path.with_pattern (PathSegment[] segments, Pattern fill, Pattern stroke, string title) {
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
@@ -92,7 +92,7 @@ public class Path : Element {
     }
 
     private void parse_string (string description) {
-        var segments = new Segment[] {};
+        var segments = new PathSegment[] {};
         int i = skip_whitespace (description, 0);
         double start_x = 0;
         double start_y = 0;
@@ -111,7 +111,7 @@ public class Path : Element {
                 i = skip_whitespace (description, i);
                 var x = get_number (description, ref i);
                 var y = get_number (description, ref i);
-                segments += new Segment.line (x, y);
+                segments += new PathSegment.line (x, y);
                 current_x = x;
                 current_y = y;
             } else if (description[i] == 'C') {
@@ -123,7 +123,7 @@ public class Path : Element {
                 var y2 = get_number (description, ref i);
                 var x = get_number (description, ref i);
                 var y = get_number (description, ref i);
-                segments += new Segment.curve (x1, y1, x2, y2, x, y);
+                segments += new PathSegment.curve (x1, y1, x2, y2, x, y);
                 current_x = x;
                 current_y = y;
             } else if (description[i] == 'A') {
@@ -151,13 +151,13 @@ public class Path : Element {
                 var cy1 = -coefficient * ry * x1 / rx;
                 var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
                 var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
-                segments += new Segment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
+                segments += new PathSegment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
                 current_x = x;
                 current_y = y;
             } else if (description[i] == 'Z') {
                 // Ends the path, back to the beginning.
                 if (start_x != current_x || start_y != current_y) {
-                    segments += new Segment.line (start_x, start_y);
+                    segments += new PathSegment.line (start_x, start_y);
                 }
                 i += 1;
             } else {
@@ -168,13 +168,15 @@ public class Path : Element {
         set_segments (segments);
     }
 
-    private void set_segments (Segment[] segments) {
+    private void set_segments (PathSegment[] segments) {
         root_segment = segments[0];
         for (int i = 0; i < segments.length; i++) {
             segments[i].notify.connect (() => { update (); });
             segments[i].add_command.connect ((c) => { add_command (c); });
             segments[i].next = segments[(i + 1) % segments.length];
-            segments[i].request_split.connect (split_segment);
+            segments[i].request_split.connect ((s) => {
+                    split_segment((PathSegment) s);
+            });
         }
     }
         
@@ -192,7 +194,7 @@ public class Path : Element {
     }
         
     public override Element copy () {
-        Segment[] new_segments = { root_segment.copy () };
+        PathSegment[] new_segments = { root_segment.copy () };
         var current_segment = root_segment.next;
         while (current_segment != root_segment) {
             new_segments += current_segment.copy ();
@@ -201,9 +203,9 @@ public class Path : Element {
         return new Path.with_pattern (new_segments, fill, stroke, title);
     }
 
-    public void split_segment (Segment segment) {
-        Segment first;
-        Segment last;
+    public void split_segment (PathSegment segment) {
+        PathSegment first;
+        PathSegment last;
         segment.split (out first, out last);
         first.notify.connect (() => { update (); });
         first.request_split.connect (split_segment);
@@ -361,15 +363,18 @@ public class Path : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
-        segment = root_segment;
+        var current_segment = root_segment;
         var first = true;
-        while (first || segment != root_segment) {
-            if (segment.clicked (x, y, tolerance)) {
+        while (first || current_segment != root_segment) {
+            if (current_segment.clicked (x, y, tolerance)) {
+                segment = current_segment;
                 return true;
             }
+
             first = false;
-            segment = segment.next;
+            current_segment = current_segment.next;
         }
+
         segment = null;
         return false;
     }

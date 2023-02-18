@@ -321,15 +321,15 @@ public class FroggumApplication : Gtk.Application {
     
     private void new_image (int width, int height, Granite.Widgets.Tab tab) {
         var radius = int.min (int.min (width, height) / 8, 16) + 0.5;
-        var segments = new Segment[] {
-            new Segment.line (width - radius * 2, radius),
-            new Segment.arc (width - radius, radius * 2, width - radius * 2, radius * 2, radius, radius, 0, false),
-            new Segment.line (width - radius, height - radius * 2),
-            new Segment.arc (width - radius * 2, height - radius, width - radius * 2, height - radius * 2, radius, radius, 0, false),
-            new Segment.line (radius * 2, height - radius),
-            new Segment.arc (radius, height - radius * 2, radius * 2, height - radius * 2, radius, radius, 0, false),
-            new Segment.line (radius, radius * 2),
-            new Segment.arc (radius * 2, radius, radius * 2, radius * 2, radius, radius, 0, false),
+        var segments = new PathSegment[] {
+            new PathSegment.line (width - radius * 2, radius),
+            new PathSegment.arc (width - radius, radius * 2, width - radius * 2, radius * 2, radius, radius, 0, false),
+            new PathSegment.line (width - radius, height - radius * 2),
+            new PathSegment.arc (width - radius * 2, height - radius, width - radius * 2, height - radius * 2, radius, radius, 0, false),
+            new PathSegment.line (radius * 2, height - radius),
+            new PathSegment.arc (radius, height - radius * 2, radius * 2, height - radius * 2, radius, radius, 0, false),
+            new PathSegment.line (radius, radius * 2),
+            new PathSegment.arc (radius * 2, radius, radius * 2, radius * 2, radius, radius, 0, false),
         };
         var path = new Path.with_pattern (segments, new Pattern.color ({0.3, 0.3, 0.3, 1}), new Pattern.color ({0.1, 0.1, 0.1, 1}), _("Default Path"));
         var circle = new Circle (width / 2, height / 2, double.min (width / 2, height / 2), new Pattern.color ({0.4, 0.5, 0.6, 1}), new Pattern.color ({0.7, 0.6, 0.5, 1}));

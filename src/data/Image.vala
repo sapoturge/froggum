@@ -315,10 +315,10 @@ public class Image : Gtk.TreeStore {
     }
 
     public void new_path () {
-        var path = new Path ({ new Segment.line (width - 1.5, 1.5),
-                               new Segment.line (width - 1.5, height - 1.5),
-                               new Segment.line (1.5, height - 1.5),
-                               new Segment.line (1.5, 1.5)},
+        var path = new Path ({ new PathSegment.line (width - 1.5, 1.5),
+                               new PathSegment.line (width - 1.5, height - 1.5),
+                               new PathSegment.line (1.5, height - 1.5),
+                               new PathSegment.line (1.5, 1.5)},
                              {0.66, 0.66, 0.66, 1},
                              {0.33, 0.33, 0.33, 1},
                              "New Path");

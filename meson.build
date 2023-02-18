@@ -41,6 +41,7 @@ executable(
     'src/data/Polyline.vala',
     'src/data/Polygon.vala',
     'src/data/ContextOption.vala',
+    'src/data/PathSegment.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk+-3.0'),
