@@ -85,6 +85,7 @@ public class Polygon : Element {
             segments.get((i+1)%segments.size).prev = segments.get(i);
 
             segments.get(i).update.connect (() => { update (); });
+            segments.get(i).add_command.connect ((c) => { add_command (c); });
         }
     }
 

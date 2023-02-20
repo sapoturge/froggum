@@ -55,8 +55,14 @@ public class LinearSegment : Segment {
         var command = new Command ();
         if (prop == "start") {
             command.add_value (this, "start", start, last_start);
+            if (prev != null) {
+                command.add_value (prev, "end", start, last_start);
+            }
         } else if (prop == "end") {
             command.add_value (this, "end", end, last_end);
+            if (next != null) {
+                command.add_value (next, "start", end, last_end);
+            }
         } else {
             return;
         }
