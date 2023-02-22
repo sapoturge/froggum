@@ -1,8 +1,5 @@
 public class Polygon : Element {
-    public Gee.List<LinearSegment> segments { get; set; }
-
-    private Gee.List<LinearSegment> last_segments;
-    private int handle_index;
+    public LinearSegment root_segment { get; set; }
 
 /*
     public Point handle {
@@ -14,14 +11,8 @@ public class Polygon : Element {
     }
 */
 
-    public Polygon (Point?[] points, Pattern fill, Pattern stroke, string? title = null) {
-        this.segments = new Gee.UnrolledLinkedList<LinearSegment> ();
-        for (int i = 0; i < points.length; i++) {
-            var seg = new LinearSegment (points[i], points[(i+1)%points.length]);
-            seg.notify.connect (() => { update (); });
-            this.segments.add (seg);
-        }
-
+    public Polygon (Point[] points, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
+        set_points (points);
         this.fill = fill;
         this.stroke = stroke;
         visible = true;
@@ -31,12 +22,16 @@ public class Polygon : Element {
             this.title = title;
         }
 
-        this.transform = new Transform.identity ();
+        if (transform == null) {
+            this.transform = new Transform.identity ();
+        } else {
+            this.transform = transform;
+        }
 
         setup_signals ();
-        setup_segment_signals ();
     }
 
+/*
     public Polygon.from_segments (LinearSegment[] segments, Pattern fill, Pattern stroke, Transform? trasnform = null) {
         this.segments = new Gee.UnrolledLinkedList<LinearSegment> ();
         this.segments.add_all_array (segments);
@@ -51,8 +46,8 @@ public class Polygon : Element {
         }
 
         setup_signals ();
-        setup_segment_signals ();
     }
+*/
 
     public Polygon.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
         base.from_xml (node, patterns);
@@ -71,28 +66,36 @@ public class Polygon : Element {
             points += Point(x, y);
         }
 
-        segments = new Gee.UnrolledLinkedList<LinearSegment> ();
-        for (int i = 0; i < points.length; i++) {
-            segments.add (new LinearSegment (points[i], points[(i+1) % points.length]));
-        }
-
-        setup_segment_signals ();
+        set_points (points);
     }
 
-    protected void setup_segment_signals () {
-        for (int i = 0; i < segments.size; i++) {
-            segments.get(i).next = segments.get((i+1)%segments.size);
-            segments.get((i+1)%segments.size).prev = segments.get(i);
-
-            segments.get(i).update.connect (() => { update (); });
-            segments.get(i).add_command.connect ((c) => { add_command (c); });
+    private void set_points (Point[] points) {
+        root_segment = new LinearSegment (points[0], points[1]);
+        root_segment.notify.connect (() => { update (); });
+        root_segment.update.connect (() => { update (); });
+        root_segment.add_command.connect ((c) => { add_command (c); });
+        var last_segment = root_segment;
+        for (int i = 1; i < points.length; i++) {
+            var seg = new LinearSegment (points[i], points[(i+1)%points.length]);
+            seg.notify.connect (() => { update (); });
+            seg.update.connect (() => { update (); });
+            seg.add_command.connect ((c) => { add_command (c); });
+            seg.prev = last_segment;
+            last_segment.next = seg;
+            last_segment = seg;
         }
+
+        last_segment.next = root_segment;
+        root_segment.prev = last_segment;
     }
+
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         if (always_draw || visible) {
             // cr.move_to (points.get (0).x, segments.get(0).start.y);
-            foreach (var segment in segments) {
+            var first = true;
+            for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
+                first = false;
                 cr.line_to (segment.end.x, segment.end.y);
             }
 
@@ -123,7 +126,9 @@ public class Polygon : Element {
     public override void draw_controls (Cairo.Context cr, double zoom) {
         draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
 
-        foreach (var segment in segments) {
+        var first = true;
+        for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
+            first = false;
             cr.arc (segment.start.x, segment.start.y, 6 / zoom, 0, Math.PI * 2);
             cr.new_sub_path ();
         }
@@ -140,13 +145,10 @@ public class Polygon : Element {
     }
 
     public override void begin (string prop, Value? start_location) {
-        last_segments = segments.read_only_view;
     }
 
     public override void finish (string prop) {
-        var command = new Command ();
-        command.add_value (this, "segments", segments.read_only_view, last_segments);
-        add_command (command);
+        // These don't have any properties to save now.
     }
 
     public override Gee.List<ContextOption> options () {
@@ -162,8 +164,10 @@ public class Polygon : Element {
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
         string prefix = "";
-        foreach (var segment in segments) {
+        var first = true;
+        for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
             prefix = "%s %f %f".printf (prefix, segment.start.x, segment.start.y);
+            first = false;
         }
 
         node->new_prop ("points", prefix);
@@ -173,7 +177,14 @@ public class Polygon : Element {
     }
 
     public override Element copy () {
-        return new Polygon.from_segments (segments.to_array (), fill, stroke, transform);
+        var points = new Point[] {};
+        var first = true;
+        for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
+            points += segment.start;
+            first = false;
+        }
+
+        return new Polygon (points, fill, stroke, "Copy of " + title, transform);
     }
 
     public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
@@ -185,7 +196,8 @@ public class Polygon : Element {
             return;
         }
 
-        foreach (var segment in segments) {
+        var first = true;
+        for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
             if (segment.check_controls (x, y, tolerance, out obj, out prop)) {
                 return;
             }
@@ -210,7 +222,9 @@ public class Polygon : Element {
     public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
         segment = null;
 
-        foreach (var lsegment in segments) {
+        var first = true;
+        for (var lsegment = root_segment; first || lsegment != root_segment; lsegment = lsegment.next) {
+            first = false;
             if (lsegment.clicked (x, y, tolerance)) {
                 segment = lsegment;
                 return true;
