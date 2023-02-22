@@ -85,6 +85,13 @@ public class LinearSegment : Segment {
     }
 
     public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+        if ((x - start.x).abs () <= tolerance &&
+            (y - start.y).abs () <= tolerance) {
+            obj = this;
+            prop = "start";
+            return true;
+        }
+
         if ((x - end.x).abs () <= tolerance &&
             (y - end.y).abs () <= tolerance) {
             obj = this;
