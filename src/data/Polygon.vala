@@ -71,15 +71,11 @@ public class Polygon : Element {
 
     private void set_points (Point[] points) {
         root_segment = new LinearSegment (points[0], points[1]);
-        root_segment.notify.connect (() => { update (); });
-        root_segment.update.connect (() => { update (); });
-        root_segment.add_command.connect ((c) => { add_command (c); });
+        setup_segment_signals (root_segment);
         var last_segment = root_segment;
         for (int i = 1; i < points.length; i++) {
             var seg = new LinearSegment (points[i], points[(i+1)%points.length]);
-            seg.notify.connect (() => { update (); });
-            seg.update.connect (() => { update (); });
-            seg.add_command.connect ((c) => { add_command (c); });
+            setup_segment_signals (seg);
             seg.prev = last_segment;
             last_segment.next = seg;
             last_segment = seg;
@@ -89,6 +85,40 @@ public class Polygon : Element {
         root_segment.prev = last_segment;
     }
 
+    private void setup_segment_signals (LinearSegment segment) {
+        segment.notify.connect (() => { update (); });
+        segment.update.connect (() => { update (); });
+        segment.add_command.connect ((c) => { add_command (c); });
+        segment.request_split.connect ((s) => { split_segment (s); });
+    }
+
+    private void split_segment (LinearSegment segment) {
+        var command = new Command ();
+        var midpoint = Point((segment.start.x + segment.end.x) / 2, (segment.start.y + segment.end.y) / 2);
+        var new_first = new LinearSegment (segment.start, midpoint);
+        var new_last = new LinearSegment (midpoint, segment.end);
+
+        setup_segment_signals (new_first);
+        setup_segment_signals (new_last);
+
+        new_first.prev = segment.prev;
+        new_first.next = new_last;
+        new_last.prev = new_first;
+        new_last.next = segment.next;
+
+        segment.prev.next = new_first;
+        segment.next.prev = new_last;
+
+        command.add_value (segment.prev, "next", new_first, segment);
+        command.add_value (segment.next, "prev", new_last, segment);
+
+        if (segment == root_segment) {
+            root_segment = new_first;
+            command.add_value (this, "root_segment", new_first, segment);
+        }
+
+        add_command (command);
+    }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         if (always_draw || visible) {
@@ -201,6 +231,7 @@ public class Polygon : Element {
             if (segment.check_controls (x, y, tolerance, out obj, out prop)) {
                 return;
             }
+            first = false;
         }
 
 /*

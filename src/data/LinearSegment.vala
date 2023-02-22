@@ -34,6 +34,7 @@ public class LinearSegment : Segment {
     private Point last_end;
 
     public signal void update ();
+    public signal void request_split (LinearSegment s);
 
     public LinearSegment (Point start, Point end) {
         this.start = start;
@@ -41,7 +42,9 @@ public class LinearSegment : Segment {
     }
 
     public override Gee.List<ContextOption> options () {
-        return new Gee.ArrayList<ContextOption> ();
+        var opts = new Gee.ArrayList<ContextOption> ();
+        opts.add (new ContextOption.action (_("Split Segment"), () => { request_split (this); }));
+        return opts;
     }
 
     public override void begin (string prop, Value? value = 0) {
