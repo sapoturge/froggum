@@ -8,7 +8,7 @@ public class Line : Element {
     public Line (double x1, double y1, double x2, double y2, Pattern stroke, string? title = null) {
         this.start = { x1, y1 };
         this.end = { x2, y2 };
-        this.fill = null;
+        this.fill = new Pattern.none ();
         this.stroke = stroke;
         visible = true;
         if (title == null) {
