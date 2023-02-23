@@ -1,30 +1,6 @@
 public class Path : Element {
     public PathSegment root_segment;
 
-    private Pattern _fill;
-    public override Pattern? fill {
-        get {
-            return _fill;
-        }
-        set {
-            _fill = value;
-            fill.update.connect (() => { update (); });
-            fill.add_command.connect ((c) => { add_command(c); });
-        }
-    }
-
-    private Pattern _stroke;
-    public override Pattern? stroke {
-        get {
-            return _stroke;
-        }
-        set {
-            _stroke = value;
-            stroke.update.connect (() => { update (); });
-            stroke.add_command.connect ((c) => { add_command(c); });
-        }
-    }
-
     private Point last_reference;
 
     // I'll probably remove this entirely later.
