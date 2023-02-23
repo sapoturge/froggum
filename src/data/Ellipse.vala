@@ -71,7 +71,7 @@ public class Ellipse : Element {
         }
     }
 
-    public Ellipse (double cx, double cy, double rx, double ry, Pattern fill, Pattern stroke, string? title = null) {
+    public Ellipse (double cx, double cy, double rx, double ry, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
         this.cx = cx;
         this.cy = cy;
         this.rx = rx;
@@ -85,7 +85,11 @@ public class Ellipse : Element {
             this.title = title;
         }
 
-        this.transform = new Transform.identity ();
+        if (transform == null) {
+            this.transform = new Transform.identity ();
+        } else {
+            this.transform = transform;
+        }
 
         setup_signals ();
     }
