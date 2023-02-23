@@ -1,7 +1,27 @@
 public abstract class Element : Object, Undoable {
-    public virtual Pattern? stroke { get; set; }
+    private Pattern _fill;
+    public Pattern fill {
+        get {
+            return _fill;
+        }
+        set {
+            _fill = value;
+            fill.update.connect (() => { update (); });
+            fill.add_command.connect ((c) => { add_command(c); });
+        }
+    }
 
-    public virtual Pattern? fill { get; set; }
+    private Pattern _stroke;
+    public Pattern stroke {
+        get {
+            return _stroke;
+        }
+        set {
+            _stroke = value;
+            stroke.update.connect (() => { update (); });
+            stroke.add_command.connect ((c) => { add_command(c); });
+        }
+    }
 
     private Transform _transform;
     public Transform transform {
