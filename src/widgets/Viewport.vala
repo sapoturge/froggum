@@ -241,7 +241,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             var y = scale_y (event.y);
             control_point = {x, y};
             // Check for right-clicking on a segment
-            if (event.button == 3) {
+            if (path != null && event.button == 3) {
                 if (clicked) {
                     path.select (true);
                 }
