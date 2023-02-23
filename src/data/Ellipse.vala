@@ -218,6 +218,14 @@ public class Ellipse : Element {
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.action (_("Delete Ellipse"), () => { request_delete(); }),
+            new ContextOption.action (_("Convert to Path"), () => { 
+                replace (new Path.with_pattern ({
+                    new PathSegment.line (cx - rx, cy),
+                    new PathSegment.arc (cx + rx, cy, cx, cy, rx, ry, 0, false),
+                    new PathSegment.line (cx + rx, cy),
+                    new PathSegment.arc (cx - rx, cy, cx, cy, rx, ry, 0, false)
+                }, fill, stroke, title, transform));
+            }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
     }
