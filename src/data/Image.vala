@@ -23,7 +23,11 @@ public class Image : Gtk.TreeStore, Undoable {
 
     public ElementIter item {
         set {
+            get_element (value.iter).select (false);
             set_value (value.iter, 0, value.element);
+            element_index[value.element] = value.iter;
+            value.element.select (true);
+            update ();
         }
     }
 
@@ -333,13 +337,17 @@ public class Image : Gtk.TreeStore, Undoable {
         });
         element.replace.connect ((o, n) => {
             setup_element_signals (n);
+            o.select (false);
             var iter = element_index[o];
+            element_index[n] = iter;
+            set_value (iter, 0, n);
+            n.select (true);
+            update ();
             var old_iter = ElementIter (iter, o);
             var new_iter = ElementIter (iter, n);
             var command = new Command ();
             command.add_value (this, "item", new_iter, old_iter);
             stack.add_command (command);
-            set_value (iter, 0, n);
         });
     }
 
