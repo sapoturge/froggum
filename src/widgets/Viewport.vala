@@ -161,16 +161,18 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     construct {
-        background = {0.7, 0.7, 0.7, 1.0};
+        background = {0.7f, 0.7f, 0.7f, 1.0f};
 
         set_size_request (320, 320);
 
+        /* // Event handling changed significantly
         add_events (Gdk.EventMask.BUTTON_RELEASE_MASK |
                     Gdk.EventMask.BUTTON_PRESS_MASK |
                     Gdk.EventMask.BUTTON_MOTION_MASK |
                     Gdk.EventMask.SCROLL_MASK);
+        */
 
-        draw.connect ((cr) => {
+        set_draw_func ((d, cr, w, h) => {
             cr.set_source_rgb (background.red, background.green, background.blue);
             cr.paint ();
 
@@ -209,30 +211,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 selected_path.draw_controls (cr, zoom);
             }
             cr.restore();
-            return false;
         });
 
-        size_allocate.connect ((alloc) => {
-            width = alloc.width;
-            height = alloc.height;
-
-            horizontal.page_size = width;
-            vertical.page_size = height;
-
-            // Recalculate values.
-            scroll_x = scroll_x;
-            scroll_y = scroll_y;
-            
-            if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
-                FroggumApplication.settings.set_boolean ("show-tutorial", false);
-                tutorial = new Tutorial ();
-                tutorial.finish.connect (() => { tutorial = null; });
-                tutorial.relative_to = this;
-                position_tutorial ();
-                tutorial.popup ();
-            }
-        });
-
+        /* // Event handling changed in gtk4
         button_press_event.connect ((event) => {
             Element path = null;
             Segment segment = null;
@@ -332,7 +313,27 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             queue_draw ();
             return false;
         });
+        */
     }
+
+    public override void size_allocate (int width, int height, int baseline)  {
+        horizontal.page_size = width;
+        vertical.page_size = height;
+
+        // Recalculate values.
+        scroll_x = scroll_x;
+        scroll_y = scroll_y;
+        
+        if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
+            FroggumApplication.settings.set_boolean ("show-tutorial", false);
+            tutorial = new Tutorial ();
+            tutorial.finish.connect (() => { tutorial = null; });
+            // tutorial.relative_to = this;
+            position_tutorial ();
+            tutorial.popup ();
+        }
+    }
+
 
     public bool get_border (out Gtk.Border border) {
         border = {0, 0, 0, 0};
@@ -403,8 +404,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         return false;
     }
         
-    private void show_context_menu (Element element, Segment? segment, Gdk.EventButton event) {
-        var menu = new Gtk.Popover (this);
+    private void show_context_menu (Element element, Segment? segment, double x, double y) {
+        var menu = new Gtk.Popover ();
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
         var elem_options = element.options (); // Using the full name "element_options" causes a name collision with "Element.options"
@@ -460,7 +461,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             switch (option.option_type) {
             case SEPARATOR:
                 var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
-                menu_layout.pack_start (separator, false, false, 0);
+                menu_layout.append (separator);
                 break;
             case ACTION:
                 var button = new Gtk.Button ();
@@ -469,7 +470,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     option.activate ();
                     menu.popdown ();
                 });
-                menu_layout.pack_start (button, false, false, 0);
+                menu_layout.append (button);
                 break;
             case TOGGLE:
                 var button = new Gtk.CheckButton.with_label (option.label);
@@ -484,22 +485,21 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     option.target.finish (option.prop);
                     menu.popdown ();
                 });
-                menu_layout.pack_start (button, false, false, 0);
+                menu_layout.append (button);
                 break;
             case OPTIONS:
                 var caption = new Gtk.Label (option.label);
-                menu_layout.pack_start (caption, false, false, 0);
+                menu_layout.append (caption);
                 int value = 0;
                 option.target.get(option.prop, &value);
-                Gtk.RadioButton first_button = null;
+                Gtk.ToggleButton first_button = null;
 
                 foreach (Gee.Map.Entry<string, int> variant in option.option_values) {
-                    Gtk.RadioButton button;
+                    Gtk.ToggleButton button = new Gtk.ToggleButton.with_label (variant.key);
                     if (first_button == null) {
-                        button = new Gtk.RadioButton.with_label (null, variant.key);
                         first_button = button;
                     } else {
-                        button = new Gtk.RadioButton.with_label_from_widget(first_button, variant.key);
+                        button.group = first_button;
                     }
 
                     button.toggled.connect (() => {
@@ -512,7 +512,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                             menu.popdown ();
                         }
                     });
-                    menu_layout.pack_start (button, false, false, 0);
+                    menu_layout.append (button);
                     if (value == variant.value) {
                         button.active = true;
                     }
@@ -521,11 +521,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
         }
 
-        menu_layout.show_all ();
+        menu.child = menu_layout;
 
-        menu.add (menu_layout);
-
-        menu.pointing_to = {(int) event.x - 5, (int) event.y - 5, 10, 10};
+        menu.pointing_to = {(int) x - 5, (int) y - 5, 10, 10};
 
         menu.popup ();
     }

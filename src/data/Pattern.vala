@@ -63,35 +63,35 @@ public class Pattern : Object, ListModel, Undoable {
                 int value;
                 parser.match ("(");
                 if (parser.get_int (out value)) {
-                    rgba.red = value / 255.0;
+                    rgba.red = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.green = value / 255.0;
+                    rgba.green = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.blue = value / 255.0;
+                    rgba.blue = value / 255.0f;
                 }
-                rgba.alpha = 1.0;
+                rgba.alpha = 1.0f;
                 return new Pattern.color (rgba);
             case Keyword.RGBA:
                 var rgba = Gdk.RGBA ();
                 int value;
                 parser.match ("(");
                 if (parser.get_int (out value)) {
-                    rgba.red = value / 255.0;
+                    rgba.red = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.green = value / 255.0;
+                    rgba.green = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.blue = value / 255.0;
+                    rgba.blue = value / 255.0f;
                 }
                 parser.match (",");
-                parser.get_double (out rgba.alpha);
+                parser.get_float (out rgba.alpha);
                 return new Pattern.color (rgba);
              case Keyword.NOT_FOUND:
                  if (parser.match ("#")) {
@@ -115,10 +115,10 @@ public class Pattern : Object, ListModel, Undoable {
                         red = red * 17;
                     }
 
-                    rgba.red = red / 255.0;
-                    rgba.green = green / 255.0;
-                    rgba.blue = blue / 255.0;
-                    rgba.alpha = 1.0;
+                    rgba.red = red / 255.0f;
+                    rgba.green = green / 255.0f;
+                    rgba.blue = blue / 255.0f;
+                    rgba.alpha = 1.0f;
                     return new Pattern.color (rgba);
                 } else {
                     parser.error ("Unknown pattern");

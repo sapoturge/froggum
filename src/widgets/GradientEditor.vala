@@ -31,7 +31,7 @@ public class GradientEditor : Gtk.DrawingArea {
     construct {
         set_size_request (400, 70);
 
-        draw.connect ((cr) => {
+        set_draw_func ((d, cr, w, h) => {
             cr.rectangle (5, 5, width - 10, height - 40);
             pattern.apply_custom (cr, {15, height / 2}, {width - 15, height / 2}, PatternType.LINEAR);
             cr.fill ();
@@ -53,11 +53,7 @@ public class GradientEditor : Gtk.DrawingArea {
             }
         });
 
-        size_allocate.connect ((alloc) => {
-            width = alloc.width;
-            height = alloc.height;
-        });
-
+        /* // Events changed in gtk4
         events |= Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK;
 
         button_press_event.connect ((ev) => {
@@ -111,5 +107,11 @@ public class GradientEditor : Gtk.DrawingArea {
         motion_notify_event.connect ((ev) => {
             offset = double.min (1, double.max (0, (ev.x - 15) / (width - 30)));
         });
+        */
+    }
+
+    public override void size_allocate (int width, int height, int baseline)  {
+        this.width = width;
+        this.height = height;
     }
 }

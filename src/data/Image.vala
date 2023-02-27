@@ -120,9 +120,9 @@ public class Image : Gtk.TreeStore {
                                 var opacity = stop->get_prop ("stop-opacity");
                                 if (opacity != null) {
                                     if (opacity.has_suffix ("%")) {
-                                        color.alpha = double.parse (opacity.substring (0, opacity.length - 1)) / 100;
+                                        color.alpha = float.parse (opacity.substring (0, opacity.length - 1)) / 100;
                                     } else {
-                                        color.alpha = double.parse (opacity);
+                                        color.alpha = float.parse (opacity);
                                     }
                                 }
                                 pattern.add_stop (new Stop (offset, color));
@@ -143,17 +143,17 @@ public class Image : Gtk.TreeStore {
                                     if (offset_data == null) {
                                         offset = 0;
                                     } else if (offset_data.has_suffix ("%")) {
-                                        offset = double.parse (offset_data.substring (0, offset_data.length - 1)) / 100;
+                                        offset = float.parse (offset_data.substring (0, offset_data.length - 1)) / 100;
                                     } else {
-                                        offset = double.parse (offset_data);
+                                        offset = float.parse (offset_data);
                                     }
                                     var color = process_color (stop->get_prop ("stop-color") ?? "#000");
                                     var opacity = stop->get_prop ("stop-opacity");
                                     if (opacity != null) {
                                         if (opacity.has_suffix ("%")) {
-                                            color.alpha = double.parse (opacity.substring (0, opacity.length - 1)) / 100;
+                                            color.alpha = float.parse (opacity.substring (0, opacity.length - 1)) / 100;
                                         } else {
-                                            color.alpha = double.parse (opacity);
+                                            color.alpha = float.parse (opacity);
                                         }
                                     }
                                     pattern.add_stop (new Stop (offset, color));
@@ -205,15 +205,15 @@ public class Image : Gtk.TreeStore {
         var rgba = Gdk.RGBA ();
         if (color.has_prefix ("rgb(")) {
             var channels = color.substring (4, color.length - 5).split (",");
-            rgba.red = int.parse (channels[0]) / 255.0;
-            rgba.green = int.parse (channels[1]) / 255.0;
-            rgba.blue = int.parse (channels[2]) / 255.0;
+            rgba.red = int.parse (channels[0]) / 255.0f;
+            rgba.green = int.parse (channels[1]) / 255.0f;
+            rgba.blue = int.parse (channels[2]) / 255.0f;
         } else if (color.has_prefix ("rgba(")) {
             var channels = color.substring (5, color.length - 6).split (",");
-            rgba.red = int.parse (channels[0]) / 255.0;
-            rgba.green = int.parse (channels[1]) / 255.0;
-            rgba.blue = int.parse (channels[2]) / 255.0;
-            rgba.alpha = double.parse (channels[3]);
+            rgba.red = int.parse (channels[0]) / 255.0f;
+            rgba.green = int.parse (channels[1]) / 255.0f;
+            rgba.blue = int.parse (channels[2]) / 255.0f;
+            rgba.alpha = float.parse (channels[3]);
         } else if (color.has_prefix ("#")) {
             var color_length = (color.length - 1) / 3;
             color.substring (1, color_length).scanf ("%x", &rgba.red);
@@ -319,31 +319,31 @@ public class Image : Gtk.TreeStore {
                                new PathSegment.line (width - 1.5, height - 1.5),
                                new PathSegment.line (1.5, height - 1.5),
                                new PathSegment.line (1.5, 1.5)},
-                             {0.66, 0.66, 0.66, 1},
-                             {0.33, 0.33, 0.33, 1},
+                             {0.66f, 0.66f, 0.66f, 1f},
+                             {0.33f, 0.33f, 0.33f, 1f},
                              "New Path");
         add_element (path, null);
     }
 
     public void new_circle () {
         var circle = new Circle (width / 2, height / 2, double.min (width, height) / 2 - 1,
-                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
-                                 new Pattern.color ({0.33, 0.33, 0.33, 1}));
+                                 new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
+                                 new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (circle, null);
     }
 
     public void new_rectangle () {
-        var rectangle = new Rectangle (2.5, 2.5, width - 5, height - 5, new Pattern.color ({0.66, 0.66, 0.66, 1}), new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        var rectangle = new Rectangle (2.5, 2.5, width - 5, height - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (rectangle, null);
     }
 
     public void new_ellipse () {
-        var ellipse = new Ellipse (width / 2, height / 2, width / 2 - 5, height / 2 - 5, new Pattern.color ({0.66, 0.66, 0.66, 1}), new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        var ellipse = new Ellipse (width / 2, height / 2, width / 2 - 5, height / 2 - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (ellipse, null);
     }
 
     public void new_line () {
-        var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33, 0.33, 0.33, 1}));
+        var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (line, null);
     }
 
@@ -352,8 +352,8 @@ public class Image : Gtk.TreeStore {
                                   Point (1.5, height - 1.5 ),
                                   Point (width - 1.5, 1.5 ),
                                   Point (width - 1.5, height - 1.5 )},
-                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
-                                 new Pattern.color ({0.33, 0.33, 0.33, 1}),
+                                 new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
+                                 new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polyline");
         add_element (line, null);
     }
@@ -363,8 +363,8 @@ public class Image : Gtk.TreeStore {
                                   Point (1.5, height / 2 ),
                                   Point (width / 2, height - 1.5 ),
                                   Point (width - 1.5, height / 2 )},
-                                 new Pattern.color ({0.66, 0.66, 0.66, 1}),
-                                 new Pattern.color ({0.33, 0.33, 0.33, 1}),
+                                 new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
+                                 new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polygon");
         add_element (shape, null);
     }

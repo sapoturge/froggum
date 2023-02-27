@@ -86,6 +86,28 @@ public class Parser : Object {
         return true;
     }
 
+    public bool get_float (out float value) {
+        float multiplier = 1;
+        if (match ("-")) {
+            multiplier = -1;
+        }
+
+        int base_val;
+        var has_int_part = get_int (out base_val);
+        value = base_val * multiplier;
+        var has_decimal_part = match (".", false);
+        if (!(has_int_part || has_decimal_part)) {
+            return false;
+        }
+
+        int next_digit = 0;
+        while (data != "" && get_digit (out next_digit, 10, false)) {
+            multiplier /= 10;
+            value += multiplier * next_digit;
+        }
+        return true;
+    }
+
     public bool get_double (out double value) {
         double multiplier = 1;
         if (match ("-")) {

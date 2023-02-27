@@ -1,6 +1,9 @@
 public class PatternButton : Gtk.CellRenderer {
     public Pattern pattern { get; set; }
 
+    private PatternChooserDialog dialog;
+
+    /* // THis needs to be replaced with a widget
     public override void render (Cairo.Context cr, Gtk.Widget widget, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gtk.CellRendererState flags) {
         var style = widget.get_style_context ();
         style.add_class ("button");
@@ -20,6 +23,7 @@ public class PatternButton : Gtk.CellRenderer {
         cr.restore ();
 
     }
+    */
 
     public override void get_preferred_width (Gtk.Widget widget, out int minimum_width, out int natural_width) {
         minimum_width = 24;
@@ -32,12 +36,10 @@ public class PatternButton : Gtk.CellRenderer {
     }
 
     public override unowned Gtk.CellEditable? start_editing (Gdk.Event? event, Gtk.Widget widget, string path, Gdk.Rectangle background_area, Gdk.Rectangle cell_aea, Gtk.CellRendererState flags) {
-        print ("Editing!\n");
-        var dialog = new PatternChooserDialog ();
+        dialog = new PatternChooserDialog ();
+        bind_property ("pattern", dialog, "pattern");
         dialog.pattern = pattern;
-        dialog.run ();
-        pattern = dialog.pattern;
-        dialog.hide ();
+        dialog.show ();
         return null;
     }
 }

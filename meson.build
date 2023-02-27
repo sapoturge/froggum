@@ -45,8 +45,9 @@ executable(
     'src/data/LinearSegment.vala',
     gresource_froggum,
     dependencies: [
-        dependency('gtk+-3.0'),
-        dependency('granite'),
+        dependency('gtk4'),
+        dependency('granite-7'),
+        dependency('libadwaita-1'),
         dependency('libxml-2.0'),
         cc.find_library('m', required: false)
     ],

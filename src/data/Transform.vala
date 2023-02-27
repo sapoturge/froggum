@@ -484,14 +484,14 @@ public class Transform : Object, Undoable {
         matrix.scale (scale_x, scale_y);
     }
 
-    public override void begin (string prop, Value? initial_value = null) {
+    public void begin (string prop, Value? initial_value = null) {
         last_translate = {translate_x, translate_y};
         last_scale = {scale_x, scale_y};
         last_angle = angle;
         last_skew = skew;
     }
 
-    public override void finish (string prop) {
+    public void finish (string prop) {
         var command = new Command ();
         switch (prop) {
             case "center":
