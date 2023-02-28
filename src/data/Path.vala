@@ -43,11 +43,16 @@ public class Path : Element {
         this.with_pattern (segments, new Pattern.color (fill), new Pattern.color (stroke), title);
     }
 
-    public Path.with_pattern (PathSegment[] segments, Pattern fill, Pattern stroke, string title) {
+    public Path.with_pattern (PathSegment[] segments, Pattern fill, Pattern stroke, string title, Transform? transform = null) {
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
-        this.transform = new Transform.identity ();
+        if (transform == null) {
+            this.transform = new Transform.identity ();
+        } else {
+            this.transform = transform;
+        }
+
         visible = true;
         set_segments (segments);
         setup_signals ();

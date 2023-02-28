@@ -42,6 +42,7 @@ public abstract class Element : Object, Undoable {
     public signal void update ();
     public signal void select (bool selected);
     public signal void request_delete ();
+    public signal void replace (Element replacement);
 
     protected void setup_signals () {
         stroke.update.connect (() => { update (); });

@@ -1,4 +1,14 @@
-public class Image : Gtk.TreeStore {
+public struct ElementIter {
+    Gtk.TreeIter iter;
+    Element element;
+
+    public ElementIter (Gtk.TreeIter iter, Element element) {
+        this.iter = iter;
+        this.element = element;
+    }
+}
+
+public class Image : Gtk.TreeStore, Undoable {
     private File _file;
     private CommandStack stack;
 
@@ -8,6 +18,16 @@ public class Image : Gtk.TreeStore {
     public string name {
         get {
             return "Untitled";
+        }
+    }
+
+    public ElementIter item {
+        set {
+            get_element (value.iter).select (false);
+            set_value (value.iter, 0, value.element);
+            element_index[value.element] = value.iter;
+            value.element.select (true);
+            update ();
         }
     }
 
@@ -274,7 +294,18 @@ public class Image : Gtk.TreeStore {
         stack.redo ();
     }
 
-    private Gtk.TreeIter add_element(Element element, Gtk.TreeIter? root) {
+    private Gtk.TreeIter add_element (Element element, Gtk.TreeIter? root, Gtk.TreeIter? iter = null) {
+        setup_element_signals (element);
+        insert_with_values (out iter, root, 0, 0, element);
+        element_index[element] = iter;
+        if (already_loaded) {
+            element.select (true);
+        }
+        update ();
+        return iter;
+    }
+
+    private void setup_element_signals (Element element) {
         element.transform.width = width;
         element.transform.height = height;
         element.update.connect (() => { update (); });
@@ -304,14 +335,20 @@ public class Image : Gtk.TreeStore {
         element.add_command.connect ((c) => {
             stack.add_command (c);
         });
-        Gtk.TreeIter iter;
-        insert_with_values (out iter, root, 0, 0, element);
-        element_index[element] = iter;
-        if (already_loaded) {
-            element.select (true);
-        }
-        update ();
-        return iter;
+        element.replace.connect ((o, n) => {
+            setup_element_signals (n);
+            o.select (false);
+            var iter = element_index[o];
+            element_index[n] = iter;
+            set_value (iter, 0, n);
+            n.select (true);
+            update ();
+            var old_iter = ElementIter (iter, o);
+            var new_iter = ElementIter (iter, n);
+            var command = new Command ();
+            command.add_value (this, "item", new_iter, old_iter);
+            stack.add_command (command);
+        });
     }
 
     public void new_path () {
@@ -494,5 +531,11 @@ public class Image : Gtk.TreeStore {
             } while (iter_previous (ref iter));
         }
         return pattern_index;
+    }
+
+    public void begin (string prop, Value? start = null) {
+    }
+
+    public void finish (string prop) {
     }
 }

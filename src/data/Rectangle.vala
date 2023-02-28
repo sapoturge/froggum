@@ -477,11 +477,32 @@ public class Rectangle : Element {
     }
 
     public override Gee.List<ContextOption> options () {
-        return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+        var options = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.action (_("Delete Rectangle"), () => { request_delete(); }),
             new ContextOption.toggle (_("Round Corners"), this, "rounded"),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
+        if (rounded && rx > 0 && ry > 0) {
+            options.add (new ContextOption.action (_("Convert to Path"), () => {
+                var segments = new PathSegment[] {
+                    new PathSegment.line (x, y + ry),
+                    new PathSegment.arc (x + rx, y, x + rx, y + ry, rx, ry, 0, false),
+                    new PathSegment.line (x + width - rx, y),
+                    new PathSegment.arc (x + width, y + ry, x + width - rx, y + ry, rx, ry, 0, false),
+                    new PathSegment.line (x + width, y + height - ry),
+                    new PathSegment.arc (x + width - rx, y + height, x + width - rx, y + height - ry, rx, ry, 0, false),
+                    new PathSegment.line (x + rx, y + height),
+                    new PathSegment.arc (x, y + height - ry, x + rx, y + height - ry, rx, ry, 0, false)
+                };
+                replace (new Path.with_pattern (segments, fill, stroke, title, transform));
+            }));
+        } else {
+            options.add (new ContextOption.action (_("Convert to Polygon"), () => {
+                replace (new Polygon ({Point(x, y), Point(x+width, y), Point(x + width, y + height), Point(x, y + height)}, fill, stroke, title, transform));
+            }));
+        }
+
+        return options;
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
