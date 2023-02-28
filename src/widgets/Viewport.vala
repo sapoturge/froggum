@@ -314,16 +314,19 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             return false;
         });
         */
-    }
 
-    public override void size_allocate (int width, int height, int baseline)  {
-        horizontal.page_size = width;
-        vertical.page_size = height;
+        resize.connect ((width, height) => {
+            this.width = width;
+            this.height = height;
+            horizontal.page_size = width;
+            vertical.page_size = height;
 
-        // Recalculate values.
-        scroll_x = scroll_x;
-        scroll_y = scroll_y;
+            // Recalculate values.
+            scroll_x = scroll_x;
+            scroll_y = scroll_y;
         
+        });
+
         if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
             FroggumApplication.settings.set_boolean ("show-tutorial", false);
             tutorial = new Tutorial ();
@@ -333,7 +336,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             tutorial.popup ();
         }
     }
-
 
     public bool get_border (out Gtk.Border border) {
         border = {0, 0, 0, 0};

@@ -89,6 +89,7 @@ public class EditorView : Gtk.Box {
         var list_box_scroll = new Gtk.ScrolledWindow ();
         list_box_scroll.propagate_natural_width = true;
         list_box_scroll.child = paths_list;
+        list_box_scroll.vexpand = true;
 
         /* // Menu buttons changed in gtk4
         new_button = new Gtk.MenuButton (null, null);
@@ -267,6 +268,7 @@ public class EditorView : Gtk.Box {
         
         var side_bar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         side_bar.hexpand = false;
+        side_bar.vexpand = true;
         side_bar.prepend (list_box_scroll);
         side_bar.append (task_bar);
 
@@ -275,8 +277,12 @@ public class EditorView : Gtk.Box {
         scrolled.child = viewport;
         scrolled.hscrollbar_policy = Gtk.PolicyType.ALWAYS;
         scrolled.vscrollbar_policy = Gtk.PolicyType.ALWAYS;
+        scrolled.hexpand = true;
 
         append (side_bar);
         append (scrolled);
+
+        hexpand = true;
+        vexpand = true;
     }
 }
