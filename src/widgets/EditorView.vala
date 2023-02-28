@@ -58,6 +58,7 @@ public class EditorView : Gtk.Box {
             title.text = image.get_element (iter).title;
         });
 
+        /* // PatternButtons don't do anything now
         var fill = new PatternButton ();
         fill.mode = Gtk.CellRendererMode.EDITABLE;
         column.pack_start (fill, false);
@@ -71,6 +72,7 @@ public class EditorView : Gtk.Box {
         column.set_cell_data_func (stroke, (cell_layout, cell, model, iter) => {
             stroke.pattern = image.get_element (iter).stroke;
         });
+        */
 
         paths_list = new Gtk.TreeView ();
         paths_list.headers_visible = false;
@@ -255,7 +257,7 @@ public class EditorView : Gtk.Box {
         });
 
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        task_bar.append (new_button);
+        // task_bar.append (new_button); // Put this back when it's fixed above
         task_bar.append (new_group);
         task_bar.append (duplicate_path);
         task_bar.append (path_up);
