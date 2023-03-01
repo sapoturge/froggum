@@ -4,7 +4,7 @@ public abstract class Element : Object, Undoable {
         get {
             return _fill;
         }
-        set {
+        construct {
             _fill = value;
             fill.update.connect (() => { update (); });
             fill.add_command.connect ((c) => { add_command(c); });
@@ -16,7 +16,7 @@ public abstract class Element : Object, Undoable {
         get {
             return _stroke;
         }
-        set {
+        construct {
             _stroke = value;
             stroke.update.connect (() => { update (); });
             stroke.add_command.connect ((c) => { add_command(c); });
@@ -43,7 +43,8 @@ public abstract class Element : Object, Undoable {
     public signal void select (bool selected);
     public signal void request_delete ();
 
-    protected void setup_signals () {
+    // protected void setup_signals () {
+    construct {
         stroke.update.connect (() => { update (); });
         fill.update.connect (() => { update (); });
         stroke.add_command.connect ((c) => { add_command (c); });
@@ -56,15 +57,15 @@ public abstract class Element : Object, Undoable {
     }
 
     protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        title = node->get_prop ("id");
-        visible = true;
-        fill = Pattern.get_from_text (node->get_prop ("fill"), patterns);
-        stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
-        transform = new Transform.from_string (node->get_prop ("transform"));
+        Object (
+            title: node->get_prop ("id"),
+            visible: true,
+            fill: Pattern.get_from_text (node->get_prop ("fill"), patterns),
+            stroke: Pattern.get_from_text (node->get_prop ("stroke"), patterns),
 
-        transform_enabled = !transform.is_identity ();
-
-        setup_signals ();
+            transform: new Transform.from_string (node->get_prop ("transform")),
+            transform_enabled: !transform.is_identity ()
+        );
     }
 
     public abstract void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false);

@@ -1,7 +1,13 @@
 public class Handle : Object, Undoable {
-    public Point point { get; set; }
+    public Point point { get; set construct; }
 
     private Point last_point;
+
+    public Handle (double x, double y) {
+        Object (
+            point: Point(x, y)
+        );
+    }
 
     public void begin (string prop, Value? val = null) {
         last_point = point;

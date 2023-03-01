@@ -11,24 +11,24 @@ public class Polygon : Element {
     }
 */
 
-    public Polygon (Point[] points, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
-        set_points (points);
-        this.fill = fill;
-        this.stroke = stroke;
-        visible = true;
+    public Polygon (Point[] points, Pattern fill, Pattern stroke, string? title = null, owned Transform? transform = null) {
         if (title == null) {
-            this.title = "Polygon";
-        } else {
-            this.title = title;
+            title = "Polygon";
         }
 
         if (transform == null) {
-            this.transform = new Transform.identity ();
-        } else {
-            this.transform = transform;
+            transform = new Transform.identity ();
         }
 
-        setup_signals ();
+        Object (
+            fill: fill,
+            stroke: stroke,
+            visible: true,
+            title: title,
+            transform: transform
+        );
+
+        set_points (points);
     }
 
 /*

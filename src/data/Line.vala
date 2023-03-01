@@ -1,25 +1,24 @@
 public class Line : Element {
-    public Point start { get; set; }
-    public Point end { get; set; }
+    public Point start { get; set construct; }
+    public Point end { get; set construct; }
 
     private Point last_start;
     private Point last_end;
 
     public Line (double x1, double y1, double x2, double y2, Pattern stroke, string? title = null) {
-        this.start = { x1, y1 };
-        this.end = { x2, y2 };
-        this.fill = new Pattern.none ();
-        this.stroke = stroke;
-        visible = true;
         if (title == null) {
-            this.title = "Line";
-        } else {
-            this.title = title;
+            title = "Line";
         }
 
-        this.transform = new Transform.identity ();
-
-        setup_signals ();
+        Object (
+            start: Point(x1, y1),
+            end: Point(x2, y2),
+            fill: new Pattern.none (),
+            stroke: stroke,
+            visible: true,
+            title: title,
+            transform: new Transform.identity ()
+        );
     }
 
     public Line.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {

@@ -162,26 +162,24 @@ public class Rectangle : Element {
     }
 
     public Rectangle (double x, double y, double width, double height, Pattern fill, Pattern stroke, string? title = null) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.fill = fill;
-        this.stroke = stroke;
-        visible = true;
         if (title == null) {
-            this.title = "Rectangle";
-        } else {
-            this.title = title;
+            title = "Rectangle";
         }
 
-        this.transform = new Transform.identity ();
-
-        setup_signals ();
-
-        this.rounded = false;
-        this.rx = 0;
-        this.ry = 0;
+        Object (
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+            fill: fill,
+            stroke: stroke,
+            visible: true,
+            title: title,
+            transform: new Transform.identity (),
+            rounded: false,
+            rx: 0,
+            ry: 0
+        );
     }
 
     public Rectangle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {

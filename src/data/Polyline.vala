@@ -1,24 +1,24 @@
 public class Polyline : Element {
     public LinearSegment root_segment { get; set; }
 
-    public Polyline (Point[] points, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
-        set_points (points);
-        this.fill = fill;
-        this.stroke = stroke;
-        visible = true;
+    public Polyline (Point[] points, Pattern fill, Pattern stroke, string? title = null, owned Transform? transform = null) {
         if (title == null) {
-            this.title = "Polyline";
-        } else {
-            this.title = title;
+            title = "Polyline";
         }
 
         if (transform == null) {
-            this.transform = new Transform.identity ();
-        } else {
-            this.transform = transform;
+            transform = new Transform.identity ();
         }
 
-        setup_signals ();
+        Object (
+            fill: fill,
+            stroke: stroke,
+            visible: true,
+            title: title,
+            transform: transform
+        );
+
+        set_points (points);
     }
 
     public Polyline.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {

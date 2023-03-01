@@ -1,8 +1,8 @@
 public class Ellipse : Element {
-    public double cx { get; set; }
-    public double cy { get; set; }
-    public double rx { get; set; }
-    public double ry { get; set; }
+    public double cx { get; set construct; }
+    public double cy { get; set construct; }
+    public double rx { get; set construct; }
+    public double ry { get; set construct; }
 
     private double last_cx;
     private double last_cy;
@@ -72,22 +72,21 @@ public class Ellipse : Element {
     }
 
     public Ellipse (double cx, double cy, double rx, double ry, Pattern fill, Pattern stroke, string? title = null) {
-        this.cx = cx;
-        this.cy = cy;
-        this.rx = rx;
-        this.ry = ry;
-        this.fill = fill;
-        this.stroke = stroke;
-        visible = true;
         if (title == null) {
-            this.title = "Ellipse";
-        } else {
-            this.title = title;
+            title = "Ellipse";
         }
 
-        this.transform = new Transform.identity ();
-
-        setup_signals ();
+        Object (
+            cx: cx,
+            cy: cy,
+            rx: rx,
+            ry: ry,
+            fill: fill,
+            stroke: stroke,
+            visible: true,
+            title: title,
+            transform: new Transform.identity ()
+        );
     }
 
     public Ellipse.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {

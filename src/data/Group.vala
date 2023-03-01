@@ -1,14 +1,13 @@
 public class Group : Element {
     public Group () {
-        title = "Group";
-        visible = true;
-        fill = new Pattern.none ();
-        stroke = new Pattern.none ();
-        transform = new Transform.identity ();
-   
-        setup_signals ();
-
-        transform_enabled = true;
+        Object (
+            title: "Group",
+            visible: true,
+            fill: new Pattern.none (),
+            stroke: new Pattern.none (),
+            transform: new Transform.identity (),
+            transform_enabled: true
+        );
     }
 
     public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {

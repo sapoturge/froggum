@@ -1,8 +1,9 @@
 public class Circle : Element {
-    public double x { get; set; }
-    public double y { get; set; }
-    public double r { get; set; }
+    public double x { get; set construct; }
+    public double y { get; set construct; }
+    public double r { get; set construct; }
 
+/*
     private Point _last_radius;
     private Point _last_center;
 
@@ -30,24 +31,46 @@ public class Circle : Element {
             update ();
         }
     }
+*/
 
-    public Circle (double x, double y, double r, Pattern fill, Pattern stroke, string? title = null) {
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        _radius = {x + r, y};
-        this.fill = fill;
-        this.stroke = stroke;
-        visible = true;
+    private Handle center;
+    private Handle radius;
+
+    construct {
         if (title == null) {
-            this.title = "Circle";
-        } else {
-            this.title = title;
+            title = "Circle";
         }
 
-        this.transform = new Transform.identity ();
+        center = new Handle (x, y);
+        center.notify.connect (() => {
+            var new_x = center.point.x - x + radius.point.x;
+            var new_y = center.point.y - y + radius.point.y;
+            x = center.point.x;
+            y = center.point.y;
+            radius.point = Point(new_x, new_y);
+            update ();
+        });
+        center.add_command.connect ((c) => { add_command (c); });
 
-        setup_signals ();
+        radius = new Handle (x + r, y);
+        radius.notify.connect (() => {
+            r = Math.sqrt ((x - radius.point.x) * (x - radius.point.x) + (y - radius.point.y) * (y - radius.point.y));
+            update ();
+        });
+        radius.add_command.connect ((c) => { add_command (c); });
+    }
+
+    public Circle (double x, double y, double r, Pattern fill, Pattern stroke, string? title = null) {
+        Object (
+            x: x,
+            y: y,
+            r: r,
+            fill: fill,
+            stroke: stroke,
+            visible: true,
+            title: title,
+            transform: new Transform.identity ()
+        );
     }
 
     public Circle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
@@ -55,7 +78,6 @@ public class Circle : Element {
         x = double.parse (node->get_prop ("cx"));
         y = double.parse (node->get_prop ("cy"));
         r = double.parse (node->get_prop ("r"));
-        _radius = { x + r, y };
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
@@ -93,7 +115,7 @@ public class Circle : Element {
 
         cr.arc (x, y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (radius.x, radius.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (radius.point.x, radius.point.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
@@ -106,21 +128,9 @@ public class Circle : Element {
     }
 
     public override void begin (string prop, Value? start_location) {
-        if (prop == "center") {
-            _last_center = *((Point*) start_location.peek_pointer ());
-        } else if (prop == "radius") {
-            _last_radius = *((Point*) start_location.peek_pointer ());
-        }
     }
 
     public override void finish (string prop) {
-        var command = new Command ();
-        if (prop == "center") {
-            command.add_value (this, "prop", center, _last_center);
-        } else if (prop == "radius") {
-            command.add_value (this, "radius", radius, _last_radius);
-        }
-        add_command (command);
     }
 
     public override Gee.List<ContextOption> options () {
@@ -161,15 +171,17 @@ public class Circle : Element {
         }
 
         if ((x - this.x).abs () <= tolerance && (y - this.y).abs () <= tolerance) {
-            obj = this;
-            prop = "center";
+            obj = center;
+            prop = "point";
             return;
         }
-        if ((x - radius.x).abs () <= tolerance && (y - radius.y).abs () <= tolerance) {
-            obj = this;
-            prop = "radius";
+
+        if ((x - radius.point.x).abs () <= tolerance && (y - radius.point.y).abs () <= tolerance) {
+            obj = radius;
+            prop = "point";
             return;
         }
+
         obj = null;
         prop = "";
         return;

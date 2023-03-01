@@ -44,22 +44,27 @@ public class Path : Element {
     }
 
     public Path.with_pattern (PathSegment[] segments, Pattern fill, Pattern stroke, string title) {
-        this.fill = fill;
-        this.stroke = stroke;
-        this.title = title;
-        this.transform = new Transform.identity ();
-        visible = true;
+        Object (
+            fill: fill,
+            stroke: stroke,
+            title: title,
+            transform: new Transform.identity (),
+            visible: true
+        );
+
         set_segments (segments);
-        setup_signals ();
     }
 
     public Path.from_string_with_pattern (string description, Pattern fill, Pattern stroke, string title) {
         parse_string (description);
-        this.fill = fill;
-        this.stroke = stroke;
-        this.title = title;
-        this.transform = new Transform.identity ();
-        visible = true;
+        Object (
+            fill: fill,
+            stroke: stroke,
+            title: title,
+            transform: new Transform.identity (),
+            visible: true,
+            title: title
+        );
     }
 
     public Path.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
