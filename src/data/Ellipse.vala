@@ -9,6 +9,15 @@ public class Ellipse : Element {
     private double last_rx;
     private double last_ry;
 
+    private bool editing;
+
+    private Handle top_left;
+    private Handle top_right;
+    private Handle bottom_left;
+    private Handle bottom_right;
+    private Handle center;
+
+/*
     public Point top_left {
         get {
             return { cx - rx, cy - ry };
@@ -70,6 +79,97 @@ public class Ellipse : Element {
             cy = value.y;
         }
     }
+*/
+
+    construct {
+        editing = false;
+
+        center = new Handle (cx, cy);
+        top_left = new Handle (cx - rx, cy - ry);
+        top_right = new Handle (cx + rx, cy - ry);
+        bottom_left = new Handle (cx - rx, cy + ry);
+        bottom_right = new Handle (cx + rx, cy + ry);
+
+        center.notify.connect (() => {
+            if (!editing) {
+                editing = true;
+                var offset_x = center.point.x - cx;
+                var offset_y = center.point.y - cy;
+                cx = center.point.x;
+                cy = center.point.y;
+                top_left.point = Point(top_left.point.x + offset_x, top_left.point.y + offset_y);
+                top_right.point = Point(top_right.point.x + offset_x, top_right.point.y + offset_y);
+                bottom_left.point = Point(bottom_left.point.x + offset_x, bottom_left.point.y + offset_y);
+                bottom_right.point = Point(bottom_right.point.x + offset_x, bottom_right.point.y + offset_y);
+                update ();
+                editing = false;
+            }
+        });
+
+        top_left.notify.connect (() => {
+            if (!editing) {
+                editing = true;
+                cx = (bottom_right.point.x + top_left.point.x) / 2;
+                cy = (bottom_right.point.y + top_left.point.y) / 2;
+                rx = (bottom_right.point.x - top_left.point.x) / 2;
+                ry = (bottom_right.point.y - top_left.point.y) / 2;
+
+                top_right.point = Point(top_right.point.x, top_left.point.y);
+                bottom_left.point = Point(top_left.point.x, bottom_left.point.y);
+                center.point = Point(cx, cy);
+                update ();
+                editing = false;
+            }
+        });
+
+        top_right.notify.connect (() => {
+            if (!editing) {
+                editing = true;
+                cx = (bottom_left.point.x + top_right.point.x) / 2;
+                cy = (bottom_left.point.y + top_right.point.y) / 2;
+                rx = -(bottom_left.point.x - top_right.point.x) / 2;
+                ry = (bottom_left.point.y - top_right.point.y) / 2;
+
+                top_left.point = Point(top_left.point.x, top_right.point.y);
+                bottom_right.point = Point(top_right.point.x, bottom_right.point.y);
+                center.point = Point(cx, cy);
+                update ();
+                editing = false;
+            }
+        });
+
+        bottom_left.notify.connect (() => {
+            if (!editing) {
+                editing = true;
+                cx = (top_right.point.x + bottom_left.point.x) / 2;
+                cy = (top_right.point.y + bottom_left.point.y) / 2;
+                rx = (top_right.point.x - bottom_left.point.x) / 2;
+                ry = -(top_right.point.y - bottom_left.point.y) / 2;
+
+                bottom_right.point = Point(bottom_right.point.x, bottom_left.point.y);
+                top_left.point = Point(bottom_left.point.x, top_left.point.y);
+                center.point = Point(cx, cy);
+                update ();
+                editing = false;
+            }
+        });
+
+        bottom_right.notify.connect (() => {
+            if (!editing) {
+                editing = true;
+                cx = (top_left.point.x + bottom_right.point.x) / 2;
+                cy = (top_left.point.y + bottom_right.point.y) / 2;
+                rx = -(top_left.point.x - bottom_right.point.x) / 2;
+                ry = -(top_left.point.y - bottom_right.point.y) / 2;
+
+                bottom_left.point = Point(bottom_left.point.x, bottom_right.point.y);
+                top_right.point = Point(bottom_right.point.x, top_right.point.y);
+                center.point = Point(cx, cy);
+                update ();
+                editing = false;
+            }
+        });
+    }
 
     public Ellipse (double cx, double cy, double rx, double ry, Pattern fill, Pattern stroke, string? title = null) {
         if (title == null) {
@@ -128,22 +228,22 @@ public class Ellipse : Element {
     public override void draw_controls (Cairo.Context cr, double zoom) {
         draw (cr, 1 / zoom, { 0, 0, 0}, {1, 0, 0, 1}, true);
 
-        cr.arc (top_left.x, top_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_left.point.x, top_left.point.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (top_right.x, top_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_right.point.x, top_right.point.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_left.point.x, bottom_left.point.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_right.point.x, bottom_right.point.y, 6 / zoom, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (center.point.x, center.point.y, 6 / zoom, 0, Math.PI * 2);
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
-        cr.move_to (top_left.x, top_left.y);
-        cr.line_to (top_right.x, top_right.y);
-        cr.line_to (bottom_right.x, bottom_right.y);
-        cr.line_to (bottom_left.x, bottom_left.y);
+        cr.move_to (top_left.point.x, top_left.point.y);
+        cr.line_to (top_right.point.x, top_right.point.y);
+        cr.line_to (bottom_right.point.x, bottom_right.point.y);
+        cr.line_to (bottom_left.point.x, bottom_left.point.y);
         cr.close_path ();
         cr.stroke ();
 
@@ -174,20 +274,20 @@ public class Ellipse : Element {
         var bottom_close = (y - cy - ry).abs () <= tolerance;
 
         if (top_close && left_close) {
-            obj = this;
-            prop = "top_left";
+            obj = top_left;
+            prop = "point";
         } else if (top_close && right_close) {
-            obj = this;
-            prop = "top_right";
+            obj = top_right;
+            prop = "point";
         } else if (bottom_close && left_close) {
-            obj = this;
-            prop = "bottom_left";
+            obj = bottom_left;
+            prop = "point";
         } else if (bottom_close && right_close) {
-            obj = this;
-            prop = "bottom_right";
+            obj = bottom_right;
+            prop = "point";
         } else if ((x - cx).abs () <= tolerance && (y - cy).abs () <= tolerance) {
-            obj = this;
-            prop = "center";
+            obj = center;
+            prop = "point";
         } else {
             obj = null;
             prop = "";
