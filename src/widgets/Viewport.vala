@@ -1,12 +1,13 @@
 public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double _scroll_x;
     private double _scroll_y;
-    private int base_x;
-    private int base_y;
+    private double base_x;
+    private double base_y;
     private double _zoom = 1;
     private double base_zoom;
     private int width = 0;
     private int height = 0;
+    private Point base_point;
 
     private bool scrolling = false;
 
@@ -214,14 +215,16 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             cr.restore();
         });
 
-        /* // Event handling changed in gtk4
-        button_press_event.connect ((event) => {
+        var drag_controller = new Gtk.GestureDrag ();
+        add_controller (drag_controller);
+        drag_controller.drag_begin.connect ((x, y) => {
             Element path = null;
             Segment segment = null;
-            var clicked = clicked_path ((int) event.x, (int) event.y, out path, out segment);
-            var x = scale_x (event.x);
-            var y = scale_y (event.y);
-            control_point = {x, y};
+            var sx = scale_x (x);
+            var sy = scale_y (y);
+            control_point = {sx, sy};
+            var clicked = clicked_path (sx, sy, out path, out segment);
+            /* This is irrelevant for drags
             // Check for right-clicking on a segment
             if (path != null && event.button == 3) {
                 if (clicked) {
@@ -242,61 +245,65 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 }
                 return false;
             }
+            */
             // Check for clicking on a control handle
             if (selected_path != null) {
                 Undoable obj;
                 string prop;
-                selected_path.check_controls (x, y, 6 / zoom, out obj, out prop);
+                selected_path.check_controls (sx, sy, 6 / zoom, out obj, out prop);
                 if (obj != null) {
                     bind_point (obj, prop);
-                    return false;
+                    return;
                 }
             }
+            /* // This is irrelevant always
             // Check for clicking on a path (not control handle)
             if (clicked && path == selected_path) {
                 bind_point (selected_path, "reference");
                 return false;
             }
+            */
             // Assume dragging
             scrolling = true;
-            base_x = (int) event.x - scroll_x;
-            base_y = (int) event.y - scroll_y;
-            return false;
+            base_x = scroll_x;
+            base_y = scroll_y;
         });
 
-        motion_notify_event.connect ((event) => {
+        drag_controller.drag_update.connect ((x, y) => {
             // Drag control handle (only changes if actually dragging something.)
             if (point_binding != null) {
-                var new_x = scale_x (event.x);
-                var new_y = scale_y (event.y);
+                var new_x = x / zoom + base_point.x;
+                var new_y = y / zoom + base_point.y;
+
+                // Snap to grid if within tolerance
                 if ((new_x * 2 - Math.round (new_x * 2)).abs () < 6 / zoom) {
                     new_x = Math.round (new_x * 2) / 2;
                 }
+
                 if ((new_y * 2 - Math.round (new_y * 2)).abs () < 6 / zoom) {
                     new_y = Math.round (new_y * 2) / 2;
                 }
+
                 control_point = {new_x, new_y};
             }
             // Drag entire segment?
             // Scroll
             if (scrolling) {
-                scroll_x = (int) event.x - base_x;
-                scroll_y = (int) event.y - base_y;
+                scroll_x = x + base_x;
+                scroll_y = y + base_y;
                 position_tutorial ();
                 queue_draw ();
             }
-            return false;
         });
 
-        button_release_event.connect ((event) => {
+        drag_controller.drag_end.connect ((event) => {
             // Stop scrolling, dragging, etc.
             if (point_binding != null) {
                 unbind_point ();
             }
+
             scrolling = false;
-            return false;
         });
-        */
 
         var zoom_controller = new Gtk.GestureZoom ();
         add_controller (zoom_controller);
@@ -348,10 +355,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         if (tutorial != null && tutorial.step == DRAG) {
             tutorial.next_step ();
         }
+
         bound_obj = obj;
         bound_prop = name;
         obj.begin (name, control_point);
         point_binding = bind_property ("control-point", obj, name);
+        base_point = control_point;
     }
 
     private void unbind_point () {
@@ -379,10 +388,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private bool clicked_path (int x, int y, out Element? path, out Segment? segment) {
-        double real_x = scale_x (x);
-        double real_y = scale_y (y);
-        return clicked_subpath (real_x, real_y, null, out path, out segment);
+    private bool clicked_path (double x, double y, out Element? path, out Segment? segment) {
+        // double real_x = scale_x (x);
+        // double real_y = scale_y (y);
+        return clicked_subpath (x, y, null, out path, out segment);
     }
 
     private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
