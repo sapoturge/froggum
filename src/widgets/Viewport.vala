@@ -1,9 +1,10 @@
 public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
-    private int _scroll_x;
-    private int _scroll_y;
+    private double _scroll_x;
+    private double _scroll_y;
     private int base_x;
     private int base_y;
     private double _zoom = 1;
+    private double base_zoom;
     private int width = 0;
     private int height = 0;
 
@@ -43,7 +44,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private int scroll_x {
+    private double scroll_x {
         get {
             return _scroll_x;
         }
@@ -53,7 +54,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private int scroll_y {
+    private double scroll_y {
         get {
             return _scroll_y;
         }
@@ -295,25 +296,27 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             scrolling = false;
             return false;
         });
+        */
 
-        scroll_event.connect ((event) => {
-            if (event.direction == Gdk.ScrollDirection.UP) {
-                if (tutorial != null && tutorial.step == SCROLL) {
-                    tutorial.next_step ();
-                }
-                zoom *= 2;
-                scroll_x *= 2;
-                scroll_y *= 2;
-            } else if (event.direction == Gdk.ScrollDirection.DOWN && zoom > 1) {
-                zoom /= 2;
-                scroll_x /= 2;
-                scroll_y /= 2;
+        var zoom_controller = new Gtk.GestureZoom ();
+        add_controller (zoom_controller);
+        zoom_controller.begin.connect (() => {
+            base_zoom = zoom;
+        });
+        zoom_controller.scale_changed.connect ((scale) => {
+            scale = double.max (scale*base_zoom, 1);
+
+            if (scale > 1 && tutorial != null && tutorial.step == SCROLL) {
+                tutorial.next_step ();
             }
+
+            scroll_x = scroll_x / zoom * scale;
+            scroll_y = scroll_y / zoom * scale;
+            zoom = scale;
+
             position_tutorial ();
             queue_draw ();
-            return false;
         });
-        */
 
         resize.connect ((width, height) => {
             this.width = width;
@@ -324,7 +327,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Recalculate values.
             scroll_x = scroll_x;
             scroll_y = scroll_y;
-        
         });
 
         if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
