@@ -292,7 +292,7 @@ public class PathSegment : Segment {
 
     private PathSegment.none () {}
     
-    public override void begin (string property, Value? start_value = null) {
+    public override void begin (string property) {
         switch (property) {
             case "start":
                 previous_start = start;

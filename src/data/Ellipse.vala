@@ -195,7 +195,7 @@ public class Ellipse : Element {
         }
     }
 
-    public override void begin (string prop, Value? start) {
+    public override void begin (string prop) {
         last_cx = cx;
         last_cy = cy;
         last_rx = rx;

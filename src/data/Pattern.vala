@@ -246,7 +246,7 @@ public class Pattern : Object, ListModel, Undoable {
         update ();
     }
     
-    public void begin (string prop, Value? start_value = null) {
+    public void begin (string prop) {
         switch (prop) {
             case "start":
                 previous_start = start;
@@ -416,7 +416,7 @@ public class Stop : Object, Undoable {
         }
     }
 
-    public void begin (string prop, Value? start = null) {
+    public void begin (string prop) {
         if (prop == "display" || prop == "offset") {
             previous_offset = offset;
         } else if (prop == "rgba") {

@@ -71,7 +71,7 @@ public abstract class Element : Object, Undoable {
 
     public abstract void draw_controls (Cairo.Context cr, double zoom);
 
-    public abstract void begin (string prop, Value? start_location);
+    public abstract void begin (string prop);
 
     public abstract void finish (string prop);
 

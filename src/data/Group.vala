@@ -26,7 +26,7 @@ public class Group : Element {
         return;
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
         return;
     }
     

@@ -1,7 +1,7 @@
 public class Path : Element {
     public PathSegment root_segment;
 
-    private Point last_reference;
+    // private Point last_reference;
 
     // I'll probably remove this entirely later.
     // public Point reference {
@@ -246,8 +246,7 @@ public class Path : Element {
         }
     }
 
-    public override void begin (string prop, Value? start_location) {
-        last_reference = *((Point*) start_location.peek_pointer ());
+    public override void begin (string prop) {
     }
     
     public override void finish (string prop) {

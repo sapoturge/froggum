@@ -105,11 +105,11 @@ public class Circle : Element {
         }
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
         if (prop == "center") {
-            _last_center = *((Point*) start_location.peek_pointer ());
+            _last_center = center;
         } else if (prop == "radius") {
-            _last_radius = *((Point*) start_location.peek_pointer ());
+            _last_radius = radius;
         }
     }
 

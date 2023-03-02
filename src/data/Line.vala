@@ -67,7 +67,7 @@ public class Line : Element {
         }
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
         if (prop == "start") {
             last_start = start;
         } else if (prop == "end") {

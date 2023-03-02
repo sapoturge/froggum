@@ -406,7 +406,7 @@ public class Rectangle : Element {
         }
     }
 
-    public override void begin (string prop, Value? start) {
+    public override void begin (string prop) {
         last_x = x;
         last_y = y;
         last_width = width;

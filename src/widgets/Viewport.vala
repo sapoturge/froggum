@@ -357,7 +357,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         bound_obj = obj;
         bound_prop = name;
-        obj.begin (name, control_point);
+        obj.begin (name);
         point_binding = bind_property ("control-point", obj, name);
         base_point = control_point;
     }
@@ -493,7 +493,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 button.toggled.connect (() => {
                     bool val = false;
                     option.target.get(option.prop, &val);
-                    option.target.begin (option.prop, val);
+                    option.target.begin (option.prop);
                     option.target.set(option.prop, !val);
                     option.target.finish (option.prop);
                     menu.popdown ();
@@ -517,9 +517,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
                     button.toggled.connect (() => {
                         if (button.get_active ()) {
-                            Value previous;
-                            option.target.get (option.prop, out previous);
-                            option.target.begin (option.prop, previous);
+                            option.target.begin (option.prop);
                             option.target.set(option.prop, variant.value);
                             option.target.finish (option.prop);
                             menu.popdown ();

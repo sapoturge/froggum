@@ -149,7 +149,7 @@ public class Polyline : Element {
         }
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
     }
 
     public override void finish (string prop) {
