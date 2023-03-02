@@ -339,7 +339,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             FroggumApplication.settings.set_boolean ("show-tutorial", false);
             tutorial = new Tutorial ();
             tutorial.finish.connect (() => { tutorial = null; });
-            // tutorial.relative_to = this;
+            tutorial.set_parent (this);
             position_tutorial ();
             tutorial.popup ();
         }
