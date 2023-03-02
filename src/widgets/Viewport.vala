@@ -232,6 +232,18 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
         });
 
+        var right_click_controller = new Gtk.GestureClick ();
+        right_click_controller.set_button (3);
+        add_controller (right_click_controller);
+        right_click_controller.pressed.connect ((n, x, y) => {
+            Element path;
+            Segment segment;
+            if (clicked_path (scale_x (x), scale_y (y), out path, out segment)) {
+                path.select (true);
+                show_context_menu (path, segment, x, y);
+            }
+        });
+
         var drag_controller = new Gtk.GestureDrag ();
         add_controller (drag_controller);
         drag_controller.drag_begin.connect ((x, y) => {
@@ -244,11 +256,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             /* This is irrelevant for drags
             // Check for right-clicking on a segment
             if (path != null && event.button == 3) {
-                if (clicked) {
-                    path.select (true);
-                }
-                show_context_menu (path, segment, event);
-                return false;
+                
             }
             // Check for double-clicking on a path
             if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
@@ -545,7 +553,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
 
         menu.child = menu_layout;
-
+        menu.set_parent (this);
         menu.pointing_to = {(int) x - 5, (int) y - 5, 10, 10};
 
         menu.popup ();
