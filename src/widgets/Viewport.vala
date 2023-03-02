@@ -247,23 +247,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var drag_controller = new Gtk.GestureDrag ();
         add_controller (drag_controller);
         drag_controller.drag_begin.connect ((x, y) => {
-            Element path = null;
-            Segment segment = null;
             var sx = scale_x (x);
             var sy = scale_y (y);
             control_point = {sx, sy};
-            var clicked = clicked_path (sx, sy, out path, out segment);
-            /* This is irrelevant for drags
-            // Check for right-clicking on a segment
-            if (path != null && event.button == 3) {
-                
-            }
-            // Check for double-clicking on a path
-            if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
-                
-                return false;
-            }
-            */
+
             // Check for clicking on a control handle
             if (selected_path != null) {
                 Undoable obj;
@@ -274,13 +261,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     return;
                 }
             }
-            /* // This is irrelevant always
-            // Check for clicking on a path (not control handle)
-            if (clicked && path == selected_path) {
-                bind_point (selected_path, "reference");
-                return false;
-            }
-            */
+
             // Assume dragging
             scrolling = true;
             base_x = scroll_x;
@@ -391,24 +372,25 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         if (tutorial != null) {
             var x = unscale_x (image.width / 2);
             var y = unscale_y (0);
+
             if (y < 0) {
                 y = 0;
                 tutorial.position = BOTTOM;
             } else if (y > height) {
                 y = height;
             }
+
             if (x < 0) {
                 x = 0;
             } else if (x > width) {
                 x = width;
             }
+
             tutorial.pointing_to = { (int) x, (int) y };
         }
     }
 
     private bool clicked_path (double x, double y, out Element? path, out Segment? segment) {
-        // double real_x = scale_x (x);
-        // double real_y = scale_y (y);
         return clicked_subpath (x, y, null, out path, out segment);
     }
 
