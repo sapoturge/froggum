@@ -215,6 +215,23 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             cr.restore();
         });
 
+        var double_click_controller = new Gtk.GestureClick ();
+        add_controller (double_click_controller);
+        double_click_controller.pressed.connect ((n, x, y) => {
+            if (n == 2) {
+                Element path;
+                Segment segment;
+                if (clicked_path (scale_x (x), scale_y (y), out path, out segment)) {
+                    if (tutorial != null && tutorial.step == CLICK) {
+                        tutorial.next_step ();
+                    }
+                    path.select (true);
+                } else if (selected_path != null) {
+                    selected_path.select (false);
+                }
+            }
+        });
+
         var drag_controller = new Gtk.GestureDrag ();
         add_controller (drag_controller);
         drag_controller.drag_begin.connect ((x, y) => {
@@ -235,14 +252,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Check for double-clicking on a path
             if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
-                if (clicked) {
-                    if (tutorial != null && tutorial.step == CLICK) {
-                        tutorial.next_step ();
-                    }
-                    path.select (true);
-                } else if (selected_path != null) {
-                    selected_path.select (false);
-                }
+                
                 return false;
             }
             */
