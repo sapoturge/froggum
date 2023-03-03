@@ -374,7 +374,7 @@ public class FroggumApplication : Gtk.Application {
     private void open_image (Adw.TabPage tab) {
         dialog = new Gtk.FileChooserNative (_("Open Icon"), null, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
         dialog.response.connect ((response_id) => {
-            if (response_id != Gtk.ResponseType.ACCEPT) {
+            if (response_id == Gtk.ResponseType.ACCEPT) {
                 var file = dialog.get_file ();
                 var image = new Image.load (file);
                 var editor = new EditorView (image);
@@ -387,6 +387,8 @@ public class FroggumApplication : Gtk.Application {
                 recalculate_open_files ();
             }
         });
+
+        dialog.show ();
     }
     
     private void recalculate_open_files () {
