@@ -147,8 +147,8 @@ public class FroggumApplication : Gtk.Application {
 
         main_window.set_titlebar (header);
 
-        /* // I don't know which signal to use here.
-        notebook.new_tab_requested.connect (() => {
+        var new_button = new Gtk.Button.from_icon_name ("list-add-symbolic");
+        new_button.clicked.connect (() => {
              var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
              var tab = notebook.append (inner_layout);
              tab.title = _("New Image");
@@ -214,17 +214,17 @@ public class FroggumApplication : Gtk.Application {
              });
 
              var custom_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
-             custom_box.pack_start (ncustom, true, true);
-             custom_box.pack_start (new Gtk.Label("Width:"), false, false);
-             custom_box.pack_start (custom_width, false, false);
-             custom_box.pack_start (new Gtk.Label ("Height:"), false, false);
-             custom_box.pack_start (custom_height, false, false);
+             custom_box.append (ncustom);
+             custom_box.append (new Gtk.Label("Width:"));
+             custom_box.append (custom_width);
+             custom_box.append (new Gtk.Label ("Height:"));
+             custom_box.append (custom_height);
 
              var new_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
-             new_side.pack_start (title, false, false);
-             new_side.pack_start (standard_grid, false, false);
-             new_side.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false);
-             new_side.pack_start (custom_box, false, false);
+             new_side.append (title);
+             new_side.append (standard_grid);
+             new_side.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+             new_side.append (custom_box);
 
              var open_button = new Gtk.Button ();
              open_button.label = _("Open");
@@ -233,21 +233,18 @@ public class FroggumApplication : Gtk.Application {
              });
 
              var open_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
-             open_side.pack_start (open_button);
+             open_side.append (open_button);
              open_side.valign = Gtk.Align.CENTER;
 
-             inner_layout.pack_start (new_side, false, false);
-             inner_layout.pack_start (new Gtk.Separator (Gtk.Orientation.VERTICAL), false, false);
-             inner_layout.pack_start (open_side, false, false);
+             inner_layout.append (new_side);
+             inner_layout.append (new Gtk.Separator (Gtk.Orientation.VERTICAL));
+             inner_layout.append (open_side);
 
              inner_layout.halign = Gtk.Align.CENTER;
              inner_layout.valign = Gtk.Align.CENTER;
 
-             notebook.show_all ();
-
-             notebook.current = tab;
+             notebook.selected_page = tab;
         });
-        */
 
         notebook.hexpand = true;
         notebook.vexpand = true;
@@ -281,7 +278,17 @@ public class FroggumApplication : Gtk.Application {
             notebook.selected_page = focused;
         }
 
-        main_window.child = notebook;
+        var tabs = new Adw.TabBar ();
+        tabs.view = notebook;
+
+        var tab_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        tab_row.append (new_button);
+        tab_row.append (tabs);
+
+        var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        layout.append (tab_row);
+        layout.append (notebook);
+        main_window.child = layout;
         main_window.show ();
 
         activated = true;
