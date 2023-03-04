@@ -304,24 +304,19 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             scrolling = false;
         });
 
+        var scroll_controller = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.VERTICAL);
+        add_controller (scroll_controller);
+        scroll_controller.scroll.connect ((dx, dy) => {
+            update_zoom (Math.pow (2, -dy) * zoom);
+        });
+
         var zoom_controller = new Gtk.GestureZoom ();
         add_controller (zoom_controller);
         zoom_controller.begin.connect (() => {
             base_zoom = zoom;
         });
         zoom_controller.scale_changed.connect ((scale) => {
-            scale = double.max (scale*base_zoom, 1);
-
-            if (scale > 1 && tutorial != null && tutorial.step == SCROLL) {
-                tutorial.next_step ();
-            }
-
-            scroll_x = scroll_x / zoom * scale;
-            scroll_y = scroll_y / zoom * scale;
-            zoom = scale;
-
-            position_tutorial ();
-            queue_draw ();
+            update_zoom (scale * base_zoom / zoom);
         });
 
         resize.connect ((width, height) => {
@@ -343,6 +338,23 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             position_tutorial ();
             tutorial.popup ();
         }
+    }
+
+    private void update_zoom (double new_zoom) {
+        new_zoom = double.max (new_zoom, 1);
+
+        if (new_zoom > 1 && tutorial != null && tutorial.step == SCROLL) {
+            tutorial.next_step ();
+        }
+
+        scroll_x *= new_zoom;
+        scroll_x /= zoom;
+        scroll_y *= new_zoom;
+        scroll_y /= zoom;
+        zoom = new_zoom;
+
+        position_tutorial ();
+        queue_draw ();
     }
 
     public bool get_border (out Gtk.Border border) {
