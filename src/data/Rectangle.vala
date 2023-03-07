@@ -484,19 +484,19 @@ public class Rectangle : Element {
         });
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "rect");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        var node = new Xml.Node (null, "rect");
         
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
-        node->new_prop ("x", x.to_string ());
-        node->new_prop ("y", y.to_string ());
-        node->new_prop ("width", width.to_string ());
-        node->new_prop ("height", height.to_string ());
+        node.new_prop ("x", x.to_string ());
+        node.new_prop ("y", y.to_string ());
+        node.new_prop ("width", width.to_string ());
+        node.new_prop ("height", height.to_string ());
 
         if (rounded && rx > 0 && ry > 0) {
-            node->new_prop ("rx", rx.to_string ());
-            node->new_prop ("ry", ry.to_string ());
+            node.new_prop ("rx", rx.to_string ());
+            node.new_prop ("ry", ry.to_string ());
         }
 
         root->add_child (node);

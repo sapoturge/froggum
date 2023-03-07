@@ -294,12 +294,12 @@ public class Path : Element {
         return result;
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "path");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        var node = new Xml.Node (null, "path");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
         
-        node->new_prop ("d", to_string ());
+        node.new_prop ("d", to_string ());
 
         root->add_child (node);
 

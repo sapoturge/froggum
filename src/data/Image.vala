@@ -1,4 +1,4 @@
-public class Image : Gtk.TreeStore {
+public class Image : Container {
     private File _file;
     private CommandStack stack;
 
@@ -13,12 +13,12 @@ public class Image : Gtk.TreeStore {
 
     public signal void update ();
 
-    public signal void path_selected (Element? path, Gtk.TreeIter? iter);
+    // public signal void path_selected (Element? path, Gtk.TreeIter? iter);
 
-    private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
+    // private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
 
-    private Gtk.TreeIter? selected_path;
-    private Gtk.TreeIter? last_selected_path;
+    // private Gtk.TreeIter? selected_path;
+    // private Gtk.TreeIter? last_selected_path;
     
     private uint save_id;
     private bool already_loaded = false;
@@ -36,35 +36,35 @@ public class Image : Gtk.TreeStore {
             });
         });
 
-        row_inserted.connect ((path, iter) => {
-            Element? element = get_element(iter);
-            if (element != null) {
-                element_index[element] = iter;
-            }
-        });
+        // row_inserted.connect ((path, iter) => {
+        //     Element? element = get_element(iter);
+        //     if (element != null) {
+        //         element_index[element] = iter;
+        //     }
+        // });
 
-        row_changed.connect ((path, iter) => {
-            Element? element = get_element(iter);
-            if (element != null) {
-                element_index[element] = iter;
-            }
-        });
+        // row_changed.connect ((path, iter) => {
+        //     Element? element = get_element(iter);
+        //     if (element != null) {
+        //         element_index[element] = iter;
+        //     }
+        // });
     }
     
     construct {
         stack = new CommandStack ();
-        set_column_types ({typeof (Element)});
+        // set_column_types ({typeof (Element)});
 
-        element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
+        // element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
     }
 
     public Image (int width, int height, Element[] paths = {}) {
         setup_signals ();
         this.width = width;
         this.height = height;
-        this.selected_path = null;
+        // this.selected_path = null;
         foreach (Element element in paths) {
-            add_element (element, null);
+            add_element (element);
         }
         already_loaded = true;
     }
@@ -166,40 +166,42 @@ public class Image : Gtk.TreeStore {
                 }
             }
 
-            load_elements (root, patterns, null);
+            load_elements (root, patterns);
         }
         already_loaded = true;
     }
 
+/* // Moved to Container
     private void load_elements (Xml.Node* group, Gee.HashMap<string, Pattern> patterns, Gtk.TreeIter? root) {
         for (Xml.Node* iter = group->children; iter != null; iter = iter->next) {
             if (iter->name == "path") {
                 var path = new Path.from_xml (iter, patterns);
-                add_element (path, root);
+                add_element (path);
             } else if (iter->name == "circle") {
                 var circle = new Circle.from_xml (iter, patterns);
-                add_element (circle, root);
+                add_element (circle);
             } else if (iter->name == "g") {
                 var g = new Group.from_xml (iter, patterns);
-                load_elements (iter, patterns, add_element (g, root));
+                load_elements (iter, patterns, add_element (g));
             } else if (iter->name == "rect") {
                 var rect = new Rectangle.from_xml (iter, patterns);
-                add_element (rect, root);
+                add_element (rect);
             } else if (iter->name == "ellipse") {
                 var ellipse = new Ellipse.from_xml (iter, patterns);
-                add_element (ellipse, root);
+                add_element (ellipse);
             } else if (iter->name == "line") {
                 var line = new Line.from_xml (iter, patterns);
-                add_element (line, root);
+                add_element (line);
             } else if (iter->name == "polyline") {
                 var line = new Polyline.from_xml (iter, patterns);
-                add_element (line, root);
+                add_element (line);
             } else if (iter->name == "polygon") {
                 var polygon = new Polygon.from_xml (iter, patterns);
-                add_element (polygon, root);
+                add_element (polygon);
             }
         }
     }
+*/
                 
     private Gdk.RGBA process_color (string color) {
         var rgba = Gdk.RGBA ();
@@ -233,13 +235,13 @@ public class Image : Gtk.TreeStore {
         }
     }
 
-    public Element? get_element (Gtk.TreeIter iter) {
-        Value element;
-	get_value (iter, 0, out element);
-        return ((Element*) (element.peek_pointer ()));
+    public Element? get_element (uint position) {
+        return model.get_item (position) as Element;
     }
 
     public void draw (Cairo.Context cr) {
+        draw_children (cr);
+/*
         if (iter_n_children (null) > 0) {
             Gtk.TreeIter iter;
             iter_nth_child (out iter, null, iter_n_children (null) - 1);
@@ -247,9 +249,11 @@ public class Image : Gtk.TreeStore {
                 draw_element (cr, iter);
             } while (iter_previous (ref iter));
         }
+*/
     }
 
     public void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
+/*
         var element = get_element (iter);
         element.transform.apply (cr);
         if (element is Group && element.visible) {
@@ -264,6 +268,7 @@ public class Image : Gtk.TreeStore {
             element.draw (cr);
         }
         cr.restore ();
+*/
     }
     
     public void undo () {
@@ -274,7 +279,8 @@ public class Image : Gtk.TreeStore {
         stack.redo ();
     }
 
-    private Gtk.TreeIter add_element(Element element, Gtk.TreeIter? root) {
+/* // Moved to Container
+    private Gtk.TreeIter add_element(Element element) {
         element.transform.width = width;
         element.transform.height = height;
         element.update.connect (() => { update (); });
@@ -313,6 +319,7 @@ public class Image : Gtk.TreeStore {
         update ();
         return iter;
     }
+*/
 
     public void new_path () {
         var path = new Path ({ new PathSegment.line (width - 1.5, 1.5),
@@ -322,29 +329,29 @@ public class Image : Gtk.TreeStore {
                              {0.66f, 0.66f, 0.66f, 1f},
                              {0.33f, 0.33f, 0.33f, 1f},
                              "New Path");
-        add_element (path, null);
+        add_element (path);
     }
 
     public void new_circle () {
         var circle = new Circle (width / 2, height / 2, double.min (width, height) / 2 - 1,
                                  new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
-        add_element (circle, null);
+        add_element (circle);
     }
 
     public void new_rectangle () {
         var rectangle = new Rectangle (2.5, 2.5, width - 5, height - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
-        add_element (rectangle, null);
+        add_element (rectangle);
     }
 
     public void new_ellipse () {
         var ellipse = new Ellipse (width / 2, height / 2, width / 2 - 5, height / 2 - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
-        add_element (ellipse, null);
+        add_element (ellipse);
     }
 
     public void new_line () {
         var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
-        add_element (line, null);
+        add_element (line);
     }
 
     public void new_polyline () {
@@ -355,7 +362,7 @@ public class Image : Gtk.TreeStore {
                                  new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polyline");
-        add_element (line, null);
+        add_element (line);
     }
 
     public void new_polygon () {
@@ -366,15 +373,16 @@ public class Image : Gtk.TreeStore {
                                  new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polygon");
-        add_element (shape, null);
+        add_element (shape);
     }
 
     public void new_group () {
         var group = new Group ();
-        add_element (group, null);
+        add_element (group);
     }
 
-    public void duplicate_path (Gtk.TreeIter? iter=null) {
+/* // Temporary removal for testing purposes.
+    public void duplicate_path (uint position) {
         if (iter == null) {
             iter = last_selected_path;
         }
@@ -392,7 +400,7 @@ public class Image : Gtk.TreeStore {
         }
     }
 
-    public void path_up (Gtk.TreeIter? iter=null) {
+    public void path_up (uint position) {
         if (iter == null) {
             iter = last_selected_path;
         }
@@ -414,7 +422,7 @@ public class Image : Gtk.TreeStore {
        }
     }
 
-    public void path_down (Gtk.TreeIter? iter=null) {
+    public void path_down (uint position) {
         if (iter == null) {
             iter = last_selected_path;
         }
@@ -435,7 +443,7 @@ public class Image : Gtk.TreeStore {
        }
     }
 
-    public void delete_path (Gtk.TreeIter? iter=null) {
+    public void delete_path (uint position) {
         if (iter == null) {
             iter = last_selected_path;
         }
@@ -455,11 +463,13 @@ public class Image : Gtk.TreeStore {
             update ();
        }
     }
+*/
 
     private void save_xml () {
         if (file == null) {
             return;
         }
+
         Xml.Doc* doc = new Xml.Doc ("1.0");
         Xml.Node* svg = new Xml.Node (null, "svg");
         doc->set_root_element (svg);
@@ -471,7 +481,7 @@ public class Image : Gtk.TreeStore {
         Xml.Node* defs = new Xml.Node (null, "defs");
         svg->add_child (defs);
         
-        save_children (svg, defs, 0, null);
+        save_children (svg, defs, 0);
 
         var res = doc->save_file (file.get_path ());
         if (res < 0) {
@@ -479,6 +489,7 @@ public class Image : Gtk.TreeStore {
         }
     }
 
+/*
     private int save_children(Xml.Node* root_node, Xml.Node* defs, int pattern_index, Gtk.TreeIter? root) {
         Gtk.TreeIter iter;
         var n_children = iter_n_children (root);
@@ -495,4 +506,5 @@ public class Image : Gtk.TreeStore {
         }
         return pattern_index;
     }
+*/
 }

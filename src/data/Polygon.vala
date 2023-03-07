@@ -188,8 +188,8 @@ public class Polygon : Element {
         });
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "polygon");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        var node = new Xml.Node (null, "polygon");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
@@ -200,7 +200,7 @@ public class Polygon : Element {
             first = false;
         }
 
-        node->new_prop ("points", prefix);
+        node.new_prop ("points", prefix);
         root->add_child (node);
 
         return pattern_index;

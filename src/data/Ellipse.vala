@@ -218,15 +218,15 @@ public class Ellipse : Element {
         });
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "ellipse");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        var node = new Xml.Node (null, "ellipse");
         
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
-        node->new_prop ("cx", cx.to_string ());
-        node->new_prop ("cy", cy.to_string ());
-        node->new_prop ("rx", rx.to_string ());
-        node->new_prop ("ry", ry.to_string ());
+        node.new_prop ("cx", cx.to_string ());
+        node.new_prop ("cy", cy.to_string ());
+        node.new_prop ("rx", rx.to_string ());
+        node.new_prop ("ry", ry.to_string ());
 
         root->add_child (node);
 

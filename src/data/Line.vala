@@ -92,15 +92,15 @@ public class Line : Element {
         });
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "line");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        var node = new Xml.Node (null, "line");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
-        node->new_prop ("x1", start.x.to_string ());
-        node->new_prop ("y1", start.y.to_string ());
-        node->new_prop ("x2", end.x.to_string ());
-        node->new_prop ("y2", end.y.to_string ());
+        node.new_prop ("x1", start.x.to_string ());
+        node.new_prop ("y1", start.y.to_string ());
+        node.new_prop ("x2", end.x.to_string ());
+        node.new_prop ("y2", end.y.to_string ());
         root->add_child (node);
 
         return pattern_index;

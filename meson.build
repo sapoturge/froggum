@@ -43,6 +43,7 @@ executable(
     'src/data/ContextOption.vala',
     'src/data/PathSegment.vala',
     'src/data/LinearSegment.vala',
+    'src/data/Container.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk4'),

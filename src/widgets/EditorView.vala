@@ -1,28 +1,29 @@
 public class EditorView : Gtk.Box {
     public Image image { get; private set; }
 
-    private Gtk.TreeView paths_list;
-    private Gtk.TreeSelection selection;
+    private Gtk.ListView paths_list;
+    private Gtk.SingleSelection selection;
     private Viewport viewport;
     private ulong new_button_handler;
     private Gtk.MenuButton new_button;
 
     public EditorView (Image image) {
         this.image = image;
-        paths_list.model = image;
+        paths_list.model = new Gtk.SingleSelection (image.model);
         viewport.image = image;
-        image.path_selected.connect ((e, i) => {
-            if (i != null) {
-                selection.select_iter (i);
-            }
-        });
+        // image.path_selected.connect ((e, i) => {
+        //     if (i != null) {
+        //         selection.select_iter (i);
+        //     }
+        // });
         // new_button_handler = new_button.clicked.connect (image.new_path);
     }
     
     construct {
+/* // This is all being replaced
         var column = new Gtk.TreeViewColumn ();
 
-        /* // This needs to be replaced with a DrawingArea
+        / * // This needs to be replaced with a DrawingArea
         var icon = new Gtk.CellRendererPixbuf ();
         column.pack_start (icon, false);
         column.set_cell_data_func (icon, (cell_layout, cell, model, iter) => {
@@ -30,7 +31,7 @@ public class EditorView : Gtk.Box {
             var context = new Cairo.Context (icon.surface);
             image.draw_element (context, iter);
         });
-        */
+        * /
 
         var visibility = new Gtk.CellRendererToggle ();
         visibility.toggled.connect ((path) => {
@@ -58,7 +59,7 @@ public class EditorView : Gtk.Box {
             title.text = image.get_element (iter).title;
         });
 
-        /* // PatternButtons don't do anything now
+        / * // PatternButtons don't do anything now
         var fill = new PatternButton ();
         fill.mode = Gtk.CellRendererMode.EDITABLE;
         column.pack_start (fill, false);
@@ -72,9 +73,22 @@ public class EditorView : Gtk.Box {
         column.set_cell_data_func (stroke, (cell_layout, cell, model, iter) => {
             stroke.pattern = image.get_element (iter).stroke;
         });
-        */
+        * /
+*/
 
-        paths_list = new Gtk.TreeView ();
+        var builder = new Gtk.SignalListItemFactory ();
+        builder.setup.connect ((li) => {
+            var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            // box.append (new IconView ());
+            box.append (new Gtk.ToggleButton ());
+            box.append (new Gtk.EditableLabel ("Element"));
+            // box.append (new PatternButton ());
+            // box.append (new PatternButton ());
+            li.child = box;
+        });
+
+        paths_list = new Gtk.ListView (selection, builder);
+/*
         paths_list.headers_visible = false;
         paths_list.reorderable = true;
         paths_list.append_column (column);
@@ -85,6 +99,7 @@ public class EditorView : Gtk.Box {
             element.select (true);
         });
         selection = paths_list.get_selection ();
+*/
 
         var list_box_scroll = new Gtk.ScrolledWindow ();
         list_box_scroll.propagate_natural_width = true;
@@ -221,40 +236,28 @@ public class EditorView : Gtk.Box {
         duplicate_path.tooltip_text = _("Duplicate path");
         duplicate_path.has_frame = false;
         duplicate_path.clicked.connect (() => {
-            Gtk.TreeIter iter;
-            if (selection.get_selected (null, out iter)) {
-                image.duplicate_path (iter);
-            }
+            // image.duplicate_path (selection.get_selected (null, out iter));
         });
 
         var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
         path_up.tooltip_text = _("Move path up");
         path_up.has_frame = false;
         path_up.clicked.connect (() => {
-            Gtk.TreeIter iter;
-            if (selection.get_selected (null, out iter)) {
-                image.path_up (iter);
-            }
+            // image.path_up (selection.get_selected (null, out iter));
         });
 
         var path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
         path_down.tooltip_text = _("Move path down");
         path_down.has_frame = false;
         path_down.clicked.connect (() => {
-            Gtk.TreeIter iter;
-            if (selection.get_selected (null, out iter)) {
-                image.path_down (iter);
-            }
+            // image.path_down (selection.get_selected ());
         });
 
         var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
         delete_path.tooltip_text = _("Delete path");
         delete_path.has_frame = false;
         delete_path.clicked.connect (() => {
-            Gtk.TreeIter iter;
-            if (selection.get_selected (null, out iter)) {
-                image.delete_path (iter);
-            }
+            // image.delete_path (selection.get_selected ());
         });
 
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);

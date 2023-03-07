@@ -37,9 +37,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _image.update.connect (() => {
                 queue_draw ();
             });
-            _image.path_selected.connect ((path) => {
-                selected_path = path;
-            });
+            // _image.path_selected.connect ((path) => {
+            //     selected_path = path;
+            // });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
         }
@@ -403,9 +403,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private bool clicked_path (double x, double y, out Element? path, out Segment? segment) {
-        return clicked_subpath (x, y, null, out path, out segment);
+        // Removed for testing purposes
+        path = null;
+        segment = null;
+        return false;
+        // clicked_subpath (x, y, null, out path, out segment);
     }
 
+/* // This needs to change
     private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
         Gtk.TreeIter iter;
         if (image.iter_children (out iter, root)) {
@@ -428,6 +433,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         segment = null;
         return false;
     }
+*/
         
     private void show_context_menu (Element element, Segment? segment, double x, double y) {
         var menu = new Gtk.Popover ();

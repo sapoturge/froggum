@@ -77,7 +77,7 @@ public abstract class Element : Object, Undoable {
 
     public abstract Gee.List<ContextOption> options ();
 
-    public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node);
+    public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index);
 
     protected int add_standard_attributes (Xml.Node* node, Xml.Node* defs, int pattern_index) {
         node->new_prop ("id", title);

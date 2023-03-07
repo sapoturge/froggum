@@ -34,8 +34,8 @@ public class Group : Element {
         return;
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "g");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        var node = new Xml.Node (null, "g");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
