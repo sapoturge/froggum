@@ -1,11 +1,11 @@
-public abstract class Container : Object, Undoable {
+public interface Container : Undoable {
     public struct ModelUpdate {
         int position;
         Element? element;
         bool insert;
     }
 
-    public Gtk.TreeListModel model { get; private set; }
+    public abstract Gtk.TreeListModel model { get; set; }
 
     public ModelUpdate updator {
         set {
@@ -18,11 +18,6 @@ public abstract class Container : Object, Undoable {
                 ((ListStore) model.model).insert (value.position, value.element);
             }
         }
-    }
-
-    construct {
-        var model = new ListStore (typeof (Element));
-        this.model = new Gtk.TreeListModel (model, false, false, get_children);
     }
 
     public ListModel? get_children (Object object) {
@@ -93,7 +88,4 @@ public abstract class Container : Object, Undoable {
             row = model.get_item (index) as Gtk.TreeListRow;
         }
     }
-
-    public virtual void begin (string prop) {}
-    public virtual void finish (string prop) {}
 }

@@ -1,4 +1,4 @@
-public class Image : Container {
+public class Image : Object, Undoable, Container {
     private File _file;
     private CommandStack stack;
 
@@ -10,6 +10,8 @@ public class Image : Container {
             return "Untitled";
         }
     }
+
+    public override Gtk.TreeListModel model { get; set; }
 
     public signal void update ();
 
@@ -53,6 +55,8 @@ public class Image : Container {
     
     construct {
         stack = new CommandStack ();
+        var model = new ListStore (typeof (Element));
+        this.model = new Gtk.TreeListModel (model, false, false, get_children);
         // set_column_types ({typeof (Element)});
 
         // element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
@@ -487,6 +491,12 @@ public class Image : Container {
         if (res < 0) {
             // TODO: communicate error
         }
+    }
+
+    public void begin (string prop) {
+    }
+
+    public void finish (string prop) {
     }
 
 /*

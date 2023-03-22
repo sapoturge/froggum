@@ -1,5 +1,9 @@
-public class Group : Element {
+public class Group : Element, Container {
+    public override Gtk.TreeListModel model { get; set; }
+
     public Group () {
+        var list = new ListStore(typeof (Element));
+        model = new Gtk.TreeListModel (list, false, false, get_children);
         title = "Group";
         visible = true;
         fill = new Pattern.none ();
@@ -13,6 +17,8 @@ public class Group : Element {
 
     public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
         base.from_xml (node, patterns);
+
+        load_elements (node, patterns);
 
         transform_enabled = true;
     }
@@ -38,6 +44,8 @@ public class Group : Element {
         var node = new Xml.Node (null, "g");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
+
+        pattern_index = save_children (node, defs, pattern_index);
 
         root->add_child (node);
         return pattern_index;
