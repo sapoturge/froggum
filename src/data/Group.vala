@@ -1,9 +1,11 @@
 public class Group : Element, Container {
     public override Gtk.TreeListModel model { get; set; }
 
+    construct {
+        model = new Gtk.TreeListModel (new ListStore (typeof (Element)), false, false, get_children);
+    }
+
     public Group () {
-        var list = new ListStore(typeof (Element));
-        model = new Gtk.TreeListModel (list, false, false, get_children);
         title = "Group";
         visible = true;
         fill = new Pattern.none ();
