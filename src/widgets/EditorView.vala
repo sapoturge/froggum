@@ -78,13 +78,40 @@ public class EditorView : Gtk.Box {
 
         var builder = new Gtk.SignalListItemFactory ();
         builder.setup.connect ((li) => {
-            var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-            // box.append (new IconView ());
-            box.append (new Gtk.ToggleButton ());
-            box.append (new Gtk.EditableLabel ("Element"));
-            // box.append (new PatternButton ());
-            // box.append (new PatternButton ());
-            li.child = box;
+            var layout = new Gtk.Grid ();
+            // layout.attach (new IconView (), 2, 1);
+            layout.attach (new Gtk.ToggleButton (), 3, 1);
+            layout.attach (new Gtk.EditableLabel ("Element"), 4, 1);
+            // layout.attach (new PatternButton (), 5, 1);
+            // layout.attach (new PatternButton (), 6, 1);
+            layout.attach (new Gtk.TreeExpander (), 1, 1);
+            li.child = layout;
+        });
+        builder.bind.connect ((li) => {
+            var layout = (Gtk.Grid) li.child;
+            var row = (Gtk.TreeListRow) li.item;
+            while (row.item is Gtk.TreeListRow) {
+                row = (Gtk.TreeListRow) row.item;
+            }
+
+            var expander = (Gtk.TreeExpander) layout.get_child_at (1, 1);
+            var visible = (Gtk.ToggleButton) layout.get_child_at (3, 1);
+            var title = (Gtk.EditableLabel) layout.get_child_at (4, 1);
+            var obj = (Element) row.item;
+
+            expander.list_row = row;
+
+            visible.active = obj.visible;
+            visible.toggled.connect (() => {
+                obj.visible = !obj.visible;
+            });
+
+            title.text = obj.title;
+            title.changed.connect (() => {
+                obj.begin ("title");
+                obj.title = title.text;
+                obj.finish ("title");
+            });
         });
 
         paths_list = new Gtk.ListView (selection, builder);
