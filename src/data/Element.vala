@@ -1,4 +1,4 @@
-public abstract class Element : Object, Undoable {
+public abstract class Element : Object, Undoable, Updatable {
     private Pattern _fill;
     public Pattern fill {
         get {
@@ -39,7 +39,6 @@ public abstract class Element : Object, Undoable {
 
     public bool visible { get; set; }
 
-    public signal void update ();
     public signal void select (bool selected);
     public signal void request_delete ();
 

@@ -1,4 +1,4 @@
-public class Image : Object, Undoable, Container {
+public class Image : Object, Undoable, Updatable, Container {
     private File _file;
     private CommandStack stack;
 
@@ -12,8 +12,6 @@ public class Image : Object, Undoable, Container {
     }
 
     public override Gtk.TreeListModel model { get; set; }
-
-    public signal void update ();
 
     // public signal void path_selected (Element? path, Gtk.TreeIter? iter);
 

@@ -26,7 +26,9 @@ public class Group : Element, Container {
     }
     
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
-        draw_children (cr);
+        if (visible || always_draw) {
+            draw_children (cr);
+        }
     }
 
     public override void draw_controls (Cairo.Context cr, double zoom) {

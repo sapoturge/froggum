@@ -1,4 +1,4 @@
-public interface Container : Undoable {
+public interface Container : Undoable, Updatable {
     public struct ModelUpdate {
         int position;
         Element? element;
@@ -74,6 +74,7 @@ public interface Container : Undoable {
 
     protected void add_element (Element element) {
         ((ListStore) model.model).append (element);
+        element.update.connect (() => { update (); });
     }
 
     protected void draw_children (Cairo.Context cr) {
