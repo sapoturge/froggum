@@ -5,7 +5,7 @@ public class EditorView : Gtk.Box {
     private Gtk.SingleSelection selection;
     private Viewport viewport;
     private ulong new_button_handler;
-    private Gtk.MenuButton new_button;
+    private Gtk.Button new_button;
 
     public EditorView (Image image) {
         this.image = image;
@@ -16,7 +16,7 @@ public class EditorView : Gtk.Box {
         //         selection.select_iter (i);
         //     }
         // });
-        // new_button_handler = new_button.clicked.connect (image.new_path);
+        new_button_handler = new_button.clicked.connect (image.new_path);
     }
     
     construct {
@@ -133,87 +133,68 @@ public class EditorView : Gtk.Box {
         list_box_scroll.child = paths_list;
         list_box_scroll.vexpand = true;
 
-        /* // Menu buttons changed in gtk4
-        new_button = new Gtk.MenuButton (null, null);
+        new_button = new Gtk.Button.from_icon_name("list-add-symbolic");
 
-        var new_path = new Gtk.MenuItem ();
-        var new_path_icon = new Gtk.Image.from_icon_name ("list-add-symbolic", Gtk.IconSize.MENU);
-        var new_path_label = new Gtk.Label (_("New Path"));
-        var new_path_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        new_path_box.add (new_path_icon);
-        new_path_box.add (new_path_label);
-        new_path.add (new_path_box);
-        new_path.activate.connect (() => {
+        var new_path = new Gtk.Button () {
+            icon_name = "list-add-symbolic",
+            label = _("New Path"),
+        };
+        new_path.clicked.connect (() => {
             image.new_path ();
             new_button.icon_name = "list-add-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_path);
         });
 
-        var new_circle = new Gtk.MenuItem ();
-        var new_circle_icon = new Gtk.Image.from_icon_name ("circle-new-symbolic", Gtk.IconSize.MENU);
-        var new_circle_label = new Gtk.Label (_("New Circle"));
-        var new_circle_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        new_circle_box.add (new_circle_icon);
-        new_circle_box.add (new_circle_label);
-        new_circle.add (new_circle_box);
-        new_circle.activate.connect (() => {
+        var new_circle = new Gtk.Button () {
+            icon_name = "circle-new-symbolic",
+            label = _("New Polygon"),
+        };
+        new_circle.clicked.connect (() => {
             image.new_circle ();
             new_button.icon_name = "circle-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_circle);
         });
 
-        var new_rectangle = new Gtk.MenuItem ();
-        var new_rectangle_icon = new Gtk.Image.from_icon_name ("rectangle-new-symbolic", Gtk.IconSize.MENU);
-        var new_rectangle_label = new Gtk.Label (_("New Rectangle"));
-        var new_rectangle_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        new_rectangle_box.add (new_rectangle_icon);
-        new_rectangle_box.add (new_rectangle_label);
-        new_rectangle.add (new_rectangle_box);
-        new_rectangle.activate.connect (() => {
+        var new_rectangle = new Gtk.Button () {
+            icon_name = "rectangle-new-symbolic",
+            label = _("New Rectangle"),
+        };
+        new_rectangle.clicked.connect (() => {
             image.new_rectangle ();
             new_button.icon_name = "rectangle-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_rectangle);
         });
 
-        var new_ellipse = new Gtk.MenuItem ();
-        var new_ellipse_icon = new Gtk.Image.from_icon_name ("ellipse-new-symbolic", Gtk.IconSize.MENU);
-        var new_ellipse_label = new Gtk.Label (_("New Ellipse"));
-        var new_ellipse_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        new_ellipse_box.add (new_ellipse_icon);
-        new_ellipse_box.add (new_ellipse_label);
-        new_ellipse.add (new_ellipse_box);
-        new_ellipse.activate.connect (() => {
+        var new_ellipse = new Gtk.Button () {
+            icon_name = "elipse-new-symbolic",
+            label = _("New Ellipse"),
+        };
+        new_ellipse.clicked.connect (() => {
             image.new_ellipse ();
             new_button.icon_name = "ellipse-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_ellipse);
         });
 
-        var new_line = new Gtk.MenuItem ();
-        var new_line_icon = new Gtk.Image.from_icon_name ("line-new-symbolic", Gtk.IconSize.MENU);
-        var new_line_label = new Gtk.Label (_("New Line"));
-        var new_line_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        new_line_box.append (new_line_icon);
-        new_line_box.append (new_line_label);
-        new_line.add (new_line_box);
-        new_line.activate.connect (() => {
+        var new_line = new Gtk.Button () {
+            icon_name = "line-new-symbolic",
+            label = _("New Line"),
+        };
+        new_line.clicked.connect (() => {
             image.new_line ();
             new_button.icon_name = "line-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_line);
         });
 
-        var new_polyline = new Gtk.MenuItem ();
-        var new_polyline_icon = new Gtk.Image.from_icon_name ("polyline-new-symbolic", Gtk.IconSize.MENU);
-        var new_polyline_label = new Gtk.Label (_("New Polyline"));
-        var new_polyline_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        new_polyline_box.append (new_polyline_icon);
-        new_polyline_box.append (new_polyline_label);
-        new_polyline.add (new_polyline_box);
-        new_polyline.activate.connect (() => {
+        var new_polyline = new Gtk.Button () {
+            icon_name = "polyline-new-symbolic",
+            label = _("New Polyline"),
+        };
+        new_polyline.clicked.connect (() => {
             image.new_polyline ();
             new_button.icon_name = "polyline-new-symbolic";
             new_button.disconnect (new_button_handler);
@@ -224,12 +205,6 @@ public class EditorView : Gtk.Box {
             icon_name = "polygon-new-symbolic",
             label = _("New Polygon"),
         };
-        // var new_polygon_icon = new Gtk.Image.from_icon_name ("polygon-new-symbolic");
-        // var new_polygon_label = new Gtk.Label (_("New Polygon"));
-        // var new_polygon_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        // new_polygon_box.append (new_polygon_icon);
-        // new_polygon_box.append (new_polygon_label);
-        // new_polygon.add (new_polygon_box);
         new_polygon.clicked.connect (() => {
             image.new_polygon ();
             new_button.icon_name = "polygon-new-symbolic";
@@ -248,10 +223,10 @@ public class EditorView : Gtk.Box {
         new_menu_layout.append (new_polygon);
         new_menu.child = new_menu_layout;
  
-        new_button.popover = new_menu;
-        new_button.icon_name = "list-add-symbolic";
-        */
-
+        var new_menu_button = new Gtk.MenuButton();
+        new_menu_button.popover = new_menu;
+        //new_button.icon_name = "list-add-symbolic";
+        
         var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
         new_group.tooltip_text = _("New group");
         new_group.has_frame = false;
@@ -288,7 +263,8 @@ public class EditorView : Gtk.Box {
         });
 
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        // task_bar.append (new_button); // Put this back when it's fixed above
+        task_bar.append (new_button);
+        task_bar.append (new_menu_button);
         task_bar.append (new_group);
         task_bar.append (duplicate_path);
         task_bar.append (path_up);
