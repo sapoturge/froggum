@@ -98,4 +98,13 @@ install_data(
     install_dir: join_paths(get_option('datadir'), 'glib-2.0', 'schemas')
 )
 
+symbolic_icon_names = ['circle-new', 'ellipse-new', 'line-new', 'polygon-new', 'polyline-new', 'rectangle-new']
+
+foreach i : symbolic_icon_names
+    install_data(
+        join_paths('data', 'icons', 'symbolic', i + '-symbolic.svg'),
+        install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'actions')
+    )
+endforeach
+
 meson.add_install_script('meson/post_install.py')
