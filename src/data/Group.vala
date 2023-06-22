@@ -69,9 +69,8 @@ public class Group : Element, Container {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
-        segment = null;
-        return false;
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        return clicked_child (x, y, tolerance, out element, out segment);
     }
 
     public Element get_element (Gtk.TreeIter iter) {

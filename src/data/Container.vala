@@ -89,4 +89,26 @@ public interface Container : Undoable, Updatable {
             row = model.get_item (index) as Gtk.TreeListRow;
         }
     }
+
+    public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        var index = model.get_n_items () - 1;
+        var row = model.get_item (index) as Gtk.TreeListRow;
+        while (row != null) {
+            var elem = row.item as Element;
+            var new_x = x, new_y = y;
+            var new_tolerance = tolerance;
+            elem.transform.update_point (x, y, out new_x, out new_y);
+            elem.transform.update_distance (tolerance, out new_tolerance);
+            if (elem.clicked (new_x, new_y, new_tolerance, out element, out segment)) {
+                return true;
+            }
+
+            index -= 1;
+            row = model.get_item (index) as Gtk.TreeListRow;
+        }
+
+        element = null;
+        segment = null;
+        return false;
+    }
 }

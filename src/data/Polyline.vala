@@ -211,16 +211,17 @@ public class Polyline : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
-        segment = null;
-
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         for (var lsegment = root_segment; lsegment != null; lsegment = lsegment.next) {
             if (lsegment.clicked (x, y, tolerance)) {
+                element = this;
                 segment = lsegment;
                 return true;
             }
         }
 
+        element = null;
+        segment = null;
         return false;
     }
 }

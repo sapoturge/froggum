@@ -337,12 +337,13 @@ public class Path : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         var current_segment = root_segment;
         var first = true;
         while (first || current_segment != root_segment) {
             if (current_segment.clicked (x, y, tolerance)) {
                 segment = current_segment;
+                element = this;
                 return true;
             }
 
@@ -350,6 +351,7 @@ public class Path : Element {
             current_segment = current_segment.next;
         }
 
+        element = null;
         segment = null;
         return false;
     }

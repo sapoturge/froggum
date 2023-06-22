@@ -221,10 +221,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             if (n == 2) {
                 Element path;
                 Segment segment;
-                if (clicked_path (scale_x (x), scale_y (y), out path, out segment)) {
+                if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment)) {
                     if (tutorial != null && tutorial.step == CLICK) {
                         tutorial.next_step ();
                     }
+
                     path.select (true);
                 } else if (selected_path != null) {
                     selected_path.select (false);
@@ -238,7 +239,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         right_click_controller.pressed.connect ((n, x, y) => {
             Element path;
             Segment segment;
-            if (clicked_path (scale_x (x), scale_y (y), out path, out segment)) {
+            if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment)) {
                 path.select (true);
                 show_context_menu (path, segment, x, y);
             }
@@ -402,6 +403,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
+/* moved into container
     private bool clicked_path (double x, double y, out Element? path, out Segment? segment) {
         // Removed for testing purposes
         path = null;
@@ -409,6 +411,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         return false;
         // clicked_subpath (x, y, null, out path, out segment);
     }
+*/
 
 /* // This needs to change
     private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {

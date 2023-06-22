@@ -250,7 +250,7 @@ public class Polygon : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         segment = null;
 
         var first = true;
@@ -258,6 +258,7 @@ public class Polygon : Element {
             first = false;
             if (lsegment.clicked (x, y, tolerance)) {
                 segment = lsegment;
+                element = this;
                 return true;
             }
         }
@@ -276,6 +277,7 @@ public class Polygon : Element {
        }
 */
 
+       element = null;
        segment = null;
        return false;
     }

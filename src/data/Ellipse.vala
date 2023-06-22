@@ -237,7 +237,7 @@ public class Ellipse : Element {
         return new Ellipse (cx, cy, rx, ry, fill, stroke);
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         segment = null;
         var surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, 1, 1);
         var cr = new Cairo.Context (surf);
@@ -246,6 +246,12 @@ public class Ellipse : Element {
         cr.scale (rx, ry);
         cr.arc (0, 0, 1, 0, Math.PI * 2);
         cr.restore ();
-        return cr.in_stroke (x, y);
+        if (cr.in_stroke (x, y)) {
+            element = this;
+            return true;
+        } else {
+            element = null;
+            return false;
+        }
     }
 }

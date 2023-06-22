@@ -175,8 +175,14 @@ public class Circle : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         segment = null;
-        return (Math.sqrt ((x - this.x) * (x - this.x) + (y - this.y) * (y - this.y)) - r).abs () <= tolerance;
+        if ((Math.sqrt ((x - this.x) * (x - this.x) + (y - this.y) * (y - this.y)) - r).abs () <= tolerance) {
+            element = this;
+            return true;
+        } else {
+            element = null;
+            return false;
+        }
     }
 }

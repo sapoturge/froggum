@@ -508,7 +508,7 @@ public class Rectangle : Element {
         return new Rectangle (x, y, width, height, fill, stroke);
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         segment = null;
         var in_x = this.x - tolerance < x && x < this.x + width + tolerance;
         var in_y = this.y - tolerance < y && y < this.y + height + tolerance;
@@ -541,15 +541,28 @@ public class Rectangle : Element {
                 context.arc (0, 0, 1, Math.PI / 2, Math.PI);
                 context.restore ();
                 context.close_path ();
-                return context.in_stroke (x, y);
+                if (context.in_stroke (x, y)) {
+                    element = this;
+                    return true;
+                } else {
+                    element = null;
+                    return false;
+                }
             } else {
                 var on_top = y < this.y + tolerance;
                 var on_bottom = this.y + height - tolerance < y;
                 var on_left = x < this.x + tolerance;
                 var on_right = this.x + width - tolerance < x;
-                return (in_x && in_y && (on_top || on_bottom || on_left || on_right));
+                if (in_x && in_y && (on_top || on_bottom || on_left || on_right)) {
+                    element = this;
+                    return true;
+                } else {
+                    element = null;
+                    return false;
+                }
             }
         } else {
+            element = null;
             return false;
         }
     }

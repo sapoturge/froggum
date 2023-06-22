@@ -134,12 +134,19 @@ public class Line : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
-        segment = null;
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         var dot = (x - start.x) * (end.x - start.x) + (y - start.y) * (end.y - start.y);
         var len_squared = (end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y);
         var scale = dot / len_squared;
         Point aligned = { start.x + (end.x - start.x) * scale, start.y + (end.y - start.y) * scale };
-        return 0 <= scale && scale <= 1 && aligned.dist ({x, y}) <= tolerance;
+        if (0 <= scale && scale <= 1 && aligned.dist ({x, y}) <= tolerance) {
+            element = this;
+            segment = null;
+            return true;
+        } else {
+            element = null;
+            segment = null;
+            return false;
+        }
     }
 }
