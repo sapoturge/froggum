@@ -1,4 +1,6 @@
 public interface Container : Undoable, Updatable {
+    public signal void path_selected (Element? element);
+
     public struct ModelUpdate {
         int position;
         Element? element;
@@ -6,6 +8,7 @@ public interface Container : Undoable, Updatable {
     }
 
     public abstract Gtk.TreeListModel model { get; set; }
+    public abstract Element? selected_child { get; set; }
 
     public ModelUpdate updator {
         set {
@@ -70,11 +73,27 @@ public interface Container : Undoable, Updatable {
             }
         }
     }
-    
 
     protected void add_element (Element element) {
         ((ListStore) model.model).append (element);
         element.update.connect (() => { update (); });
+        element.select.connect ((selected) => {
+            if (selected) {
+                selected_child = element;
+                path_selected (element);
+            } else {
+                selected_child = null;
+                path_selected (null);
+            }
+        });
+        var cont = element as Container;
+        if (cont != null) {
+            cont.path_selected.connect ((elem) => {
+                selected_child = elem;
+                path_selected (elem);
+            });
+        }
+        update ();
     }
 
     protected void draw_children (Cairo.Context cr) {
@@ -87,6 +106,16 @@ public interface Container : Undoable, Updatable {
             cr.restore ();
             index += 1;
             row = model.get_item (index) as Gtk.TreeListRow;
+        }
+    }
+
+    public void draw_selected_child (Cairo.Context cr, double zoom) {
+        if (selected_child != null) {
+            selected_child.transform.apply (cr);
+            var new_zoom = zoom;
+            selected_child.transform.update_distance (zoom, out new_zoom);
+            selected_child.draw_controls (cr, new_zoom);
+            cr.restore ();
         }
     }
 

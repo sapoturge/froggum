@@ -37,9 +37,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _image.update.connect (() => {
                 queue_draw ();
             });
-            // _image.path_selected.connect ((path) => {
-            //     selected_path = path;
-            // });
+            _image.path_selected.connect ((path) => {
+                selected_path = path;
+            });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
         }
@@ -209,9 +209,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            if (selected_path != null) {
-                selected_path.draw_controls (cr, zoom);
-            }
+            image.draw_selected_child (cr, zoom);
             cr.restore();
         });
 

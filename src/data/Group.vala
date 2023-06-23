@@ -1,8 +1,10 @@
 public class Group : Element, Container {
     public override Gtk.TreeListModel model { get; set; }
+    public override Element? selected_child { get; set; }
 
     construct {
         model = new Gtk.TreeListModel (new ListStore (typeof (Element)), false, false, get_children);
+        selected_child = null;
     }
 
     public Group () {
@@ -33,7 +35,7 @@ public class Group : Element, Container {
 
     public override void draw_controls (Cairo.Context cr, double zoom) {
         transform.draw_controls (cr, zoom);
-        return;
+        draw_selected_child (cr, zoom);
     }
 
     public override void begin (string prop) {

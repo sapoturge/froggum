@@ -12,6 +12,7 @@ public class Image : Object, Undoable, Updatable, Container {
     }
 
     public override Gtk.TreeListModel model { get; set; }
+    public override Element? selected_child { get; set; }
 
     // public signal void path_selected (Element? path, Gtk.TreeIter? iter);
 
