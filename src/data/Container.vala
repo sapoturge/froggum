@@ -7,18 +7,24 @@ public interface Container : Undoable, Updatable {
         bool insert;
     }
 
-    public abstract Gtk.TreeListModel model { get; set; }
+    public abstract Gtk.TreeListModel tree { get; set; }
+    public GLib.ListModel model {
+        get {
+            return tree.model;
+        }
+    }
+
     public abstract Element? selected_child { get; set; }
 
     public ModelUpdate updator {
         set {
             if (value.element == null) {
-                ((ListStore) model.model).remove (value.position);
+                ((ListStore) model).remove (value.position);
             } else if (value.insert == true) {
-                ((ListStore) model.model).insert (value.position, value.element);
+                ((ListStore) model).insert (value.position, value.element);
             } else {
-                ((ListStore) model.model).remove (value.position);
-                ((ListStore) model.model).insert (value.position, value.element);
+                ((ListStore) model).remove (value.position);
+                ((ListStore) model).insert (value.position, value.element);
             }
         }
     }
@@ -34,12 +40,11 @@ public interface Container : Undoable, Updatable {
 
     protected int save_children (Xml.Node* root_node, Xml.Node* defs, int pattern_index) {
         var index = 0;
-        var elem = model.get_item (index) as Gtk.TreeListRow;
+        var elem = model.get_item (index) as Element;
         while (elem != null) {
-            var e = elem.item as Element;
-            pattern_index = e.add_svg (root_node, defs, pattern_index);
+            pattern_index = elem.add_svg (root_node, defs, pattern_index);
             index += 1;
-            elem = model.get_item (index) as Gtk.TreeListRow;
+            elem = model.get_item (index) as Element;
         }
 
         return pattern_index;
@@ -76,7 +81,7 @@ public interface Container : Undoable, Updatable {
     }
 
     protected void add_element (Element element) {
-        ((ListStore) model.model).append (element);
+        ((ListStore) model).append (element);
         element.update.connect (() => { update (); });
         element.select.connect ((selected) => {
             if (selected) {
@@ -99,14 +104,13 @@ public interface Container : Undoable, Updatable {
 
     protected void draw_children (Cairo.Context cr) {
         var index = 0;
-        var row = model.get_item (index) as Gtk.TreeListRow;
-        while (row != null) {
-            var elem = row.item as Element;
+        var elem = model.get_item (index) as Element;
+        while (elem != null) {
             elem.transform.apply (cr);
             elem.draw (cr);
             cr.restore ();
             index += 1;
-            row = model.get_item (index) as Gtk.TreeListRow;
+            elem = model.get_item (index) as Element;
         }
     }
 
@@ -122,9 +126,8 @@ public interface Container : Undoable, Updatable {
 
     public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         var index = model.get_n_items () - 1;
-        var row = model.get_item (index) as Gtk.TreeListRow;
-        while (row != null) {
-            var elem = row.item as Element;
+        var elem = model.get_item (index) as Element;
+        while (elem != null) {
             var new_x = x, new_y = y;
             var new_tolerance = tolerance;
             elem.transform.update_point (x, y, out new_x, out new_y);
@@ -134,7 +137,7 @@ public interface Container : Undoable, Updatable {
             }
 
             index -= 1;
-            row = model.get_item (index) as Gtk.TreeListRow;
+            elem = model.get_item (index) as Element;
         }
 
         element = null;

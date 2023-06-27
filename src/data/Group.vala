@@ -1,9 +1,9 @@
 public class Group : Element, Container {
-    public override Gtk.TreeListModel model { get; set; }
+    public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
 
     construct {
-        model = new Gtk.TreeListModel (new ListStore (typeof (Element)), false, false, get_children);
+        tree = new Gtk.TreeListModel (new ListStore (typeof (Element)), false, false, get_children);
         selected_child = null;
     }
 

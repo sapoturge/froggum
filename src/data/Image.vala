@@ -11,7 +11,7 @@ public class Image : Object, Undoable, Updatable, Container {
         }
     }
 
-    public override Gtk.TreeListModel model { get; set; }
+    public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
 
     // public signal void path_selected (Element? path, Gtk.TreeIter? iter);
@@ -55,7 +55,7 @@ public class Image : Object, Undoable, Updatable, Container {
     construct {
         stack = new CommandStack ();
         var model = new ListStore (typeof (Element));
-        this.model = new Gtk.TreeListModel (model, false, false, get_children);
+        this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         // set_column_types ({typeof (Element)});
 
         // element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();

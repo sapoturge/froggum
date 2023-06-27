@@ -9,7 +9,7 @@ public class EditorView : Gtk.Box {
 
     public EditorView (Image image) {
         this.image = image;
-        paths_list.model = new Gtk.SingleSelection (image.model);
+        paths_list.model = new Gtk.SingleSelection (image.tree);
         viewport.image = image;
         // image.path_selected.connect ((e, i) => {
         //     if (i != null) {
