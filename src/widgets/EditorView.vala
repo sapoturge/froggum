@@ -164,7 +164,7 @@ public class EditorView : Gtk.Box {
 
         var new_circle = new Gtk.Button () {
             icon_name = "circle-new-symbolic",
-            label = _("New Polygon"),
+            label = _("New Circle"),
         };
         new_circle.clicked.connect (() => {
             image.new_circle ();
