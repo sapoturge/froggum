@@ -163,7 +163,7 @@ public class Polyline : Element {
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
-        var node = new Xml.Node (null, "polyline");
+        Xml.Node* node = new Xml.Node (null, "polyline");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
@@ -172,7 +172,7 @@ public class Polyline : Element {
             prefix = "%s %f %f".printf (prefix, segment.end.x, segment.end.y);
         }
 
-        node.new_prop ("points", prefix);
+        node->new_prop ("points", prefix);
         root->add_child (node);
 
         return pattern_index;

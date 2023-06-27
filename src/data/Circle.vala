@@ -131,13 +131,13 @@ public class Circle : Element {
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
-        var node = new Xml.Node (null, "circle");
+        Xml.Node* node = new Xml.Node (null, "circle");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
-        node.new_prop ("cx", x.to_string ());
-        node.new_prop ("cy", y.to_string ());
-        node.new_prop ("r", r.to_string ());
+        node->new_prop ("cx", x.to_string ());
+        node->new_prop ("cy", y.to_string ());
+        node->new_prop ("r", r.to_string ());
         root->add_child (node);
 
         return pattern_index;

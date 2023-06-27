@@ -34,11 +34,12 @@ public interface Container : Undoable, Updatable {
 
     protected int save_children (Xml.Node* root_node, Xml.Node* defs, int pattern_index) {
         var index = 0;
-        var elem = model.get_item (index) as Element;
+        var elem = model.get_item (index) as Gtk.TreeListRow;
         while (elem != null) {
-            pattern_index = elem.add_svg (root_node, defs, pattern_index);
+            var e = elem.item as Element;
+            pattern_index = e.add_svg (root_node, defs, pattern_index);
             index += 1;
-            elem = model.get_item (index) as Element;
+            elem = model.get_item (index) as Gtk.TreeListRow;
         }
 
         return pattern_index;

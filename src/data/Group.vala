@@ -47,7 +47,7 @@ public class Group : Element, Container {
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
-        var node = new Xml.Node (null, "g");
+        Xml.Node* node = new Xml.Node (null, "g");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 

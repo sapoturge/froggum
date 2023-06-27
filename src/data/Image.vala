@@ -470,6 +470,7 @@ public class Image : Object, Undoable, Updatable, Container {
 
     private void save_xml () {
         if (file == null) {
+            print ("No file; not saving\n");
             return;
         }
 
@@ -489,6 +490,11 @@ public class Image : Object, Undoable, Updatable, Container {
         var res = doc->save_file (file.get_path ());
         if (res < 0) {
             // TODO: communicate error
+            print ("Error saving file: %d\n", res);
+            var err = Xml.get_last_error ();
+            if (err != null) {
+                print ("Error: %d, %d: %s\n", err->domain, err->code, err->message);
+            }
         }
     }
 
