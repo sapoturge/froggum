@@ -113,6 +113,41 @@ public interface Container : Undoable, Updatable {
             }
         });
 
+        element.swap_up.connect (() => {
+            uint index;
+            if (((ListStore) model).find (element, out index)) {
+                var previous = model.get_item (index - 1) as Element;
+                if (previous != null) {
+                    var command = new Command ();
+                    var move_previous_down = ModelUpdate () {
+                        position = index,
+                        element = previous,
+                        insert = false
+                    };
+                    var move_current_up = ModelUpdate () {
+                        position = index - 1,
+                        element = element,
+                        insert = false
+                    };
+                    var return_previous = ModelUpdate () {
+                        position = index - 1,
+                        element = previous,
+                        insert = false,
+                    };
+                    var return_current = ModelUpdate () {
+                        position = index,
+                        element = element,
+                        insert = false
+                    };
+                    updator = move_previous_down;
+                    updator = move_current_up;
+                    command.add_value (this, "updator", move_previous_down, return_current);
+                    command.add_value (this, "updator", move_current_up, return_previous);
+                    add_command (command);
+                }
+            }
+        });
+
         var cont = element as Container;
         if (cont != null) {
             cont.path_selected.connect ((elem) => {

@@ -48,6 +48,8 @@ public abstract class Element : Object, Undoable, Updatable {
 
     public signal void select (bool selected);
     public signal void request_delete ();
+    public signal void swap_up ();
+    public signal void swap_down ();
 
     protected void setup_signals () {
         stroke.update.connect (() => { update (); });
