@@ -2,7 +2,7 @@ public interface Container : Undoable, Updatable {
     public signal void path_selected (Element? element);
 
     public struct ModelUpdate {
-        int position;
+        uint position;
         Element? element;
         bool insert;
     }
@@ -92,6 +92,27 @@ public interface Container : Undoable, Updatable {
                 path_selected (null);
             }
         });
+
+        element.request_delete.connect (() => {
+            uint index;
+            if (((ListStore) model).find (element, out index)) {
+                var command = new Command ();
+                var remove_update = ModelUpdate () {
+                    position = index,
+                    element = null,
+                    insert = false
+                };
+                var replace_update = ModelUpdate () {
+                    position = index,
+                    element = element,
+                    insert = true
+                };
+                updator = remove_update;
+                command.add_value (this, "updator", remove_update, replace_update);
+                add_command (command);
+            }
+        });
+
         var cont = element as Container;
         if (cont != null) {
             cont.path_selected.connect ((elem) => {
