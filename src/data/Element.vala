@@ -33,13 +33,6 @@ public abstract class Element : Object, Undoable, Updatable {
         }
     }
 
-    // Signal handles for the Element list
-    //
-    // These are needed so the signals can be disconnected,
-    // and this is the best place to put them.
-    public ulong visibility_handle { get; set; }
-    public ulong title_handle { get; set; }
-
     public bool transform_enabled { get; set; }
 
     public string title { get; set; }
