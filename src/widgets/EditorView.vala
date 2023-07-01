@@ -230,16 +230,16 @@ public class EditorView : Gtk.Box {
         path_up.has_frame = false;
         path_up.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
-            var next_row = image.tree.get_row (selection.selected + 1);
-            if (row != null && next_row != null) {
+            var prev_row = image.tree.get_row (selection.selected - 1);
+            if (row != null && prev_row != null) {
                 // Possible cases:
                 //  - swap with previous
                 //  - move into a group
                 //  - move out of a group
-                if (next_row.depth > row.depth) {
+                if (prev_row.depth > row.depth) {
                     // TODO: Move into an open group above
                     print ("Moving into groups not implemented\n");
-                } else if (next_row.depth < row.depth) {
+                } else if (prev_row.depth < row.depth) {
                     // TODO: Move out of a group
                     print ("Moving out of groups not implemented\n");
                 } else {

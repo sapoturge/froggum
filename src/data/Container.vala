@@ -3,8 +3,8 @@ public interface Container : Undoable, Updatable {
 
     public struct ModelUpdate {
         uint position;
-        Element? element;
-        bool insert;
+        uint removals;
+        Element[] elements;
     }
 
     public abstract Gtk.TreeListModel tree { get; set; }
@@ -18,14 +18,8 @@ public interface Container : Undoable, Updatable {
 
     public ModelUpdate updator {
         set {
-            if (value.element == null) {
-                ((ListStore) model).remove (value.position);
-            } else if (value.insert == true) {
-                ((ListStore) model).insert (value.position, value.element);
-            } else {
-                ((ListStore) model).remove (value.position);
-                ((ListStore) model).insert (value.position, value.element);
-            }
+            ((ListStore) model).splice (value.position, value.removals, (GLib.Object[]) value.elements);
+            update ();
         }
     }
 
@@ -99,13 +93,13 @@ public interface Container : Undoable, Updatable {
                 var command = new Command ();
                 var remove_update = ModelUpdate () {
                     position = index,
-                    element = null,
-                    insert = false
+                    elements = {},
+                    removals = 1
                 };
                 var replace_update = ModelUpdate () {
                     position = index,
-                    element = element,
-                    insert = true
+                    elements = { element },
+                    removals = 0
                 };
                 updator = remove_update;
                 command.add_value (this, "updator", remove_update, replace_update);
@@ -119,30 +113,18 @@ public interface Container : Undoable, Updatable {
                 var previous = model.get_item (index - 1) as Element;
                 if (previous != null) {
                     var command = new Command ();
-                    var move_previous_down = ModelUpdate () {
-                        position = index,
-                        element = previous,
-                        insert = false
-                    };
-                    var move_current_up = ModelUpdate () {
+                    var swapped = ModelUpdate () {
                         position = index - 1,
-                        element = element,
-                        insert = false
+                        elements = { element, previous },
+                        removals = 2,
                     };
-                    var return_previous = ModelUpdate () {
+                    var unswapped = ModelUpdate () {
                         position = index - 1,
-                        element = previous,
-                        insert = false,
+                        elements = { previous, element },
+                        removals = 2,
                     };
-                    var return_current = ModelUpdate () {
-                        position = index,
-                        element = element,
-                        insert = false
-                    };
-                    updator = move_previous_down;
-                    updator = move_current_up;
-                    command.add_value (this, "updator", move_previous_down, return_current);
-                    command.add_value (this, "updator", move_current_up, return_previous);
+                    updator = swapped;
+                    command.add_value (this, "updator", swapped, unswapped);
                     add_command (command);
                 }
             }
