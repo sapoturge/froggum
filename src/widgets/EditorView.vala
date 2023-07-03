@@ -256,7 +256,13 @@ public class EditorView : Gtk.Box {
         path_down.tooltip_text = _("Move path down");
         path_down.has_frame = false;
         path_down.clicked.connect (() => {
-            // image.path_down (selection.get_selected ());
+            var row = image.tree.get_row (selection.selected);
+            if (row != null) {
+                var elem = row.item as Element;
+                if (elem != null) {
+                    elem.swap_down ();
+                }
+            }
         });
 
         var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
