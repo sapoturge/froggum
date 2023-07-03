@@ -33,11 +33,11 @@ public interface Container : Undoable, Updatable {
     }
 
     protected int save_children (Xml.Node* root_node, Xml.Node* defs, int pattern_index) {
-        var index = 0;
+        var index = model.get_n_items () - 1;
         var elem = model.get_item (index) as Element;
         while (elem != null) {
             pattern_index = elem.add_svg (root_node, defs, pattern_index);
-            index += 1;
+            index -= 1;
             elem = model.get_item (index) as Element;
         }
 
@@ -75,7 +75,7 @@ public interface Container : Undoable, Updatable {
     }
 
     protected void add_element (Element element) {
-        ((ListStore) model).append (element);
+        ((ListStore) model).insert (0, element);
         element.update.connect (() => { update (); });
         element.select.connect ((selected) => {
             if (selected) {
@@ -141,13 +141,13 @@ public interface Container : Undoable, Updatable {
     }
 
     protected void draw_children (Cairo.Context cr) {
-        var index = 0;
+        var index = model.get_n_items () - 1;
         var elem = model.get_item (index) as Element;
         while (elem != null) {
             elem.transform.apply (cr);
             elem.draw (cr);
             cr.restore ();
-            index += 1;
+            index -= 1;
             elem = model.get_item (index) as Element;
         }
     }
@@ -163,7 +163,7 @@ public interface Container : Undoable, Updatable {
     }
 
     public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment) {
-        var index = model.get_n_items () - 1;
+        var index = 0;
         var elem = model.get_item (index) as Element;
         while (elem != null) {
             var new_x = x, new_y = y;
@@ -174,7 +174,7 @@ public interface Container : Undoable, Updatable {
                 return true;
             }
 
-            index -= 1;
+            index += 1;
             elem = model.get_item (index) as Element;
         }
 
