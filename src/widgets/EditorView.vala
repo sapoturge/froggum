@@ -12,11 +12,16 @@ public class EditorView : Gtk.Box {
         selection = new Gtk.SingleSelection (image.tree);
         paths_list.model = selection;
         viewport.image = image;
-        // image.path_selected.connect ((e, i) => {
-        //     if (i != null) {
-        //         selection.select_iter (i);
-        //     }
-        // });
+        image.path_selected.connect ((e) => {
+            if (e != null) {
+                for (var position = 0; position < image.tree.get_n_items (); position++) {
+                    var elem = (Element) image.tree.get_row (position).item;
+                    if (elem == e) {
+                        selection.selected = position;
+                    }
+                }
+            }
+        });
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
             var e = (Element) row.item;
