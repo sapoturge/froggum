@@ -17,6 +17,17 @@ public class EditorView : Gtk.Box {
         //         selection.select_iter (i);
         //     }
         // });
+        selection.selection_changed.connect (() => {
+            var row = (Gtk.TreeListRow) selection.selected_item;
+            var e = (Element) row.item;
+            if (e != null) {
+                if (image.selected_child != null) {
+                    image.selected_child.select (false);
+                }
+
+                e.select (true);
+            }
+        });
         new_button_handler = new_button.clicked.connect (image.new_path);
     }
     
