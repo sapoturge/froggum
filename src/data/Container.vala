@@ -1,4 +1,4 @@
-public interface Container : Undoable, Updatable {
+public interface Container : Undoable, Updatable, Transformed {
     public signal void path_selected (Element? element);
 
     public struct ModelUpdate {
@@ -76,6 +76,10 @@ public interface Container : Undoable, Updatable {
 
     protected void add_element (Element element) {
         ((ListStore) model).insert (0, element);
+        element.set_size (transform.width, transform.height);
+        set_size.connect ((width, height) => {
+            element.set_size (width, height);
+        });
         element.update.connect (() => { update (); });
         element.select.connect ((selected) => {
             if (selected) {

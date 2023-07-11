@@ -1,4 +1,4 @@
-public class Image : Object, Undoable, Updatable, Container {
+public class Image : Object, Undoable, Updatable, Transformed, Container {
     private File _file;
     private CommandStack stack;
 
@@ -13,6 +13,7 @@ public class Image : Object, Undoable, Updatable, Container {
 
     public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
+    public Transform transform { get; set; }
 
     // public signal void path_selected (Element? path, Gtk.TreeIter? iter);
 
@@ -53,6 +54,7 @@ public class Image : Object, Undoable, Updatable, Container {
     }
     
     construct {
+        transform = new Transform.identity ();
         stack = new CommandStack ();
         var model = new ListStore (typeof (Element));
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
@@ -65,6 +67,7 @@ public class Image : Object, Undoable, Updatable, Container {
         setup_signals ();
         this.width = width;
         this.height = height;
+        set_size (width, height);
         // this.selected_path = null;
         foreach (Element element in paths) {
             add_element (element);
@@ -95,6 +98,7 @@ public class Image : Object, Undoable, Updatable, Container {
         if (root->name == "svg") {
             this.width = int.parse (root->get_prop ("width"));
             this.height = int.parse (root->get_prop ("height"));
+            set_size (this.width, this.height);
             
             var patterns = new Gee.HashMap<string, Pattern> ();
 

@@ -46,6 +46,7 @@ executable(
     'src/data/LinearSegment.vala',
     'src/data/Container.vala',
     'src/data/Updatable.vala',
+    'src/data/Transformed.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk4'),

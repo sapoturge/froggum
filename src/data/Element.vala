@@ -1,4 +1,4 @@
-public abstract class Element : Object, Undoable, Updatable {
+public abstract class Element : Object, Undoable, Updatable, Transformed {
     private Pattern _fill;
     public Pattern fill {
         get {
