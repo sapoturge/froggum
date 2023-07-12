@@ -7,7 +7,7 @@ public class PathRow : Gtk.Box {
     // private double view_scale;
 
     private Gtk.TreeExpander expander;
-    // private Gtk.DrawingArea view;
+    private Gtk.DrawingArea view;
     private Gtk.ToggleButton visibility;
     private Gtk.EditableLabel title;
     // private PatternButton fill;
@@ -15,6 +15,7 @@ public class PathRow : Gtk.Box {
 
     // public Element element { get; private set; }
 
+    private ulong view_handle;
     private ulong visibility_handle;
     private ulong title_handle;
 
@@ -22,11 +23,12 @@ public class PathRow : Gtk.Box {
         orientation = Gtk.Orientation.HORIZONTAL;
 
         expander = new Gtk.TreeExpander ();
+        view = new Gtk.DrawingArea ();
         visibility = new Gtk.ToggleButton ();
         title = new Gtk.EditableLabel ("Element");
 
         append (expander);
-        // append (view);
+        append (view);
         append (visibility);
         append (title);
         // append (fill);
@@ -95,6 +97,14 @@ public class PathRow : Gtk.Box {
     public void bind (Gtk.TreeListRow row, Element elem) {
         expander.list_row = row;
 
+        view.content_width = (int) elem.transform.width;
+        view.content_height = (int) elem.transform.height;
+        view.set_draw_func ((d, cr, w, h) => {
+            elem.draw (cr);
+        });
+
+        view_handle = elem.update.connect (() => { view.queue_draw (); });
+
         visibility.active = elem.visible;
         visibility_handle = visibility.toggled.connect (() => {
             elem.visible = !elem.visible;
@@ -109,6 +119,7 @@ public class PathRow : Gtk.Box {
     }
 
     public void unbind () {
+        view.disconnect (view_handle);
         title.disconnect (title_handle);
         visibility.disconnect (visibility_handle);
     }
