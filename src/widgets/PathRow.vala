@@ -10,8 +10,8 @@ public class PathRow : Gtk.Box {
     private Gtk.DrawingArea view;
     private Gtk.ToggleButton visibility;
     private Gtk.EditableLabel title;
-    // private PatternButton fill;
-    // private PatternButton stroke;
+    private PatternButton fill;
+    private PatternButton stroke;
 
     // public Element element { get; private set; }
 
@@ -26,13 +26,15 @@ public class PathRow : Gtk.Box {
         view = new Gtk.DrawingArea ();
         visibility = new Gtk.ToggleButton ();
         title = new Gtk.EditableLabel ("Element");
+        fill = new PatternButton ();
+        stroke = new PatternButton ();
 
         append (expander);
         append (view);
         append (visibility);
         append (title);
-        // append (fill);
-        // append (stroke);
+        append (fill);
+        append (stroke);
 
         // this.image = image;
         // this.element = element;
@@ -116,6 +118,9 @@ public class PathRow : Gtk.Box {
             elem.title = title.text;
             elem.finish ("title");
         });
+
+        fill.pattern = elem.fill;
+        stroke.pattern = elem.stroke;
     }
 
     public void unbind () {

@@ -1,7 +1,33 @@
-public class PatternButton : Gtk.CellRenderer {
-    public Pattern pattern { get; set; }
+public class PatternButton : Gtk.Button {
+    private Pattern _pattern;
+    public Pattern pattern {
+        get {
+            return _pattern;
+        }
+        set {
+            _pattern = value;
+            view.set_draw_func ((d, cr, w, h) => {
+                pattern.apply_custom (cr, {0, 0}, {w, h}, pattern.pattern_type);
+                cr.paint ();
+            });
+            value.update.connect (() => { view.queue_draw (); });
+        }
+    }
 
-    private PatternChooserDialog dialog;
+    private Gtk.DrawingArea view;
+
+    construct {
+        view = new Gtk.DrawingArea ();
+        view.content_width = 32;
+        view.content_height = 32;
+        child = view;
+        clicked.connect (() => {
+            var dialog = new PatternChooserDialog ();
+            bind_property ("pattern", dialog, "pattern");
+            dialog.pattern = pattern;
+            dialog.show ();
+        });
+    }
 
     /* // THis needs to be replaced with a widget
     public override void render (Cairo.Context cr, Gtk.Widget widget, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gtk.CellRendererState flags) {
@@ -23,7 +49,6 @@ public class PatternButton : Gtk.CellRenderer {
         cr.restore ();
 
     }
-    */
 
     public override void get_preferred_width (Gtk.Widget widget, out int minimum_width, out int natural_width) {
         minimum_width = 24;
@@ -42,4 +67,5 @@ public class PatternButton : Gtk.CellRenderer {
         dialog.show ();
         return null;
     }
+    */
 }
