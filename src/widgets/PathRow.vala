@@ -13,7 +13,7 @@ public class PathRow : Gtk.Box {
     private PatternButton fill;
     private PatternButton stroke;
 
-    // public Element element { get; private set; }
+    private Element elem;
 
     private ulong view_handle;
     private ulong visibility_handle;
@@ -121,10 +121,13 @@ public class PathRow : Gtk.Box {
 
         fill.pattern = elem.fill;
         stroke.pattern = elem.stroke;
+
+        this.elem = elem;
     }
 
     public void unbind () {
-        view.disconnect (view_handle);
+        elem.disconnect (view_handle);
+        elem = null;
         title.disconnect (title_handle);
         visibility.disconnect (visibility_handle);
     }

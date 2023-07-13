@@ -75,7 +75,6 @@ public interface Container : Undoable, Updatable, Transformed {
     }
 
     protected void add_element (Element element) {
-        ((ListStore) model).insert (0, element);
         element.set_size (transform.width, transform.height);
         set_size.connect ((width, height) => {
             element.set_size (width, height);
@@ -164,6 +163,9 @@ public interface Container : Undoable, Updatable, Transformed {
                 path_selected (elem);
             });
         }
+
+        ((ListStore) model).insert (0, element);
+
         update ();
     }
 
