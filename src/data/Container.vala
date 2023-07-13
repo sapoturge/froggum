@@ -92,6 +92,7 @@ public interface Container : Undoable, Updatable, Transformed {
 
         element.request_delete.connect (() => {
             uint index;
+            element.select (false);
             if (((ListStore) model).find (element, out index)) {
                 var command = new Command ();
                 var remove_update = ModelUpdate () {
