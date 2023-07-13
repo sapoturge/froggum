@@ -99,10 +99,6 @@ public class Circle : Element {
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
     public override void begin (string prop) {

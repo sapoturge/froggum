@@ -186,6 +186,7 @@ public interface Container : Undoable, Updatable, Transformed {
             selected_child.transform.update_distance (zoom, out new_zoom);
             selected_child.draw_controls (cr, new_zoom);
             cr.restore ();
+            selected_child.draw_transform (cr, zoom);
         }
     }
 

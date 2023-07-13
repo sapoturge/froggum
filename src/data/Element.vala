@@ -72,6 +72,12 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract void draw_controls (Cairo.Context cr, double zoom);
 
+    public virtual void draw_transform (Cairo.Context cr, double zoom) {
+        if (transform_enabled) {
+            transform.draw_controls (cr, zoom);
+        }
+    }
+
     public abstract void begin (string prop);
 
     public abstract void finish (string prop);

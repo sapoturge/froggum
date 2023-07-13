@@ -150,10 +150,6 @@ public class Ellipse : Element {
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
     public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {

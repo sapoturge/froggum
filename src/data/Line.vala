@@ -61,10 +61,6 @@ public class Line : Element {
         cr.fill ();
 
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
     public override void begin (string prop) {
