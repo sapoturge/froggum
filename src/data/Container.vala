@@ -1,6 +1,7 @@
 public interface Container : Undoable, Updatable, Transformed {
     public signal void path_selected (Element? element);
     public signal void move_above (Element element, Command command);
+    public signal void move_below (Element element, Command command);
 
     public struct ModelUpdate {
         uint position;
@@ -17,6 +18,7 @@ public interface Container : Undoable, Updatable, Transformed {
         public ulong swap_down;
         public ulong path_selected;
         public ulong move_above;
+        public ulong move_below;
     }
 
     public abstract Gtk.TreeListModel tree { get; set; }
@@ -200,6 +202,20 @@ public interface Container : Undoable, Updatable, Transformed {
                     updator = swapped;
                     command.add_value (this, "updator", swapped, unswapped);
                     add_command (command);
+                } else {
+                    var command = new Command ();
+                    var removal = ModelUpdate () {
+                        position = index,
+                        elements = {},
+                        removals = 1,
+                    };
+                    var replaced = ModelUpdate () {
+                        position = index,
+                        elements = { element },
+                        removals = 0,
+                    };
+                    command.add_value (this, "updator", removal, replaced);
+                    move_below (element, command);
                 }
             }
         });
@@ -221,6 +237,25 @@ public interface Container : Undoable, Updatable, Transformed {
                     };
                     var remove = ModelUpdate () {
                         position = index,
+                        elements = {},
+                        removals = 1,
+                    };
+                    command.add_value (this, "updator", add, remove);
+                    command.apply ();
+                    add_command (command);
+                }
+            });
+
+            signal_manager.move_below = cont.move_below.connect ((elem, command) => {
+                uint index;
+                if (((ListStore) model).find (cont, out index)) {
+                    var add = ModelUpdate () {
+                        position = index + 1,
+                        elements = { elem },
+                        removals = 0,
+                    };
+                    var remove = ModelUpdate () {
+                        position = index + 1,
                         elements = {},
                         removals = 1,
                     };
