@@ -1,5 +1,6 @@
 public interface Container : Undoable, Updatable, Transformed {
     public signal void path_selected (Element? element);
+    public signal void move_above (Element element, Command command);
 
     public struct ModelUpdate {
         uint position;
@@ -16,11 +17,11 @@ public interface Container : Undoable, Updatable, Transformed {
 
     public abstract Element? selected_child { get; set; }
 
-    public ModelUpdate updator {
-        set {
-            ((ListStore) model).splice (value.position, value.removals, (GLib.Object[]) value.elements);
-            update ();
-        }
+    // This has to be abstract so it exists in the child classes
+    public abstract ModelUpdate updator { set; }
+    protected void do_update (ModelUpdate value) {
+        ((ListStore) model).splice (value.position, value.removals, (GLib.Object[]) value.elements);
+        update ();
     }
 
     public ListModel? get_children (Object object) {
@@ -130,6 +131,20 @@ public interface Container : Undoable, Updatable, Transformed {
                     updator = swapped;
                     command.add_value (this, "updator", swapped, unswapped);
                     add_command (command);
+                } else {
+                    var command = new Command ();
+                    var removal = ModelUpdate () {
+                        position = index,
+                        elements = {},
+                        removals = 1,
+                    };
+                    var replaced = ModelUpdate () {
+                        position = index,
+                        elements = { element },
+                        removals = 0,
+                    };
+                    command.add_value (this, "updator", removal, replaced);
+                    move_above (element, command);
                 }
             }
         });
@@ -162,6 +177,25 @@ public interface Container : Undoable, Updatable, Transformed {
             cont.path_selected.connect ((elem) => {
                 selected_child = elem;
                 path_selected (elem);
+            });
+
+            cont.move_above.connect ((elem, command) => {
+                uint index;
+                if (((ListStore) model).find (cont, out index)) {
+                    var add = ModelUpdate () {
+                        position = index,
+                        elements = { elem },
+                        removals = 0,
+                    };
+                    var remove = ModelUpdate () {
+                        position = index,
+                        elements = {},
+                        removals = 1,
+                    };
+                    command.add_value (this, "updator", add, remove);
+                    command.apply ();
+                    add_command (command);
+                }
             });
         }
 

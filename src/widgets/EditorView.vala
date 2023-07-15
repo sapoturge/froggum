@@ -256,8 +256,10 @@ public class EditorView : Gtk.Box {
                     // TODO: Move into an open group above
                     print ("Moving into groups not implemented\n");
                 } else if (prev_row.depth < row.depth) {
-                    // TODO: Move out of a group
-                    print ("Moving out of groups not implemented\n");
+                    var elem = row.item as Element;
+                    if (elem != null) {
+                        elem.swap_up ();
+                    }
                 } else {
                     // Swap with previous
                     var elem = row.item as Element;

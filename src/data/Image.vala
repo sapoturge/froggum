@@ -25,6 +25,12 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     private uint save_id;
     private bool already_loaded = false;
 
+    public ModelUpdate updator {
+        set {
+            do_update (value);
+        }
+    }
+
     private void setup_signals () {
         update.connect (() => {
             if (save_id != 0) {
