@@ -8,8 +8,11 @@ public class Group : Element, Container {
         }
     }
 
+    protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
+
     construct {
         tree = new Gtk.TreeListModel (new ListStore (typeof (Element)), false, false, get_children);
+        signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         selected_child = null;
     }
 

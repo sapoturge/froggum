@@ -8,6 +8,17 @@ public interface Container : Undoable, Updatable, Transformed {
         Element[] elements;
     }
 
+    protected class ElementSignalManager {
+        public ulong set_size;
+        public ulong update;
+        public ulong select;
+        public ulong request_delete;
+        public ulong swap_up;
+        public ulong swap_down;
+        public ulong path_selected;
+        public ulong move_above;
+    }
+
     public abstract Gtk.TreeListModel tree { get; set; }
     public GLib.ListModel model {
         get {
@@ -16,10 +27,22 @@ public interface Container : Undoable, Updatable, Transformed {
     }
 
     public abstract Element? selected_child { get; set; }
+    protected abstract Gee.Map<Element, ElementSignalManager> signal_managers { get; set; }
 
     // This has to be abstract so it exists in the child classes
     public abstract ModelUpdate updator { set; }
     protected void do_update (ModelUpdate value) {
+        for (int i = 0; i < value.removals; i++) {
+            var element = (Element) model.get_item (value.position + i);
+            if (element != null) {
+                remove_signal_manager (element);
+            }
+        }
+
+        foreach (var elem in value.elements) {
+            setup_signal_manager (elem);
+        }
+
         ((ListStore) model).splice (value.position, value.removals, (GLib.Object[]) value.elements);
         update ();
     }
@@ -76,12 +99,21 @@ public interface Container : Undoable, Updatable, Transformed {
     }
 
     protected void add_element (Element element) {
+        setup_signal_manager (element);
+
+        ((ListStore) model).insert (0, element);
+
+        update ();
+    }
+
+    private void setup_signal_manager (Element element) {
         element.set_size (transform.width, transform.height);
-        set_size.connect ((width, height) => {
+        var signal_manager = new ElementSignalManager ();
+        signal_manager.set_size = set_size.connect ((width, height) => {
             element.set_size (width, height);
         });
-        element.update.connect (() => { update (); });
-        element.select.connect ((selected) => {
+        signal_manager.update = element.update.connect (() => { update (); });
+        signal_manager.select = element.select.connect ((selected) => {
             if (selected) {
                 selected_child = element;
                 path_selected (element);
@@ -91,7 +123,7 @@ public interface Container : Undoable, Updatable, Transformed {
             }
         });
 
-        element.request_delete.connect (() => {
+        signal_manager.request_delete = element.request_delete.connect (() => {
             uint index;
             element.select (false);
             if (((ListStore) model).find (element, out index)) {
@@ -112,7 +144,7 @@ public interface Container : Undoable, Updatable, Transformed {
             }
         });
 
-        element.swap_up.connect (() => {
+        signal_manager.swap_up = element.swap_up.connect (() => {
             uint index;
             if (((ListStore) model).find (element, out index)) {
                 var previous = model.get_item (index - 1) as Element;
@@ -149,7 +181,7 @@ public interface Container : Undoable, Updatable, Transformed {
             }
         });
 
-        element.swap_down.connect (() => {
+        signal_manager.swap_down = element.swap_down.connect (() => {
             uint index;
             if (((ListStore) model).find (element, out index)) {
                 var next = model.get_item (index + 1) as Element;
@@ -174,12 +206,12 @@ public interface Container : Undoable, Updatable, Transformed {
 
         var cont = element as Container;
         if (cont != null) {
-            cont.path_selected.connect ((elem) => {
+            signal_manager.path_selected = cont.path_selected.connect ((elem) => {
                 selected_child = elem;
                 path_selected (elem);
             });
 
-            cont.move_above.connect ((elem, command) => {
+            signal_manager.move_above = cont.move_above.connect ((elem, command) => {
                 uint index;
                 if (((ListStore) model).find (cont, out index)) {
                     var add = ModelUpdate () {
@@ -199,9 +231,25 @@ public interface Container : Undoable, Updatable, Transformed {
             });
         }
 
-        ((ListStore) model).insert (0, element);
+        signal_managers.set (element, signal_manager);
+    }
 
-        update ();
+    private void remove_signal_manager (Element element) {
+        ElementSignalManager manager;
+        signal_managers.unset (element, out manager);
+        if (manager != null) {
+            disconnect (manager.set_size);
+            element.disconnect (manager.update);
+            element.disconnect (manager.select);
+            element.disconnect (manager.request_delete);
+            element.disconnect (manager.swap_up);
+            element.disconnect (manager.swap_down);
+            var cont = element as Container;
+            if (cont != null) {
+                cont.disconnect (manager.path_selected);
+                cont.disconnect (manager.move_above);
+            }
+        }
     }
 
     protected void draw_children (Cairo.Context cr) {

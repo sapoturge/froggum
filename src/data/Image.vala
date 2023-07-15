@@ -15,6 +15,8 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public override Element? selected_child { get; set; }
     public Transform transform { get; set; }
 
+    protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
+
     // public signal void path_selected (Element? path, Gtk.TreeIter? iter);
 
     // private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
@@ -64,6 +66,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         stack = new CommandStack ();
         var model = new ListStore (typeof (Element));
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
+        signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         // set_column_types ({typeof (Element)});
 
         // element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
