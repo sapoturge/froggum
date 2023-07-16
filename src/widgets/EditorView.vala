@@ -247,26 +247,16 @@ public class EditorView : Gtk.Box {
         path_up.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             var prev_row = image.tree.get_row (selection.selected - 1);
-            if (row != null && prev_row != null) {
-                // Possible cases:
-                //  - swap with previous
-                //  - move into a group
-                //  - move out of a group
+            var elem = row.item as Element;
+            if (row != null && prev_row != null && elem != null) {
+                var into = false;
                 if (prev_row.depth > row.depth) {
-                    // TODO: Move into an open group above
-                    print ("Moving into groups not implemented\n");
-                } else if (prev_row.depth < row.depth) {
-                    var elem = row.item as Element;
-                    if (elem != null) {
-                        elem.swap_up ();
-                    }
-                } else {
-                    // Swap with previous
-                    var elem = row.item as Element;
-                    if (elem != null) {
-                        elem.swap_up ();
-                    }
+                    into = true;
+                } else if (prev_row.depth == row.depth) {
+                    into = prev_row.expanded;
                 }
+
+                elem.swap_up (into);
             }
         });
 
@@ -278,7 +268,12 @@ public class EditorView : Gtk.Box {
             if (row != null) {
                 var elem = row.item as Element;
                 if (elem != null) {
-                    elem.swap_down ();
+                    var into = false;
+                    var next_row = image.tree.get_row (selection.selected + 1);
+                    if (next_row != null) {
+                        into = next_row.expanded;
+                    }
+                    elem.swap_down (into);
                 }
             }
         });

@@ -146,25 +146,42 @@ public interface Container : Undoable, Updatable, Transformed {
             }
         });
 
-        signal_manager.swap_up = element.swap_up.connect (() => {
+        signal_manager.swap_up = element.swap_up.connect ((into) => {
             uint index;
             if (((ListStore) model).find (element, out index)) {
                 var previous = model.get_item (index - 1) as Element;
                 if (previous != null) {
-                    var command = new Command ();
-                    var swapped = ModelUpdate () {
-                        position = index - 1,
-                        elements = { element, previous },
-                        removals = 2,
-                    };
-                    var unswapped = ModelUpdate () {
-                        position = index - 1,
-                        elements = { previous, element },
-                        removals = 2,
-                    };
-                    updator = swapped;
-                    command.add_value (this, "updator", swapped, unswapped);
-                    add_command (command);
+                    var cont = previous as Container;
+                    if (into && cont != null) {
+                        var command = new Command ();
+                        var removal = ModelUpdate () {
+                            position = index,
+                            elements = {},
+                            removals = 1,
+                        };
+                        var replace = ModelUpdate () {
+                            position = index,
+                            elements = { element },
+                            removals = 0,
+                        };
+                        command.add_value (this, "updator", removal, replace);
+                        cont.insert_bottom (element, command);
+                    } else {
+                        var command = new Command ();
+                        var swapped = ModelUpdate () {
+                            position = index - 1,
+                            elements = { element, previous },
+                            removals = 2,
+                        };
+                        var unswapped = ModelUpdate () {
+                            position = index - 1,
+                            elements = { previous, element },
+                            removals = 2,
+                        };
+                        updator = swapped;
+                        command.add_value (this, "updator", swapped, unswapped);
+                        add_command (command);
+                    }
                 } else {
                     var command = new Command ();
                     var removal = ModelUpdate () {
@@ -183,25 +200,42 @@ public interface Container : Undoable, Updatable, Transformed {
             }
         });
 
-        signal_manager.swap_down = element.swap_down.connect (() => {
+        signal_manager.swap_down = element.swap_down.connect ((into) => {
             uint index;
             if (((ListStore) model).find (element, out index)) {
                 var next = model.get_item (index + 1) as Element;
                 if (next != null) {
-                    var command = new Command ();
-                    var swapped = ModelUpdate () {
-                        position = index,
-                        elements = { next, element },
-                        removals = 2,
-                    };
-                    var unswapped = ModelUpdate () {
-                        position = index,
-                        elements = { element, next },
-                        removals = 2,
-                    };
-                    updator = swapped;
-                    command.add_value (this, "updator", swapped, unswapped);
-                    add_command (command);
+                    var cont = next as Container;
+                    if (into && cont != null) {
+                        var command = new Command ();
+                        var removal = ModelUpdate () {
+                            position = index,
+                            elements = {},
+                            removals = 1,
+                        };
+                        var replace = ModelUpdate () {
+                            position = index,
+                            elements = { element },
+                            removals = 0,
+                        };
+                        command.add_value (this, "updator", removal, replace);
+                        cont.insert_top (element, command);
+                    } else {
+                        var command = new Command ();
+                        var swapped = ModelUpdate () {
+                            position = index,
+                            elements = { next, element },
+                            removals = 2,
+                        };
+                        var unswapped = ModelUpdate () {
+                            position = index,
+                            elements = { element, next },
+                            removals = 2,
+                        };
+                        updator = swapped;
+                        command.add_value (this, "updator", swapped, unswapped);
+                        add_command (command);
+                    }
                 } else {
                     var command = new Command ();
                     var removal = ModelUpdate () {
@@ -285,6 +319,38 @@ public interface Container : Undoable, Updatable, Transformed {
                 cont.disconnect (manager.move_above);
             }
         }
+    }
+
+    private void insert_top (Element element, Command command) {
+        var insert = ModelUpdate () {
+            position = 0,
+            elements = { element },
+            removals = 0,
+        };
+        var remove = ModelUpdate () {
+            position = 0,
+            elements = {},
+            removals = 1,
+        };
+        command.add_value (this, "updator", insert, remove);
+        command.apply ();
+        add_command (command);
+    }
+
+    private void insert_bottom (Element element, Command command) {
+        var insert = ModelUpdate () {
+            position = model.get_n_items (),
+            elements = { element },
+            removals = 0,
+        };
+        var remove = ModelUpdate () {
+            position = model.get_n_items (),
+            elements = {},
+            removals = 1,
+        };
+        command.add_value (this, "updator", insert, remove);
+        command.apply ();
+        add_command (command);
     }
 
     protected void draw_children (Cairo.Context cr) {
