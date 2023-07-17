@@ -22,6 +22,7 @@ public class GradientEditor : Gtk.DrawingArea {
 
     private int width;
     private int height;
+    private double base_offset;
 
     public double offset { get; set; }
 
@@ -56,17 +57,12 @@ public class GradientEditor : Gtk.DrawingArea {
         var click_controller = new Gtk.GestureClick ();
         add_controller (click_controller);
         click_controller.pressed.connect ((n, x, y) => {
-            if (stop_binding != null) {
-                stop_binding.unbind ();
-                bound_stop.finish ("offset");
-                stop_binding = null;
-            }
-            if (height - 35 < y && y < height - 5) {
-                for (int i = 0; i < pattern.get_n_items(); i++) {
-                    Stop stop = (Stop) pattern.get_item (i);
-                    var cx = 15 + (width - 30) * stop.offset;
-                    if (cx - 10 < x && x < cx + 10) {
-                        if (n == 2) {
+            if (n == 2) {
+                if (height - 35 < y && y < height - 5) {
+                    for (int i = 0; i < pattern.get_n_items(); i++) {
+                        Stop stop = (Stop) pattern.get_item (i);
+                        var cx = 15 + (width - 30) * stop.offset;
+                        if (cx - 10 < x && x < cx + 10) {
                             var dialog = new Gtk.ColorChooserDialog (_("Stop Color"), root as Gtk.Window);
                             dialog.use_alpha = true;
                             dialog.rgba = stop.rgba;
@@ -95,21 +91,36 @@ public class GradientEditor : Gtk.DrawingArea {
             }
         });
 
-        /*
-        button_release_event.connect ((ev) => {
+        var drag_controller = new Gtk.GestureDrag ();
+        add_controller (drag_controller);
+        drag_controller.drag_begin.connect ((x, y) => {
+            if (height - 35 < y && y < height - 5) {
+                for (int i = 0; i < pattern.get_n_items(); i++) {
+                    Stop stop = (Stop) pattern.get_item (i);
+                    var cx = 15 + (width - 30) * stop.offset;
+                    if (cx - 10 < x && x < cx + 10) {
+                        stop.begin ("offset");
+                        bound_stop = stop;
+                        stop_binding = bind_property ("offset", stop, "offset");
+                        base_offset = x - 15;
+                        return;
+                    }
+                }
+            }
+        });
+
+        drag_controller.drag_update.connect ((offset_x, offset_y) => {
+            offset = double.min (1, double.max (0, (offset_x + base_offset) / (width - 30)));
+        });
+
+        drag_controller.drag_end.connect ((offset_x, offset_y) => {
+            offset = double.min (1, double.max (0, (offset_x + base_offset) / (width - 30)));
             if (stop_binding != null) {
                 stop_binding.unbind ();
                 stop_binding = null;
                 bound_stop.finish ("offset");
             }
         });
-
-        events |= Gdk.EventMask.BUTTON_MOTION_MASK;
-
-        motion_notify_event.connect ((ev) => {
-            offset = double.min (1, double.max (0, (ev.x - 15) / (width - 30)));
-        });
-        */
     }
 
     public override void size_allocate (int width, int height, int baseline)  {
