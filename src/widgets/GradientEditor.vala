@@ -53,47 +53,49 @@ public class GradientEditor : Gtk.DrawingArea {
             }
         });
 
-        /* // Events changed in gtk4
-        events |= Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK;
-
-        button_press_event.connect ((ev) => {
+        var click_controller = new Gtk.GestureClick ();
+        add_controller (click_controller);
+        click_controller.pressed.connect ((n, x, y) => {
             if (stop_binding != null) {
                 stop_binding.unbind ();
                 bound_stop.finish ("offset");
                 stop_binding = null;
             }
-            if (height - 35 < ev.y && ev.y < height - 5) {
+            if (height - 35 < y && y < height - 5) {
                 for (int i = 0; i < pattern.get_n_items(); i++) {
                     Stop stop = (Stop) pattern.get_item (i);
                     var cx = 15 + (width - 30) * stop.offset;
-                    if (cx - 10 < ev.x && ev.x < cx + 10) {
-                        if (ev.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
-                            var dialog = new Gtk.ColorChooserDialog (_("Stop Color"), null);
+                    if (cx - 10 < x && x < cx + 10) {
+                        if (n == 2) {
+                            var dialog = new Gtk.ColorChooserDialog (_("Stop Color"), root as Gtk.Window);
                             dialog.use_alpha = true;
                             dialog.rgba = stop.rgba;
                             var old_rgba = stop.rgba;
                             stop.begin ("rgba");
                             dialog.bind_property ("rgba", stop, "rgba");
-                            var result = dialog.run ();
-                            if (result != Gtk.ResponseType.OK) {
-                                stop.rgba = old_rgba;
-                            }
-                            stop.finish ("rgba");
-                            dialog.destroy ();
+                            dialog.response.connect ((result) => {
+                                if (result != Gtk.ResponseType.OK) {
+                                    stop.rgba = old_rgba;
+                                }
+
+                                stop.finish ("rgba");
+                                dialog.destroy ();
+                            });
+                            dialog.show ();
                         } else {
                             stop.begin ("offset");
                             bound_stop = stop;
                             stop_binding = bind_property ("offset", stop, "offset");
                         }
-                        return false;
                     }
                 }
-            } else if (5 < ev.y && ev.y < height - 40) {
-                var offset = (ev.x - 15) / (width - 30);
+            } else if (5 < y && y < height - 40) {
+                var offset = (x - 15) / (width - 30);
                 pattern.add_stop (new Stop (offset, pattern.rgba));
             }
         });
 
+        /*
         button_release_event.connect ((ev) => {
             if (stop_binding != null) {
                 stop_binding.unbind ();
