@@ -238,7 +238,11 @@ public class EditorView : Gtk.Box {
         duplicate_path.tooltip_text = _("Duplicate path");
         duplicate_path.has_frame = false;
         duplicate_path.clicked.connect (() => {
-            // image.duplicate_path (selection.get_selected (null, out iter));
+            var row = image.tree.get_row (selection.selected);
+            var elem = row.item as Element;
+            if (elem != null) {
+                elem.request_duplicate ();
+            }
         });
 
         var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
