@@ -141,6 +141,7 @@ public class FroggumApplication : Gtk.Application {
                     recalculate_open_files ();
                 }
             });
+            dialog.show ();
         });
 
         header.pack_start (save_button);
