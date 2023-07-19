@@ -303,10 +303,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             scrolling = false;
         });
 
-        var scroll_controller = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.VERTICAL);
+        var scroll_controller = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.BOTH_AXES);
         add_controller (scroll_controller);
         scroll_controller.scroll.connect ((dx, dy) => {
-            update_zoom (Math.pow (2, -dy) * zoom);
+            // Differentiates between mice and touchpads: mice zoom by scrolling, touchpads don't
+            if (dx == 0) {
+                update_zoom (Math.pow (2, -dy) * zoom);
+            }
         });
 
         var zoom_controller = new Gtk.GestureZoom ();
@@ -315,7 +318,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             base_zoom = zoom;
         });
         zoom_controller.scale_changed.connect ((scale) => {
-            update_zoom (scale * base_zoom / zoom);
+            update_zoom (scale * base_zoom);
         });
 
         resize.connect ((width, height) => {
