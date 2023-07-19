@@ -333,12 +333,14 @@ public interface Container : Undoable, Updatable, Transformed {
             element.disconnect (manager.update);
             element.disconnect (manager.select);
             element.disconnect (manager.request_delete);
+            element.disconnect (manager.request_duplicate);
             element.disconnect (manager.swap_up);
             element.disconnect (manager.swap_down);
             var cont = element as Container;
             if (cont != null) {
                 cont.disconnect (manager.path_selected);
                 cont.disconnect (manager.move_above);
+                cont.disconnect (manager.move_below);
             }
         }
     }
