@@ -43,7 +43,6 @@ public class Group : Element, Container {
     }
 
     public override void draw_controls (Cairo.Context cr, double zoom) {
-        transform.draw_controls (cr, zoom);
         draw_selected_child (cr, zoom);
     }
 
