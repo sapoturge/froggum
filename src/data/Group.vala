@@ -25,6 +25,10 @@ public class Group : Element, Container {
    
         setup_signals ();
 
+        select.connect ((selected) => {
+            selected_child = null;
+        });
+
         transform_enabled = true;
     }
 
