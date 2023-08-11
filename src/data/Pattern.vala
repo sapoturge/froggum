@@ -25,7 +25,8 @@ public class Pattern : Object, ListModel, Undoable {
     public signal void update ();
 
     public Pattern.none () {
-        pattern_type = NONE;
+        pattern_type = NONE;  // For some reason, this doesn't trigger notify
+        refresh_pattern ();
     }
 
     public Pattern.color (Gdk.RGBA color) {
@@ -94,7 +95,7 @@ public class Pattern : Object, ListModel, Undoable {
                 parser.get_float (out rgba.alpha);
                 return new Pattern.color (rgba);
              case Keyword.NOT_FOUND:
-                 if (parser.match ("#")) {
+                if (parser.match ("#")) {
                     var rgba = Gdk.RGBA ();
                     int red = 0, red2 = 0;
                     int green = 0, green2 = 0;

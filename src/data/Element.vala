@@ -44,6 +44,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
     public signal void swap_up (bool into);
     public signal void swap_down (bool into);
     public signal void request_duplicate ();
+    public signal void replace (Element replacement);
 
     protected void setup_signals () {
         stroke.update.connect (() => { update (); });

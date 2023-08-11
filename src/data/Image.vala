@@ -297,6 +297,17 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
 /* // Moved to Container
     private Gtk.TreeIter add_element(Element element) {
+        setup_element_signals (element);
+        insert_with_values (out iter, root, 0, 0, element);
+        element_index[element] = iter;
+        if (already_loaded) {
+            element.select (true);
+        }
+        update ();
+        return iter;
+    }
+
+    private void setup_element_signals (Element element) {
         element.transform.width = width;
         element.transform.height = height;
         element.update.connect (() => { update (); });
@@ -326,14 +337,20 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         element.add_command.connect ((c) => {
             stack.add_command (c);
         });
-        Gtk.TreeIter iter;
-        insert_with_values (out iter, root, 0, 0, element);
-        element_index[element] = iter;
-        if (already_loaded) {
-            element.select (true);
-        }
-        update ();
-        return iter;
+        element.replace.connect ((o, n) => {
+            setup_element_signals (n);
+            o.select (false);
+            var iter = element_index[o];
+            element_index[n] = iter;
+            set_value (iter, 0, n);
+            n.select (true);
+            update ();
+            var old_iter = ElementIter (iter, o);
+            var new_iter = ElementIter (iter, n);
+            var command = new Command ();
+            command.add_value (this, "item", new_iter, old_iter);
+            stack.add_command (command);
+        });
     }
 */
 

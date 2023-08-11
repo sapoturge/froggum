@@ -180,6 +180,16 @@ public class Polygon : Element {
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.action (_("Delete Polygon"), () => { request_delete(); }),
+            new ContextOption.action (_("Convert to Path"), () => {
+                var segments = new PathSegment[] {};
+                var seg = root_segment;
+                do {
+                    segments += new PathSegment.line (seg.end.x, seg.end.y);
+                    seg = seg.next;
+                } while (seg != root_segment);
+
+                replace (new Path.with_pattern (segments, fill, stroke, title, transform));
+            }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
     }

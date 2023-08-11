@@ -20,6 +20,7 @@ public interface Container : Undoable, Updatable, Transformed {
         public ulong move_above;
         public ulong move_below;
         public ulong request_duplicate;
+        public ulong replace;
     }
 
     public abstract Gtk.TreeListModel tree { get; set; }
@@ -272,6 +273,26 @@ public interface Container : Undoable, Updatable, Transformed {
                 };
                 updator = add_duplicate;
                 command.add_value (this, "updator", add_duplicate, remove_duplicate);
+                add_command (command);
+            }
+        });
+
+        signal_manager.replace = element.replace.connect ((new_elem) => {
+            uint index;
+            if (((ListStore) model).find (element, out index)) {
+                var command = new Command ();
+                var swap_in = ModelUpdate () {
+                    position = index,
+                    elements = { new_elem },
+                    removals = 1
+                };
+                var swap_out = ModelUpdate () {
+                    position = index,
+                    elements = { element },
+                    removals = 1
+                };
+                updator = swap_in;
+                command.add_value (this, "updator", swap_in, swap_out);
                 add_command (command);
             }
         });
