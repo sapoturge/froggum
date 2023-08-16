@@ -48,6 +48,9 @@ public interface Container : Undoable, Updatable, Transformed {
         }
 
         ((ListStore) model).splice (value.position, value.removals, (GLib.Object[]) value.elements);
+        if (value.elements.length > 0) {
+            value.elements[0].select (true);
+        }
         update ();
     }
 
@@ -347,6 +350,9 @@ public interface Container : Undoable, Updatable, Transformed {
     }
 
     private void remove_signal_manager (Element element) {
+        if (element == selected_child) {
+            element.select (false);
+        }
         ElementSignalManager manager;
         signal_managers.unset (element, out manager);
         if (manager != null) {
@@ -357,6 +363,7 @@ public interface Container : Undoable, Updatable, Transformed {
             element.disconnect (manager.request_duplicate);
             element.disconnect (manager.swap_up);
             element.disconnect (manager.swap_down);
+            element.disconnect (manager.replace);
             var cont = element as Container;
             if (cont != null) {
                 cont.disconnect (manager.path_selected);
