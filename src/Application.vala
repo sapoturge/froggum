@@ -51,6 +51,8 @@ public class FroggumApplication : Gtk.Application {
         
         set_accels_for_action ("froggum.action_undo", {"<Control>Z", null});
         set_accels_for_action ("froggum.action_redo", {"<Control>Y", null});
+        undo_action.set_enabled (true);
+        redo_action.set_enabled (true);
     }
 
     protected override void activate () {
@@ -145,6 +147,14 @@ public class FroggumApplication : Gtk.Application {
         });
 
         header.pack_start (save_button);
+
+        var undo_button  = new Gtk.Button.from_icon_name ("edit-undo");
+        undo_button.action_name = "froggum.action_undo";
+        var redo_button  = new Gtk.Button.from_icon_name ("edit-redo");
+        redo_button.action_name = "froggum.action_redo";
+
+        header.pack_start (undo_button);
+        header.pack_start (redo_button);
 
         main_window.set_titlebar (header);
 

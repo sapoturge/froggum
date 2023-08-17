@@ -70,6 +70,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         // set_column_types ({typeof (Element)});
 
         // element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
+        add_command.connect ((c) => stack.add_command (c));
     }
 
     public Image (int width, int height, Element[] paths = {}) {

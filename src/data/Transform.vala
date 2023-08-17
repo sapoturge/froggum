@@ -331,6 +331,13 @@ public class Transform : Object, Undoable {
         }
     }
 
+    construct {
+        notify.connect (() => {
+            update_matrix ();
+            update ();
+        });
+    }
+
     public Transform.identity () {
         translate_x = 0;
         translate_y = 0;

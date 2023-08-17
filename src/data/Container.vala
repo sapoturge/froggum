@@ -21,6 +21,7 @@ public interface Container : Undoable, Updatable, Transformed {
         public ulong move_below;
         public ulong request_duplicate;
         public ulong replace;
+        public ulong add_command;
     }
 
     public abstract Gtk.TreeListModel tree { get; set; }
@@ -300,6 +301,8 @@ public interface Container : Undoable, Updatable, Transformed {
             }
         });
 
+        signal_manager.add_command = element.add_command.connect ((c) => add_command (c));
+
         var cont = element as Container;
         if (cont != null) {
             signal_manager.path_selected = cont.path_selected.connect ((elem) => {
@@ -364,6 +367,7 @@ public interface Container : Undoable, Updatable, Transformed {
             element.disconnect (manager.swap_up);
             element.disconnect (manager.swap_down);
             element.disconnect (manager.replace);
+            element.disconnect (manager.add_command);
             var cont = element as Container;
             if (cont != null) {
                 cont.disconnect (manager.path_selected);
