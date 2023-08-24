@@ -82,7 +82,7 @@ public class PatternChooserDialog : Gtk.Dialog {
             }
         });
 
-        linear_radial = new Granite.ModeSwitch.from_icon_name ("gradient-linear", "gradient-radial");
+        linear_radial = new Granite.ModeSwitch.from_icon_name ("gradient-linear-symbolic", "gradient-radial-symbolic");
         linear_radial.primary_icon_tooltip_text = _("Linear");
         linear_radial.secondary_icon_tooltip_text = _("Radial");
         linear_radial.bind_property ("active", this, "is_radial");

@@ -100,7 +100,16 @@ install_data(
     install_dir: join_paths(get_option('datadir'), 'glib-2.0', 'schemas')
 )
 
-symbolic_icon_names = ['circle-new', 'ellipse-new', 'line-new', 'polygon-new', 'polyline-new', 'rectangle-new']
+symbolic_icon_names = [
+    'circle-new',
+    'ellipse-new',
+    'line-new',
+    'polygon-new',
+    'polyline-new',
+    'rectangle-new',
+    'gradient-linear',
+    'gradient-radial',
+]
 
 foreach i : symbolic_icon_names
     install_data(
