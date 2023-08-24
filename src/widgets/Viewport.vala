@@ -61,7 +61,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _scroll_y = value;
-            vertical.value = -double.min (scroll_y + height / 2, 0);
+            vertical.value = double.max (scroll_y + height / 2, 0);
         }
     }
 
