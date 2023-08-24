@@ -1,4 +1,4 @@
-public class GradientEditor : Gtk.DrawingArea {
+public class GradientEditor : Gtk.Box {
     private Pattern _pattern;
     public Pattern pattern {
         get {
@@ -9,13 +9,13 @@ public class GradientEditor : Gtk.DrawingArea {
             _pattern.items_changed.connect ((index, removed, added) => {
                 for (var i = 0; i < added; i++) {
                     var stop = (Stop) pattern.get_item (index + i);
-                    stop.notify.connect (() => { queue_draw (); });
+                    stop.notify.connect (() => { request_draw (); });
                 }
-                queue_draw ();
+                request_draw ();
             });
             for (var i = 0; i < _pattern.get_n_items(); i++) {
                 var stop = (Stop) _pattern.get_item (i);
-                stop.notify.connect (() => { queue_draw (); });
+                stop.notify.connect (() => { request_draw (); });
             }
         }
     }
@@ -24,39 +24,54 @@ public class GradientEditor : Gtk.DrawingArea {
     private int height;
     private double base_offset;
 
+    private Gtk.DrawingArea pattern_view;
+    private Gtk.DrawingArea stop_view;
+
     public double offset { get; set; }
 
     private Binding stop_binding;
     private Stop bound_stop;
 
     construct {
-        set_size_request (400, 70);
+        orientation = Gtk.Orientation.VERTICAL;
 
-        set_draw_func ((d, cr, w, h) => {
-            cr.rectangle (5, 5, width - 10, height - 40);
-            pattern.apply_custom (cr, {15, height / 2}, {width - 15, height / 2}, PatternType.LINEAR);
-            cr.fill ();
+        pattern_view = new Gtk.DrawingArea () {
+            hexpand = true,
+            vexpand = true,
+            height_request = 30,
+        };
 
+        stop_view = new Gtk.DrawingArea () {
+            hexpand = true,
+            height_request = 40,
+        };
+
+        pattern_view.set_draw_func ((d, cr, w, h) => {
+            pattern.apply_custom (cr, {15, h / 2}, {w - 15, h / 2}, PatternType.LINEAR);
+            cr.paint ();
+        });
+
+        stop_view.set_draw_func((d, cr, w, h) => {
             for (int i = 0; i < pattern.get_n_items(); i++) {
                 Stop s = (Stop) pattern.get_item (i);
-                var cx = 15 + (width - 30) * s.offset;
-                cr.move_to (cx, height - 35);
-                cr.line_to (cx + 10, height - 25);
-                cr.line_to (cx + 10, height - 5);
-                cr.line_to (cx - 10, height - 5);
-                cr.line_to (cx - 10, height - 25);
+                var cx = 15 + (w - 30) * s.offset;
+                cr.move_to (cx, h - 35);
+                cr.line_to (cx + 10, h - 25);
+                cr.line_to (cx + 10, h - 5);
+                cr.line_to (cx - 10, h - 5);
+                cr.line_to (cx - 10, h - 25);
                 cr.close_path ();
                 cr.set_source_rgb (0.4, 0.4, 0.4);
                 cr.fill ();
-                cr.rectangle (cx - 8, height - 23, 16, 16);
+                cr.rectangle (cx - 8, h - 23, 16, 16);
                 cr.set_source_rgba (s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
                 cr.fill ();
             }
         });
 
-        var click_controller = new Gtk.GestureClick ();
-        add_controller (click_controller);
-        click_controller.pressed.connect ((n, x, y) => {
+        var stop_click_controller = new Gtk.GestureClick ();
+        stop_view.add_controller (stop_click_controller);
+        stop_click_controller.pressed.connect ((n, x, y) => {
             if (n == 2) {
                 if (height - 35 < y && y < height - 5) {
                     for (int i = 0; i < pattern.get_n_items(); i++) {
@@ -85,14 +100,18 @@ public class GradientEditor : Gtk.DrawingArea {
                         }
                     }
                 }
-            } else if (5 < y && y < height - 40) {
-                var offset = (x - 15) / (width - 30);
-                pattern.add_stop (new Stop (offset, pattern.rgba));
             }
+        });
+        
+        var pattern_click_controller = new Gtk.GestureClick ();
+        pattern_view.add_controller(pattern_click_controller);
+        pattern_click_controller.pressed.connect ((n, x, y) => {
+            var offset = (x - 15) / (width - 30);
+            pattern.add_stop (new Stop (offset, pattern.rgba));
         });
 
         var drag_controller = new Gtk.GestureDrag ();
-        add_controller (drag_controller);
+        stop_view.add_controller (drag_controller);
         drag_controller.drag_begin.connect ((x, y) => {
             if (height - 35 < y && y < height - 5) {
                 for (int i = 0; i < pattern.get_n_items(); i++) {
@@ -121,10 +140,18 @@ public class GradientEditor : Gtk.DrawingArea {
                 bound_stop.finish ("offset");
             }
         });
+
+        append (new Gtk.Frame (null) { child = pattern_view, });
+        append (stop_view);
     }
 
     public override void size_allocate (int width, int height, int baseline)  {
         this.width = width;
         this.height = height;
+    }
+
+    private void request_draw () {
+        pattern_view.queue_draw();
+        stop_view.queue_draw();
     }
 }
