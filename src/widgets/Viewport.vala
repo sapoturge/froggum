@@ -167,13 +167,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         set_size_request (320, 320);
 
-        /* // Event handling changed significantly
-        add_events (Gdk.EventMask.BUTTON_RELEASE_MASK |
-                    Gdk.EventMask.BUTTON_PRESS_MASK |
-                    Gdk.EventMask.BUTTON_MOTION_MASK |
-                    Gdk.EventMask.SCROLL_MASK);
-        */
-
         set_draw_func ((d, cr, w, h) => {
             cr.set_source_rgb (background.red, background.green, background.blue);
             cr.paint ();
@@ -404,41 +397,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-/* moved into container
-    private bool clicked_path (double x, double y, out Element? path, out Segment? segment) {
-        // Removed for testing purposes
-        path = null;
-        segment = null;
-        return false;
-        // clicked_subpath (x, y, null, out path, out segment);
-    }
-*/
-
-/* // This needs to change
-    private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
-        Gtk.TreeIter iter;
-        if (image.iter_children (out iter, root)) {
-            do {
-                var element = image.get_element (iter);
-                if (element.visible) {
-                    if (element.clicked (x, y, 6 / zoom, out segment)) {
-                        path = element;
-                        return true;
-                    } else if (element is Group) {
-                        // TODO: Apply transformation
-                        if (clicked_subpath (x, y, iter, out path, out segment)) {
-                            return true;
-                        }
-                    }
-                }
-            } while (image.iter_next (ref iter));
-        }
-        path = null;
-        segment = null;
-        return false;
-    }
-*/
-        
     private void show_context_menu (Element element, Segment? segment, double x, double y) {
         var menu = new Gtk.Popover ();
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);

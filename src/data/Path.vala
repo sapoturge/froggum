@@ -1,41 +1,6 @@
 public class Path : Element {
     public PathSegment root_segment;
 
-    // private Point last_reference;
-
-    // I'll probably remove this entirely later.
-    // public Point reference {
-    //     set {
-    //         var dx = value.x - last_reference.x;
-    //         var dy = value.y - last_reference.y;
-    //         var segment = root_segment;
-    //         var first = true;
-    //         while (first || segment != root_segment) {
-    //             first = false;
-    //             if (segment.segment_type == ARC) {
-    //                 segment.topleft = {segment.topleft.x + dx, segment.topleft.y + dy};
-    //                 segment.bottomright = {segment.bottomright.x + dx, segment.bottomright.y + dy};
-    //             }
-    //             segment = segment.next;
-    //         }
-    //         first = true;
-    //         while (first || segment != root_segment) {
-    //             first = false;
-    //             if (segment.segment_type != ARC) {
-    //                 if (segment.next.segment_type != ARC) {
-    //                     segment.end = {segment.end.x + dx, segment.end.y + dy};
-    //                 }
-    //                 if (segment.segment_type == CURVE) {
-    //                     segment.p1 = {segment.p1.x + dx, segment.p1.y + dy};
-    //                     segment.p2 = {segment.p2.x + dx, segment.p2.y + dy};
-    //                 }
-    //             }
-    //             segment = segment.next;
-    //         }
-    //         last_reference = value;
-    //     }
-    // }
-
     public Path (PathSegment[] segments = {},
                  Gdk.RGBA fill = {0, 0, 0, 0},
                  Gdk.RGBA stroke = {0, 0, 0, 0},
@@ -332,7 +297,6 @@ public class Path : Element {
             s = s.next;
         }
 
-        // TODO: check for clicking on the path itself
         obj = null;
         prop = null;
         return;

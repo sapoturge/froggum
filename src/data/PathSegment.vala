@@ -545,9 +545,6 @@ public class PathSegment : Segment {
     }
 
     public void draw_controls (Cairo.Context cr, double zoom) {
-        // Unlike Elements, this assumes the segment outlines
-        // have already been drawn by the containing element.
-        
         switch (segment_type) {
             case SegmentType.CURVE:
                 cr.move_to (start.x, start.y);

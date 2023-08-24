@@ -1,16 +1,6 @@
 public class Polygon : Element {
     public LinearSegment root_segment { get; set; }
 
-/*
-    public Point handle {
-        set {
-            points.set (handle_index, value);
-            // Notify doesn't trigger here, so we have to update manually.
-            update ();
-        }
-    }
-*/
-
     public Polygon (Point[] points, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
         set_points (points);
         this.fill = fill;
@@ -30,24 +20,6 @@ public class Polygon : Element {
 
         setup_signals ();
     }
-
-/*
-    public Polygon.from_segments (LinearSegment[] segments, Pattern fill, Pattern stroke, Transform? trasnform = null) {
-        this.segments = new Gee.UnrolledLinkedList<LinearSegment> ();
-        this.segments.add_all_array (segments);
-        this.fill = fill;
-        this.stroke = stroke;
-        visible = true;
-
-        if (transform == null) {
-            this.transform = new Transform.identity ();
-        } else {
-            this.transform = transform;
-        }
-
-        setup_signals ();
-    }
-*/
 
     public Polygon.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
         base.from_xml (node, patterns);
@@ -122,7 +94,6 @@ public class Polygon : Element {
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
         if (always_draw || visible) {
-            // cr.move_to (points.get (0).x, segments.get(0).start.y);
             var first = true;
             for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
                 first = false;
@@ -240,17 +211,6 @@ public class Polygon : Element {
             first = false;
         }
 
-/*
-        for (int i = 0; i < points.size; i++) {
-            if ((x - points.get (i).x).abs () <= tolerance && (y - points.get (i).y).abs () <= tolerance) {
-                obj = this;
-                handle_index = i;
-                prop = "handle";
-                return;
-            }
-        }
-*/
-
         obj = null;
         prop = "";
         return;
@@ -268,23 +228,9 @@ public class Polygon : Element {
                 return true;
             }
         }
-/*
-        // This will be replaced one LinearSegments are added
-        for (int i = 0; i < points.size; i++) {
-            Point start = points.get (i);
-            Point end = points.get ((i+1) % points.size);
-            var dot = (x - start.x) * (end.x - start.x) + (y - start.y) * (end.y - start.y);
-            var len_squared = (end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y);
-            var scale = dot / len_squared;
-            Point aligned = { start.x + (end.x - start.x) * scale, start.y + (end.y - start.y) * scale };
-            if (0 <= scale && scale <= 1 && aligned.dist ({x, y}) <= tolerance) {
-                return true;
-            }
-       }
-*/
 
-       element = null;
-       segment = null;
-       return false;
+        element = null;
+        segment = null;
+        return false;
     }
 }

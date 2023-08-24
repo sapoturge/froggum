@@ -17,13 +17,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
     protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
 
-    // public signal void path_selected (Element? path, Gtk.TreeIter? iter);
-
-    // private Gee.HashMap<Element, Gtk.TreeIter?> element_index;
-
-    // private Gtk.TreeIter? selected_path;
-    // private Gtk.TreeIter? last_selected_path;
-    
     private uint save_id;
     private bool already_loaded = false;
 
@@ -45,20 +38,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 return false;
             });
         });
-
-        // row_inserted.connect ((path, iter) => {
-        //     Element? element = get_element(iter);
-        //     if (element != null) {
-        //         element_index[element] = iter;
-        //     }
-        // });
-
-        // row_changed.connect ((path, iter) => {
-        //     Element? element = get_element(iter);
-        //     if (element != null) {
-        //         element_index[element] = iter;
-        //     }
-        // });
     }
     
     construct {
@@ -67,9 +46,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         var model = new ListStore (typeof (Element));
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
-        // set_column_types ({typeof (Element)});
-
-        // element_index = new Gee.HashMap<Element, Gtk.TreeIter?> ();
         add_command.connect ((c) => stack.add_command (c));
     }
 
@@ -78,7 +54,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.width = width;
         this.height = height;
         set_size (width, height);
-        // this.selected_path = null;
         foreach (Element element in paths) {
             add_element (element);
         }
@@ -188,38 +163,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         already_loaded = true;
     }
 
-/* // Moved to Container
-    private void load_elements (Xml.Node* group, Gee.HashMap<string, Pattern> patterns, Gtk.TreeIter? root) {
-        for (Xml.Node* iter = group->children; iter != null; iter = iter->next) {
-            if (iter->name == "path") {
-                var path = new Path.from_xml (iter, patterns);
-                add_element (path);
-            } else if (iter->name == "circle") {
-                var circle = new Circle.from_xml (iter, patterns);
-                add_element (circle);
-            } else if (iter->name == "g") {
-                var g = new Group.from_xml (iter, patterns);
-                load_elements (iter, patterns, add_element (g));
-            } else if (iter->name == "rect") {
-                var rect = new Rectangle.from_xml (iter, patterns);
-                add_element (rect);
-            } else if (iter->name == "ellipse") {
-                var ellipse = new Ellipse.from_xml (iter, patterns);
-                add_element (ellipse);
-            } else if (iter->name == "line") {
-                var line = new Line.from_xml (iter, patterns);
-                add_element (line);
-            } else if (iter->name == "polyline") {
-                var line = new Polyline.from_xml (iter, patterns);
-                add_element (line);
-            } else if (iter->name == "polygon") {
-                var polygon = new Polygon.from_xml (iter, patterns);
-                add_element (polygon);
-            }
-        }
-    }
-*/
-                
     private Gdk.RGBA process_color (string color) {
         var rgba = Gdk.RGBA ();
         if (color.has_prefix ("rgb(")) {
@@ -258,36 +201,8 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
     public void draw (Cairo.Context cr) {
         draw_children (cr);
-/*
-        if (iter_n_children (null) > 0) {
-            Gtk.TreeIter iter;
-            iter_nth_child (out iter, null, iter_n_children (null) - 1);
-            do {
-                draw_element (cr, iter);
-            } while (iter_previous (ref iter));
-        }
-*/
     }
 
-    public void draw_element (Cairo.Context cr, Gtk.TreeIter iter) {
-/*
-        var element = get_element (iter);
-        element.transform.apply (cr);
-        if (element is Group && element.visible) {
-            if (iter_has_child (iter)) {
-                Gtk.TreeIter inner_iter;
-                iter_nth_child (out inner_iter, iter, iter_n_children (iter) - 1);
-                do {
-                    draw_element (cr, inner_iter);
-                } while (iter_previous (ref inner_iter));
-            }
-        } else {
-            element.draw (cr);
-        }
-        cr.restore ();
-*/
-    }
-    
     public void undo () {
         stack.undo ();
     }
@@ -295,65 +210,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public void redo () {
         stack.redo ();
     }
-
-/* // Moved to Container
-    private Gtk.TreeIter add_element(Element element) {
-        setup_element_signals (element);
-        insert_with_values (out iter, root, 0, 0, element);
-        element_index[element] = iter;
-        if (already_loaded) {
-            element.select (true);
-        }
-        update ();
-        return iter;
-    }
-
-    private void setup_element_signals (Element element) {
-        element.transform.width = width;
-        element.transform.height = height;
-        element.update.connect (() => { update (); });
-        element.request_delete.connect (() => {
-            element.select (false);
-            delete_path (element_index[element]);
-        });
-        element.select.connect ((selected) => {
-            Element? select_path;
-            if (selected_path != null) {
-                select_path = get_element (selected_path);
-            } else {
-                select_path = null;
-            }
-            if (element != select_path) {
-                if (select_path != null) {
-                    select_path.select (false);
-                }
-                last_selected_path = element_index[element];
-                selected_path = element_index[element];
-                path_selected (element, selected_path);
-            } else if (selected == false) {
-                selected_path = null;
-                path_selected (null, null);
-            }
-        });
-        element.add_command.connect ((c) => {
-            stack.add_command (c);
-        });
-        element.replace.connect ((o, n) => {
-            setup_element_signals (n);
-            o.select (false);
-            var iter = element_index[o];
-            element_index[n] = iter;
-            set_value (iter, 0, n);
-            n.select (true);
-            update ();
-            var old_iter = ElementIter (iter, o);
-            var new_iter = ElementIter (iter, n);
-            var command = new Command ();
-            command.add_value (this, "item", new_iter, old_iter);
-            stack.add_command (command);
-        });
-    }
-*/
 
     public void new_path () {
         var path = new Path ({ new PathSegment.line (width - 1.5, 1.5),
@@ -415,90 +271,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         add_element (group);
     }
 
-/* // Temporary removal for testing purposes.
-    public void duplicate_path (uint position) {
-        if (iter == null) {
-            iter = last_selected_path;
-        }
- 
-        if (iter != null) {
-            if (iter == last_selected_path) {
-                last_selected_path = null;
-                selected_path = null;
-                path_selected (null, null);
-            }
-
-            var path = get_element (iter).copy ();
-            add_element (path, null);
-            update ();
-        }
-    }
-
-    public void path_up (uint position) {
-        if (iter == null) {
-            iter = last_selected_path;
-        }
- 
-        if (iter != null) {
-            if (iter == last_selected_path) {
-                last_selected_path = null;
-                selected_path = null;
-                path_selected (null, null);
-            }
-
-            Gtk.TreeIter prev = iter;
-
-            if (iter_next(ref prev)) {
-                swap (iter, prev);
-            }
-
-            update ();
-       }
-    }
-
-    public void path_down (uint position) {
-        if (iter == null) {
-            iter = last_selected_path;
-        }
- 
-        if (iter != null) {
-            if (iter == last_selected_path) {
-                last_selected_path = null;
-                selected_path = null;
-                path_selected (null, null);
-            }
-
-            Gtk.TreeIter next = iter;
-            if (iter_previous(ref next)) {
-                swap (iter, next);
-            }
-
-            update ();
-       }
-    }
-
-    public void delete_path (uint position) {
-        if (iter == null) {
-            iter = last_selected_path;
-        }
- 
-        if (iter != null) {
-            if (iter == selected_path) {
-                path_selected (null, null);
-                selected_path = null;
-            }
-
-            remove (ref iter);
-
-            if (iter == last_selected_path) {
-                last_selected_path = null;
-            }
-
-            update ();
-       }
-    }
-*/
-
     private void save_xml () {
         if (file == null) {
             print ("No file; not saving\n");
@@ -534,23 +306,4 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
     public void finish (string prop) {
     }
-
-/*
-    private int save_children(Xml.Node* root_node, Xml.Node* defs, int pattern_index, Gtk.TreeIter? root) {
-        Gtk.TreeIter iter;
-        var n_children = iter_n_children (root);
-        if (n_children != 0) {
-            iter_nth_child (out iter, root, n_children - 1);
-            do {
-                var path = get_element (iter);
-                Xml.Node* node;
-                pattern_index = path.add_svg(root_node, defs, pattern_index, out node);
-                if (path is Group) {
-                    pattern_index = save_children(node, defs, pattern_index, iter);
-                }
-            } while (iter_previous (ref iter));
-        }
-        return pattern_index;
-    }
-*/
 }
