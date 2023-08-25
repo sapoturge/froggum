@@ -70,6 +70,7 @@ public class PatternChooserDialog : Gtk.Dialog {
             pattern.rgba = color.rgba;
             pattern.finish ("rgba");
         });
+        color.tooltip_text = _("Select color");
 
         gradient = new Gtk.ToggleButton.with_label (_("Gradient"));
         gradient.group = no_color;
@@ -86,6 +87,7 @@ public class PatternChooserDialog : Gtk.Dialog {
         linear_radial.primary_icon_tooltip_text = _("Linear");
         linear_radial.secondary_icon_tooltip_text = _("Radial");
         linear_radial.bind_property ("active", this, "is_radial");
+        linear_radial.tooltip_text = _("Gradient type");
 
         var editor = new GradientEditor ();
         bind_property ("pattern", editor, "pattern");

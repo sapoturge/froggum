@@ -66,6 +66,7 @@ public class EditorView : Gtk.Box {
         list_box_scroll.vexpand = true;
 
         new_button = new Gtk.Button.from_icon_name("list-add-symbolic");
+        new_button.tooltip_text = _("New path");
 
         var new_path = new Gtk.Button () {
             icon_name = "list-add-symbolic",
@@ -74,6 +75,7 @@ public class EditorView : Gtk.Box {
         new_path.clicked.connect (() => {
             image.new_path ();
             new_button.icon_name = "list-add-symbolic";
+            new_button.tooltip_text = _("New path");
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_path);
         });
@@ -84,6 +86,7 @@ public class EditorView : Gtk.Box {
         };
         new_circle.clicked.connect (() => {
             image.new_circle ();
+            new_button.tooltip_text = _("New circle");
             new_button.icon_name = "circle-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_circle);
@@ -95,6 +98,7 @@ public class EditorView : Gtk.Box {
         };
         new_rectangle.clicked.connect (() => {
             image.new_rectangle ();
+            new_button.tooltip_text = _("New rectangle");
             new_button.icon_name = "rectangle-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_rectangle);
@@ -106,6 +110,7 @@ public class EditorView : Gtk.Box {
         };
         new_ellipse.clicked.connect (() => {
             image.new_ellipse ();
+            new_button.tooltip_text = _("New ellipse");
             new_button.icon_name = "ellipse-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_ellipse);
@@ -117,6 +122,7 @@ public class EditorView : Gtk.Box {
         };
         new_line.clicked.connect (() => {
             image.new_line ();
+            new_button.tooltip_text = _("New line");
             new_button.icon_name = "line-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_line);
@@ -128,6 +134,7 @@ public class EditorView : Gtk.Box {
         };
         new_polyline.clicked.connect (() => {
             image.new_polyline ();
+            new_button.tooltip_text = _("New polyline");
             new_button.icon_name = "polyline-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_polyline);
@@ -139,6 +146,7 @@ public class EditorView : Gtk.Box {
         };
         new_polygon.clicked.connect (() => {
             image.new_polygon ();
+            new_button.tooltip_text = _("New polygon");
             new_button.icon_name = "polygon-new-symbolic";
             new_button.disconnect (new_button_handler);
             new_button_handler = new_button.clicked.connect (image.new_polygon);
@@ -166,7 +174,7 @@ public class EditorView : Gtk.Box {
         });
 
         var duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
-        duplicate_path.tooltip_text = _("Duplicate path");
+        duplicate_path.tooltip_text = _("Duplicate element");
         duplicate_path.has_frame = false;
         duplicate_path.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
@@ -177,7 +185,7 @@ public class EditorView : Gtk.Box {
         });
 
         var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
-        path_up.tooltip_text = _("Move path up");
+        path_up.tooltip_text = _("Move element up");
         path_up.has_frame = false;
         path_up.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
@@ -196,7 +204,7 @@ public class EditorView : Gtk.Box {
         });
 
         var path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
-        path_down.tooltip_text = _("Move path down");
+        path_down.tooltip_text = _("Move element down");
         path_down.has_frame = false;
         path_down.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
@@ -214,7 +222,7 @@ public class EditorView : Gtk.Box {
         });
 
         var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
-        delete_path.tooltip_text = _("Delete path");
+        delete_path.tooltip_text = _("Delete element");
         delete_path.has_frame = false;
         delete_path.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);

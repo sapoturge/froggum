@@ -29,6 +29,10 @@ public class PathRow : Gtk.Box {
         fill = new PatternButton ();
         stroke = new PatternButton ();
 
+        visibility.tooltip_text = _("Toggle visibility");
+        fill.tooltip_text = _("Fill pattern");
+        stroke.tooltip_text = _("Stroke pattern");
+
         append (expander);
         append (view);
         append (visibility);
@@ -41,10 +45,6 @@ public class PathRow : Gtk.Box {
         // view_scale = 32.0 / image.height;
         // view.set_size_request ((int) (image.width * view_scale), (int) (image.height * view_scale));
     }
-
-    //     visibility.tooltip_text = _("Visibility");
-    //     fill.tooltip_text = _("Fill color");
-    //     stroke.tooltip_text = _("Stroke color");
 
     public void bind (Gtk.TreeListRow row, Element elem) {
         expander.list_row = row;

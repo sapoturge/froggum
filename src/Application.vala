@@ -128,8 +128,10 @@ public class FroggumApplication : Gtk.Application {
 
         var undo_button  = new Gtk.Button.from_icon_name ("edit-undo");
         undo_button.action_name = "froggum.action_undo";
+        undo_button.tooltip_text = _("Undo");
         var redo_button  = new Gtk.Button.from_icon_name ("edit-redo");
         redo_button.action_name = "froggum.action_redo";
+        redo_button.tooltip_text = _("Redo");
 
         header.pack_start (undo_button);
         header.pack_start (redo_button);
@@ -140,6 +142,7 @@ public class FroggumApplication : Gtk.Application {
         new_button.clicked.connect (() => {
             new_tab ();
         });
+        new_button.tooltip_text = _("New icon");
 
         notebook.hexpand = true;
         notebook.vexpand = true;
