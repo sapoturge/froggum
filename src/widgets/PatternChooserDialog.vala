@@ -39,6 +39,7 @@ public class PatternChooserDialog : Gtk.Dialog {
 
     private Gtk.ColorButton color;
     private Granite.ModeSwitch linear_radial;
+    private GradientEditor editor;
     
     construct {
         no_color = new Gtk.ToggleButton.with_label (_("None"));
@@ -89,7 +90,7 @@ public class PatternChooserDialog : Gtk.Dialog {
         linear_radial.bind_property ("active", this, "is_radial");
         linear_radial.tooltip_text = _("Gradient type");
 
-        var editor = new GradientEditor ();
+        editor = new GradientEditor ();
         bind_property ("pattern", editor, "pattern");
 
         var color_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
@@ -115,6 +116,7 @@ public class PatternChooserDialog : Gtk.Dialog {
     private void swap_sensitivity (PatternType new_type) {
         linear_radial.sensitive = false;
         color.sensitive = false;
+        editor.sensitive = false;
         switch (new_type) {
             case COLOR:
                 color.sensitive = true;
@@ -123,6 +125,7 @@ public class PatternChooserDialog : Gtk.Dialog {
             case LINEAR:
             case RADIAL:
                 linear_radial.sensitive = true;
+                editor.sensitive = true;
                 gradient.active = true;
                 break;
             case NONE:
