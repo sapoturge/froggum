@@ -5,9 +5,10 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public int width { get; private set; }
     public int height { get; private set; }
 
+    private string? _name;
     public string name {
         get {
-            return "Untitled";
+            return _name ?? "Untitled";
         }
     }
 
@@ -191,6 +192,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         }
         set {
             _file = value;
+            _name = _file.get_basename ();
             save_xml ();
         }
     }

@@ -5,6 +5,7 @@ public class FroggumApplication : Gtk.Application {
     
     public static Settings settings;
     
+    private Gtk.ApplicationWindow main_window;
     private Adw.TabView notebook;
     private Gtk.FileChooserNative dialog;
     
@@ -59,13 +60,17 @@ public class FroggumApplication : Gtk.Application {
         Gtk.IconTheme default_theme = new Gtk.IconTheme ();
         default_theme.add_resource_path ("/io/github/sapoturge/froggum");
         
-        var main_window = new Gtk.ApplicationWindow (this);
+        main_window = new Gtk.ApplicationWindow (this);
         main_window.insert_action_group ("froggum", actions);
-        main_window.title = _("Untitled");
+        main_window.title = _("Froggum - Untitled");
 
         if (settings.get_boolean ("window-maximized")) {
             main_window.maximize ();
         }
+
+        main_window.notify["title"].connect (() => {
+            print ("Title is now '%s'\n", main_window.title);
+        });
 
         main_window.notify["maximized"].connect (() => {
             if (configure_id != 0) {
@@ -87,14 +92,21 @@ public class FroggumApplication : Gtk.Application {
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "close:maximize";
         header.show_title_buttons = true;
-        header.title_widget = new Gtk.Label (_("Froggum"));
+        //header.title_widget = new Gtk.Label (_("Froggum"));
         
         notebook = new Adw.TabView ();
         
         notebook.notify["selected_page"].connect(() => {
-            var editor = notebook.selected_page.child as EditorView;
+            var child = notebook.selected_page.child;
+            print ("Selected child: %s\n", ((ObjectClass)child.get_type ().class_ref ()).get_name ());
+            var editor = child as EditorView;
             if (editor != null) {
+                print ("Setting window title 2\n");
+                main_window.title = _("Froggum - %s").printf (editor.image.name);
                 settings.set_string ("focused-file", editor.image.file.get_uri ());
+            } else {
+                print ("Setting window title 1\n");
+                main_window.title = _("Froggum - New Icon");
             }
         });
 
@@ -115,6 +127,8 @@ public class FroggumApplication : Gtk.Application {
                         var file = dialog.get_file ();
                         editor.image.file = file;
                         tab.title = file.get_basename ();
+                        print ("Setting window title\n");
+                        main_window.title = _("Froggum - %s").printf (tab.title);
                         settings.set_string ("focused-file", file.get_uri ());
                     }
 
@@ -377,11 +391,26 @@ public class FroggumApplication : Gtk.Application {
         for (int i = 0; i < notebook.n_pages; i++) {
             var tab = notebook.get_nth_page (i);
             var editor = tab.child as EditorView;
-            if (editor != null) {
+            if (editor != null && editor.image.file != null) {
                 filenames += editor.image.file.get_uri ();
             }
         }
         settings.set_strv ("open-files", filenames);
+
+        if (notebook.selected_page != null) {
+            var child = notebook.selected_page.child;
+            var editor = child as EditorView;
+            if (editor != null) {
+                if (editor.image.file != null) {
+                    main_window.title = _("Froggum - %s").printf (editor.image.name);
+                    settings.set_string ("focused-file", editor.image.file.get_uri ());
+                } else {
+                    main_window.title = _("Froggum - Untitled");
+                }
+            } else {
+                main_window.title = _("Froggum - New Icon");
+            }
+        }
     }
 
     public static int main (string[] args) {
