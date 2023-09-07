@@ -27,7 +27,6 @@ public class GradientEditor : Gtk.Box {
     private Gtk.DrawingArea stop_view;
 
     public double offset { get; set; }
-    public bool sensitive { get; set; }
 
     private Binding stop_binding;
     private Stop bound_stop;
