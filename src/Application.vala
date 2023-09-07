@@ -68,10 +68,6 @@ public class FroggumApplication : Gtk.Application {
             main_window.maximize ();
         }
 
-        main_window.notify["title"].connect (() => {
-            print ("Title is now '%s'\n", main_window.title);
-        });
-
         main_window.notify["maximized"].connect (() => {
             if (configure_id != 0) {
                 Source.remove (configure_id);
@@ -92,20 +88,17 @@ public class FroggumApplication : Gtk.Application {
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "close:maximize";
         header.show_title_buttons = true;
-        //header.title_widget = new Gtk.Label (_("Froggum"));
         
         notebook = new Adw.TabView ();
         
-        notebook.notify["selected_page"].connect(() => {
-            var child = notebook.selected_page.child;
-            print ("Selected child: %s\n", ((ObjectClass)child.get_type ().class_ref ()).get_name ());
+        notebook.notify["selected-page"].connect((param) => {
+            var page = notebook.selected_page;
+            var child = page.child;
             var editor = child as EditorView;
             if (editor != null) {
-                print ("Setting window title 2\n");
-                main_window.title = _("Froggum - %s").printf (editor.image.name);
+                main_window.title = _("Froggum - %s").printf (page.title);
                 settings.set_string ("focused-file", editor.image.file.get_uri ());
             } else {
-                print ("Setting window title 1\n");
                 main_window.title = _("Froggum - New Icon");
             }
         });
@@ -127,7 +120,6 @@ public class FroggumApplication : Gtk.Application {
                         var file = dialog.get_file ();
                         editor.image.file = file;
                         tab.title = file.get_basename ();
-                        print ("Setting window title\n");
                         main_window.title = _("Froggum - %s").printf (tab.title);
                         settings.set_string ("focused-file", file.get_uri ());
                     }
