@@ -92,21 +92,23 @@ public class GradientEditor : Gtk.Box {
                     Stop stop = (Stop) pattern.get_item (i);
                     var cx = 15 + (pattern_view.get_allocated_width () - 30) * stop.offset;
                     if (cx - 10 < x && x < cx + 10) {
-                        var dialog = new Gtk.ColorChooserDialog (_("Stop Color"), root as Gtk.Window);
-                        dialog.use_alpha = true;
-                        dialog.rgba = stop.rgba;
-                        var old_rgba = stop.rgba;
+                        var dialog = new Gtk.ColorDialog () {
+                            title = _("Stop Color"),
+                            with_alpha = true,
+                        };
                         stop.begin ("rgba");
-                        dialog.bind_property ("rgba", stop, "rgba");
-                        dialog.response.connect ((result) => {
-                            if (result != Gtk.ResponseType.OK) {
-                                stop.rgba = old_rgba;
+                        dialog.choose_rgba.begin (root as Gtk.Window, stop.rgba, null, (obj, res) => {
+                            try {
+                                var color = dialog.choose_rgba.end (res);
+                                if (color != null) {
+                                    stop.begin ("rgba");
+                                    stop.rgba = color;
+                                    stop.finish ("rgba");
+                                }
+                            } catch (Error e) {
+                                // TODO: Display error
                             }
-
-                            stop.finish ("rgba");
-                            dialog.destroy ();
                         });
-                        dialog.show ();
                     }
                 }
             }

@@ -7,7 +7,7 @@ public class FroggumApplication : Gtk.Application {
     
     private Gtk.ApplicationWindow main_window;
     private Adw.TabView notebook;
-    private Gtk.FileChooserNative dialog;
+    private Gtk.FileDialog dialog;
     
     public FroggumApplication () {
         Object (
@@ -110,24 +110,28 @@ public class FroggumApplication : Gtk.Application {
         var save_button = new Gtk.Button.from_icon_name ("document-save-as");
         save_button.tooltip_text = _("Save as new file");
         save_button.clicked.connect (() => {
-            dialog = new Gtk.FileChooserNative (_("Save As"), main_window, Gtk.FileChooserAction.SAVE, null, null);
-            dialog.set_current_name (_("untitled.svg"));
-            dialog.response.connect ((res) => {
-                if (res == Gtk.ResponseType.ACCEPT) {
-                    var tab = notebook.selected_page;
-                    var editor = tab.child as EditorView;
-                    if (editor != null) {
-                        var file = dialog.get_file ();
-                        editor.image.file = file;
-                        tab.title = file.get_basename ();
-                        main_window.title = _("Froggum - %s").printf (tab.title);
-                        settings.set_string ("focused-file", file.get_uri ());
-                    }
+            dialog = new Gtk.FileDialog () {
+                title = _("untitled.svg"),
+            };
+            dialog.save.begin (main_window, null, (obj, res) => {
+                try {
+                    var file = dialog.save.end (res);
+                    if (file != null) {
+                        var tab = notebook.selected_page;
+                        var editor = tab.child as EditorView;
+                        if (editor != null) {
+                            editor.image.file = file;
+                            tab.title = file.get_basename ();
+                            main_window.title = _("Froggum - %s").printf (tab.title);
+                            settings.set_string ("focused-file", file.get_uri ());
+                        }
 
-                    recalculate_open_files ();
+                        recalculate_open_files ();
+                    }
+                } catch (Error e) {
+                    // TODO: Inform user that save failed
                 }
             });
-            dialog.show ();
         });
 
         header.pack_start (save_button);
@@ -264,22 +268,24 @@ public class FroggumApplication : Gtk.Application {
     }
 
     private void open_image (Adw.TabPage tab) {
-        dialog = new Gtk.FileChooserNative (_("Open Icon"), null, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
-        dialog.response.connect ((response_id) => {
-            if (response_id == Gtk.ResponseType.ACCEPT) {
-                var file = dialog.get_file ();
-                var image = new Image.load (file);
-                var editor = new EditorView (image);
-                editor.hexpand = true;
-                editor.vexpand = true;
-                var new_tab = notebook.add_page (editor, tab);
-                new_tab.title = file.get_basename ();
-                notebook.close_page (tab);
-                recalculate_open_files ();
+        dialog = new Gtk.FileDialog();
+        dialog.open.begin (main_window, null, (obj, res) => {
+            try {
+                var file = dialog.open.end (res);
+                if (file != null) {
+                    var image = new Image.load (file);
+                    var editor = new EditorView (image);
+                    editor.hexpand = true;
+                    editor.vexpand = true;
+                    var new_tab = notebook.add_page (editor, tab);
+                    new_tab.title = file.get_basename ();
+                    notebook.close_page (tab);
+                    recalculate_open_files ();
+                }
+            } catch (Error e) {
+                // TODO: Inform user of failed open
             }
         });
-
-        dialog.show ();
     }
 
     private void new_tab () {

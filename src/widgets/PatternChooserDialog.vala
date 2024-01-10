@@ -37,7 +37,7 @@ public class PatternChooserDialog : Gtk.Dialog {
     private Gtk.ToggleButton pure_color;
     private Gtk.ToggleButton gradient;
 
-    private Gtk.ColorButton color;
+    private Gtk.ColorDialogButton color;
     private Granite.ModeSwitch linear_radial;
     private GradientEditor editor;
     
@@ -59,16 +59,18 @@ public class PatternChooserDialog : Gtk.Dialog {
                 pattern.begin ("pattern_type");
                 pattern.pattern_type = PatternType.COLOR;
                 pattern.finish ("pattern_type");
-                pattern.rgba = color.rgba;
+                pattern.rgba = color.get_rgba();
                 swap_sensitivity (PatternType.COLOR);
             }
         });
 
-        color = new Gtk.ColorButton ();
-        color.use_alpha = true;
-        color.color_set.connect (() => {
+        var dialog = new Gtk.ColorDialog () {
+            with_alpha = true,
+        };
+        color = new Gtk.ColorDialogButton (dialog);
+        color.notify["rgba"].connect (() => {
             pattern.begin ("rgba");
-            pattern.rgba = color.rgba;
+            pattern.rgba = color.get_rgba();
             pattern.finish ("rgba");
         });
         color.tooltip_text = _("Select color");
