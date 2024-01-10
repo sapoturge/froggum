@@ -390,8 +390,8 @@ public class Transform : Object, Undoable {
                         break;
                     case Keyword.ROTATE:
                         parser.match ("(");
-                        double angle;
-                        parser.get_double (out angle);
+                        double local_angle;
+                        parser.get_double (out local_angle);
                         double cx = 0;
                         double cy = 0;
                         if (!parser.match (")")) {
@@ -403,7 +403,7 @@ public class Transform : Object, Undoable {
                         }
                
                         matrix.translate (cx, cy);
-                        matrix.rotate (angle);
+                        matrix.rotate (local_angle * Math.PI / 180.0);
                         matrix.translate (-cx, -cy);
                         break;
                     case Keyword.SCALE:
@@ -424,9 +424,9 @@ public class Transform : Object, Undoable {
                     case Keyword.SKEW_X:
                         parser.match ("(");
                         var new_mat = Cairo.Matrix.identity ();
-                        var angle = 0.0;
-                        parser.get_double (out angle);
-                        new_mat.xy = Math.tan (angle * Math.PI / 180.0);
+                        var local_angle = 0.0;
+                        parser.get_double (out local_angle);
+                        new_mat.xy = Math.tan (local_angle * Math.PI / 180.0);
                         parser.match (")");
                         matrix.multiply (new_mat, matrix);
                         break;
@@ -546,20 +546,20 @@ public class Transform : Object, Undoable {
     public string? to_string () {
         string[] pieces = {};
 
-        if (scale_x != 1 || scale_y != 1) {
-            pieces += "scale(%f,%f)".printf (scale_x, scale_y);
-        }
-
-        if (angle != 0) {
-            pieces += "rotate(%f)".printf (angle);
-        }
-
         if (translate_x != 0 || translate_y != 0) {
             pieces += "translate(%f,%f)".printf (translate_x, translate_y);
         }
 
+        if (angle != 0) {
+            pieces += "rotate(%f)".printf (angle * 180 / Math.PI);
+        }
+
         if (skew != 0) {
             pieces += "skewX(%f)".printf (Math.atan (skew) * 180 / Math.PI);
+        }
+
+        if (scale_x != 1 || scale_y != 1) {
+            pieces += "scale(%f,%f)".printf (scale_x, scale_y);
         }
 
         if (pieces.length == 0) {
