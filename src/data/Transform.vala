@@ -331,13 +331,6 @@ public class Transform : Object, Undoable {
         }
     }
 
-    construct {
-        notify.connect (() => {
-            update_matrix ();
-            update ();
-        });
-    }
-
     public Transform.identity () {
         translate_x = 0;
         translate_y = 0;
@@ -347,6 +340,11 @@ public class Transform : Object, Undoable {
         skew = 0;
 
         matrix = Cairo.Matrix.identity ();
+
+        notify.connect (() => {
+            update_matrix ();
+            update ();
+        });
     }
 
     public Transform.from_string (string? description) {
@@ -472,6 +470,11 @@ public class Transform : Object, Undoable {
             skew = (matrix.xy + matrix.yx * matrix.yy / matrix.xx) / (matrix.xx + matrix.yx * matrix.yx / matrix.xx);
             scale_y = (matrix.yy - matrix.yx * matrix.xy / matrix.xx) / (matrix.yx * matrix.yx / (scale_x * matrix.xx) + matrix.xx / scale_x);
         }
+
+        notify.connect (() => {
+            update_matrix ();
+            update ();
+        });
     }
 
     public bool is_identity () {
