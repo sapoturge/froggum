@@ -38,11 +38,13 @@ public class EditorView : Gtk.Box {
     
     construct {
         var builder = new Gtk.SignalListItemFactory ();
-        builder.setup.connect ((li) => {
+        builder.setup.connect ((l) => {
+            var li = (Gtk.ListItem) l;
             var row = new PathRow ();
             li.child = row;
         });
-        builder.bind.connect ((li) => {
+        builder.bind.connect ((l) => {
+            var li = (Gtk.ListItem) l;
             var layout = (PathRow) li.child;
             var row = (Gtk.TreeListRow) li.item;
             while (row.item is Gtk.TreeListRow) {
@@ -53,7 +55,8 @@ public class EditorView : Gtk.Box {
 
             layout.bind (row, obj);
         });
-        builder.unbind.connect ((li) => {
+        builder.unbind.connect ((l) => {
+            var li = (Gtk.ListItem) l;
             var layout = (PathRow) li.child;
             layout.unbind ();
         });
