@@ -341,6 +341,7 @@ public class Pattern : Object, ListModel, Undoable {
 
     public void draw_controls (Cairo.Context cr, double zoom) {
         if (pattern_type == LINEAR || pattern_type == RADIAL) {
+            cr.set_line_width (1 / zoom);
             cr.move_to (start.x, start.y);
             cr.line_to (end.x, end.y);
             cr.set_source_rgba (0, 1, 0, 0.9);

@@ -586,6 +586,7 @@ public class Transform : Object, Undoable {
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
+        cr.set_line_width (1 / zoom);
         cr.move_to (top_left.x, top_left.y);
         cr.line_to (top_right.x, top_right.y);
         cr.line_to (bottom_right.x, bottom_right.y);
