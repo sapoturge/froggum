@@ -600,51 +600,43 @@ public class Transform : Object, Undoable {
         cr.stroke ();
     }
 
-    public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+    public bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if ((center.x - x).abs () <= tolerance && (center.y - y).abs () <= tolerance) {
-            obj = this;
-            prop = "center";
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
         if ((top_left.x - x).abs () <= tolerance && (top_left.y - y).abs () <= tolerance) {
-            obj = this;
-            prop = "top_left";
+            handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
         if ((top_right.x - x).abs () <= tolerance && (top_right.y - y).abs () <= tolerance) {
-            obj = this;
-            prop = "top_right";
+            handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
         if ((bottom_left.x - x).abs () <= tolerance && (bottom_left.y - y).abs () <= tolerance) {
-            obj = this;
-            prop = "bottom_left";
+            handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
         if ((bottom_right.x - x).abs () <= tolerance && (bottom_right.y - y).abs () <= tolerance) {
-            obj = this;
-            prop = "bottom_right";
+            handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
         if ((rotator.x - x).abs () <= tolerance && (rotator.y - y).abs () <= tolerance) {
-            obj = this;
-            prop = "rotator";
+            handle = new BaseHandle(this, "rotator", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
         if ((skewer.x - x).abs () <= tolerance && (skewer.y - y).abs () <= tolerance) {
-            obj = this;
-            prop = "skewer";
+            handle = new BaseHandle(this, "skewer", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
-        obj = null;
-        prop = null;
+        handle = null;
         return false;
     }
 

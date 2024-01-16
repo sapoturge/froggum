@@ -73,13 +73,12 @@ public class Group : Element, Container {
         return new Group ();
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (transform.check_controls (x, y, tolerance, out obj, out prop)) {
+    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (transform.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        obj = null;
-        prop = "";
+        handle = null;
         return;
     }
 

@@ -191,27 +191,26 @@ public class Polyline : Element {
         return new Polyline (points, fill, stroke, "Copy of " + title, transform);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
+    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (fill.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
         for (var segment = root_segment; segment != null; segment = segment.next) {
-            if (segment.check_controls (x, y, tolerance, out obj, out prop)) {
+            if (segment.check_controls (x, y, tolerance, out handle)) {
                 return;
             }
         }
 
-        obj = null;
-        prop = "";
+        handle = null;
         return;
     }
 

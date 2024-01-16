@@ -272,16 +272,16 @@ public class Path : Element {
         return pattern_index;
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
+    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (fill.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
@@ -290,15 +290,14 @@ public class Path : Element {
         while (first || s != root_segment) {
             first = false;
 
-            if (s.check_controls (x, y, tolerance, out obj, out prop)) {
+            if (s.check_controls (x, y, tolerance, out handle)) {
                 return;
             }
  
             s = s.next;
         }
 
-        obj = null;
-        prop = null;
+        handle = null;
         return;
     }
 

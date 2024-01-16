@@ -595,63 +595,54 @@ public class PathSegment : Segment {
         cr.fill ();
     }
 
-    public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+    public bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if ((x - end.x).abs () <= tolerance &&
             (y - end.y).abs () <= tolerance) {
-            obj = this;
-            prop = "end";
+            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
             return true;
         }
         switch (segment_type) {
             case CURVE:
                 if ((x - p1.x).abs () <= tolerance &&
                     (y - p1.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "p1";
+                    handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 if ((x - p2.x).abs () <= tolerance && 
                     (y - p2.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "p2";
+                    handle = new BaseHandle(this, "p2", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 break;
             case ARC:
                 if ((x - controller.x).abs () <= tolerance &&
                     (y - controller.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "controller";
+                    handle = new BaseHandle(this, "controller", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 if ((x - topleft.x).abs () <= tolerance &&
                     (y - topleft.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "topleft";
+                    handle = new BaseHandle(this, "topleft", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 if ((x - topright.x).abs () <= tolerance &&
                     (y - topright.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "topright";
+                    handle = new BaseHandle(this, "topright", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 if ((x - bottomleft.x).abs () <= tolerance &&
                     (y - bottomleft.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "bottomleft";
+                    handle = new BaseHandle(this, "bottomleft", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 if ((x - bottomright.x).abs () <= tolerance &&
                     (y - bottomright.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "bottomright";
+                    handle = new BaseHandle(this, "bottomright", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 if ((x - center.x).abs () <= tolerance &&
                     (y - center.y).abs () <= tolerance) {
-                    obj = this;
-                    prop = "center";
+                    handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 break;
@@ -659,8 +650,7 @@ public class PathSegment : Segment {
                 break;
         }
 
-        obj = null;
-        prop = "";
+        handle = null;
         return false;
     }
 

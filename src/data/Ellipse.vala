@@ -156,16 +156,16 @@ public class Ellipse : Element {
         stroke.draw_controls (cr, zoom);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
+    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (fill.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
@@ -175,23 +175,17 @@ public class Ellipse : Element {
         var bottom_close = (y - cy - ry).abs () <= tolerance;
 
         if (top_close && left_close) {
-            obj = this;
-            prop = "top_left";
+            handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> ());
         } else if (top_close && right_close) {
-            obj = this;
-            prop = "top_right";
+            handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> ());
         } else if (bottom_close && left_close) {
-            obj = this;
-            prop = "bottom_left";
+            handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> ());
         } else if (bottom_close && right_close) {
-            obj = this;
-            prop = "bottom_right";
+            handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> ());
         } else if ((x - cx).abs () <= tolerance && (y - cy).abs () <= tolerance) {
-            obj = this;
-            prop = "center";
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
         } else {
-            obj = null;
-            prop = "";
+            handle = null;
         }
     }
 

@@ -19,4 +19,16 @@ public class TransformedHandle : Handle {
     public override Gee.List<ContextOption> options {
         get { return base.options; }
     }
+
+    public override void begin (string prop) {
+        if (prop == "point") {
+            base.begin ("point");
+        }
+    }
+
+    public override void finish (string prop) {
+        if (prop == "point") {
+            base.finish ("point");
+        }
+    }
 }

@@ -245,11 +245,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             // Check for clicking on a control handle
             if (selected_path != null) {
-                Undoable obj;
-                string prop;
-                selected_path.check_controls (sx, sy, 6 / zoom, out obj, out prop);
+                Handle obj;
+                selected_path.check_controls (sx, sy, 6 / zoom, out obj);
                 if (obj != null) {
-                    bind_point (obj, prop);
+                    bind_point (obj, "point");
                     return;
                 }
             }

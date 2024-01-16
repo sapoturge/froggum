@@ -111,7 +111,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract Element copy ();
 
-    public abstract void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop);
+    public abstract void check_controls (double x, double y, double tolerance, out Handle? handle);
 
     public abstract bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment);
 }

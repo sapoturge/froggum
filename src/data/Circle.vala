@@ -144,31 +144,30 @@ public class Circle : Element {
         return new Circle (x, y, r, fill, stroke);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
+    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (fill.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
         if ((x - this.x).abs () <= tolerance && (y - this.y).abs () <= tolerance) {
-            obj = this;
-            prop = "center";
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
             return;
         }
+
         if ((x - radius.x).abs () <= tolerance && (y - radius.y).abs () <= tolerance) {
-            obj = this;
-            prop = "radius";
+            handle = new BaseHandle(this, "radius", new Gee.ArrayList<ContextOption> ());
             return;
         }
-        obj = null;
-        prop = "";
+
+        handle = null;
         return;
     }
 

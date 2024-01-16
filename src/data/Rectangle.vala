@@ -323,16 +323,16 @@ public class Rectangle : Element {
         stroke.draw_controls (cr, zoom);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
+    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (fill.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
@@ -347,58 +347,44 @@ public class Rectangle : Element {
             var ry_top_close = (y - this.y - ry).abs () <= tolerance;
             var ry_bottom_close = (y - this.y - height + ry).abs () <= tolerance;
             if (top_close && rx_left_close) {
-                obj = this;
-                prop = "top_left_round";
+                handle = new BaseHandle(this, "top_left_round", new Gee.ArrayList<ContextOption> ());
                 return;
             } else if (top_close && rx_right_close) {
-                obj = this;
-                prop = "top_right_round";
+                handle = new BaseHandle(this, "top_right_round", new Gee.ArrayList<ContextOption> ());
                 return;
             } else if (left_close && ry_top_close) {
-                obj = this;
-                prop = "left_top_round";
+                handle = new BaseHandle(this, "left_top_round", new Gee.ArrayList<ContextOption> ());
                 return;
             } else if (left_close && ry_bottom_close) {
-                obj = this;
-                prop = "left_bottom_round";
+                handle = new BaseHandle(this, "left_bottom_round", new Gee.ArrayList<ContextOption> ());
                 return;
             } else if (bottom_close && rx_left_close) {
-                obj = this;
-                prop = "bottom_left_round";
+                handle = new BaseHandle(this, "bottom_left_round", new Gee.ArrayList<ContextOption> ());
                 return;
             } else if (bottom_close && rx_right_close) {
-                obj = this;
-                prop = "bottom_right_round";
+                handle = new BaseHandle(this, "bottom_right_round", new Gee.ArrayList<ContextOption> ());
                 return;
             } else if (right_close && ry_top_close) {
-                obj = this;
-                prop = "right_top_round";
+                handle = new BaseHandle(this, "right_top_round", new Gee.ArrayList<ContextOption> ());
                 return;
             } else if (right_close && ry_bottom_close) {
-                obj = this;
-                prop = "right_bottom_round";
+                handle = new BaseHandle(this, "right_bottom_round", new Gee.ArrayList<ContextOption> ());
                 return;
             }
         }
 
         if (top_close && left_close) {
-            obj = this;
-            prop = "top_left";
+            handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> ());
         } else if (top_close && right_close) {
-            obj = this;
-            prop = "top_right";
+            handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> ());
         } else if (bottom_close && left_close) {
-            obj = this;
-            prop = "bottom_left";
+            handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> ());
         } else if (bottom_close && right_close) {
-            obj = this;
-            prop = "bottom_right";
+            handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> ());
         } else if ((x - center.x).abs () <= tolerance && (y - center.y).abs () <= tolerance) {
-            obj = this;
-            prop = "center";
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
         } else {
-            obj = null;
-            prop = "";
+            handle = null;
         }
     }
 

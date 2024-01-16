@@ -194,25 +194,24 @@ public class Polygon : Element {
         return new Polygon (points, fill, stroke, "Copy of " + title, transform);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
+    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
             return;
         }
 
         var first = true;
         for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
-            if (segment.check_controls (x, y, tolerance, out obj, out prop)) {
+            if (segment.check_controls (x, y, tolerance, out handle)) {
                 return;
             }
             first = false;
         }
 
-        obj = null;
-        prop = "";
+        handle = null;
         return;
     }
 

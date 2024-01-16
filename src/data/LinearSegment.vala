@@ -84,23 +84,21 @@ public class LinearSegment : Segment {
         return context.in_stroke(x, y);
     }
 
-    public bool check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
+    public bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if ((x - start.x).abs () <= tolerance &&
             (y - start.y).abs () <= tolerance) {
-            obj = this;
-            prop = "start";
+            handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
         if ((x - end.x).abs () <= tolerance &&
             (y - end.y).abs () <= tolerance) {
-            obj = this;
-            prop = "end";
+            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
             return true;
         }
 
-        obj = null;
-        prop = "";
+        handle = null;
         return false;
     }
 }
+

@@ -25,4 +25,16 @@ public class BaseHandle : Handle {
         this.property = property;
         this._options = options;
     }
+
+    public override void begin (string prop) {
+        if (prop == "point") {
+            target.begin (property);
+        }
+    }
+
+    public override void finish (string prop) {
+        if (prop == "point") {
+            target.finish (property);
+        }
+    }
 }
