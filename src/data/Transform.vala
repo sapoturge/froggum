@@ -656,6 +656,12 @@ public class Transform : Object, Undoable {
         new_y = y;
     }
 
+    public void apply_point (double x, double y, out double new_x, out double new_y) {
+        matrix.transform_point (ref x, ref y);
+        new_x = x;
+        new_y = y;
+    }
+
     public void update_distance (double dist, out double new_dist) {
         new_dist = dist;
         matrix.transform_distance (ref dist, ref new_dist);
