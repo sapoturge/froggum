@@ -47,6 +47,8 @@ executable(
     'src/data/Container.vala',
     'src/data/Updatable.vala',
     'src/data/Transformed.vala',
+    'src/data/Handle.vala',
+    'src/data/BaseHandle.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk4'),
