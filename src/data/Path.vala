@@ -1,41 +1,6 @@
 public class Path : Element {
     public PathSegment root_segment;
 
-    private Point last_reference;
-
-    // I'll probably remove this entirely later.
-    // public Point reference {
-    //     set {
-    //         var dx = value.x - last_reference.x;
-    //         var dy = value.y - last_reference.y;
-    //         var segment = root_segment;
-    //         var first = true;
-    //         while (first || segment != root_segment) {
-    //             first = false;
-    //             if (segment.segment_type == ARC) {
-    //                 segment.topleft = {segment.topleft.x + dx, segment.topleft.y + dy};
-    //                 segment.bottomright = {segment.bottomright.x + dx, segment.bottomright.y + dy};
-    //             }
-    //             segment = segment.next;
-    //         }
-    //         first = true;
-    //         while (first || segment != root_segment) {
-    //             first = false;
-    //             if (segment.segment_type != ARC) {
-    //                 if (segment.next.segment_type != ARC) {
-    //                     segment.end = {segment.end.x + dx, segment.end.y + dy};
-    //                 }
-    //                 if (segment.segment_type == CURVE) {
-    //                     segment.p1 = {segment.p1.x + dx, segment.p1.y + dy};
-    //                     segment.p2 = {segment.p2.x + dx, segment.p2.y + dy};
-    //                 }
-    //             }
-    //             segment = segment.next;
-    //         }
-    //         last_reference = value;
-    //     }
-    // }
-
     public Path (PathSegment[] segments = {},
                  Gdk.RGBA fill = {0, 0, 0, 0},
                  Gdk.RGBA stroke = {0, 0, 0, 0},
@@ -245,14 +210,9 @@ public class Path : Element {
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
-    public override void begin (string prop, Value? start_location) {
-        last_reference = *((Point*) start_location.peek_pointer ());
+    public override void begin (string prop) {
     }
     
     public override void finish (string prop) {
@@ -300,8 +260,8 @@ public class Path : Element {
         return result;
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "path");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        Xml.Node* node = new Xml.Node (null, "path");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
         
@@ -337,18 +297,18 @@ public class Path : Element {
             s = s.next;
         }
 
-        // TODO: check for clicking on the path itself
         obj = null;
         prop = null;
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         var current_segment = root_segment;
         var first = true;
         while (first || current_segment != root_segment) {
             if (current_segment.clicked (x, y, tolerance)) {
                 segment = current_segment;
+                element = this;
                 return true;
             }
 
@@ -356,6 +316,7 @@ public class Path : Element {
             current_segment = current_segment.next;
         }
 
+        element = null;
         segment = null;
         return false;
     }

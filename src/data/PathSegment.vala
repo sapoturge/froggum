@@ -292,7 +292,7 @@ public class PathSegment : Segment {
 
     private PathSegment.none () {}
     
-    public override void begin (string property, Value? start_value = null) {
+    public override void begin (string property) {
         switch (property) {
             case "start":
                 previous_start = start;
@@ -545,9 +545,6 @@ public class PathSegment : Segment {
     }
 
     public void draw_controls (Cairo.Context cr, double zoom) {
-        // Unlike Elements, this assumes the segment outlines
-        // have already been drawn by the containing element.
-        
         switch (segment_type) {
             case SegmentType.CURVE:
                 cr.move_to (start.x, start.y);

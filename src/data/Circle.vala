@@ -99,17 +99,13 @@ public class Circle : Element {
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
         if (prop == "center") {
-            _last_center = *((Point*) start_location.peek_pointer ());
+            _last_center = center;
         } else if (prop == "radius") {
-            _last_radius = *((Point*) start_location.peek_pointer ());
+            _last_radius = radius;
         }
     }
 
@@ -131,8 +127,8 @@ public class Circle : Element {
         });
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "circle");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        Xml.Node* node = new Xml.Node (null, "circle");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
@@ -176,8 +172,14 @@ public class Circle : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         segment = null;
-        return (Math.sqrt ((x - this.x) * (x - this.x) + (y - this.y) * (y - this.y)) - r).abs () <= tolerance;
+        if ((Math.sqrt ((x - this.x) * (x - this.x) + (y - this.y) * (y - this.y)) - r).abs () <= tolerance) {
+            element = this;
+            return true;
+        } else {
+            element = null;
+            return false;
+        }
     }
 }

@@ -321,10 +321,6 @@ public class Rectangle : Element {
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
     public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
@@ -406,7 +402,7 @@ public class Rectangle : Element {
         }
     }
 
-    public override void begin (string prop, Value? start) {
+    public override void begin (string prop) {
         last_x = x;
         last_y = y;
         last_width = width;
@@ -505,8 +501,8 @@ public class Rectangle : Element {
         return options;
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "rect");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        Xml.Node* node = new Xml.Node (null, "rect");
         
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
@@ -529,7 +525,7 @@ public class Rectangle : Element {
         return new Rectangle (x, y, width, height, fill, stroke);
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         segment = null;
         var in_x = this.x - tolerance < x && x < this.x + width + tolerance;
         var in_y = this.y - tolerance < y && y < this.y + height + tolerance;
@@ -562,15 +558,28 @@ public class Rectangle : Element {
                 context.arc (0, 0, 1, Math.PI / 2, Math.PI);
                 context.restore ();
                 context.close_path ();
-                return context.in_stroke (x, y);
+                if (context.in_stroke (x, y)) {
+                    element = this;
+                    return true;
+                } else {
+                    element = null;
+                    return false;
+                }
             } else {
                 var on_top = y < this.y + tolerance;
                 var on_bottom = this.y + height - tolerance < y;
                 var on_left = x < this.x + tolerance;
                 var on_right = this.x + width - tolerance < x;
-                return (in_x && in_y && (on_top || on_bottom || on_left || on_right));
+                if (in_x && in_y && (on_top || on_bottom || on_left || on_right)) {
+                    element = this;
+                    return true;
+                } else {
+                    element = null;
+                    return false;
+                }
             }
         } else {
+            element = null;
             return false;
         }
     }

@@ -64,35 +64,35 @@ public class Pattern : Object, ListModel, Undoable {
                 int value;
                 parser.match ("(");
                 if (parser.get_int (out value)) {
-                    rgba.red = value / 255.0;
+                    rgba.red = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.green = value / 255.0;
+                    rgba.green = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.blue = value / 255.0;
+                    rgba.blue = value / 255.0f;
                 }
-                rgba.alpha = 1.0;
+                rgba.alpha = 1.0f;
                 return new Pattern.color (rgba);
             case Keyword.RGBA:
                 var rgba = Gdk.RGBA ();
                 int value;
                 parser.match ("(");
                 if (parser.get_int (out value)) {
-                    rgba.red = value / 255.0;
+                    rgba.red = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.green = value / 255.0;
+                    rgba.green = value / 255.0f;
                 }
                 parser.match (",");
                 if (parser.get_int (out value)) {
-                    rgba.blue = value / 255.0;
+                    rgba.blue = value / 255.0f;
                 }
                 parser.match (",");
-                parser.get_double (out rgba.alpha);
+                parser.get_float (out rgba.alpha);
                 return new Pattern.color (rgba);
              case Keyword.NOT_FOUND:
                 if (parser.match ("#")) {
@@ -116,10 +116,10 @@ public class Pattern : Object, ListModel, Undoable {
                         red = red * 17;
                     }
 
-                    rgba.red = red / 255.0;
-                    rgba.green = green / 255.0;
-                    rgba.blue = blue / 255.0;
-                    rgba.alpha = 1.0;
+                    rgba.red = red / 255.0f;
+                    rgba.green = green / 255.0f;
+                    rgba.blue = blue / 255.0f;
+                    rgba.alpha = 1.0f;
                     return new Pattern.color (rgba);
                 } else {
                     parser.error ("Unknown pattern");
@@ -247,7 +247,7 @@ public class Pattern : Object, ListModel, Undoable {
         update ();
     }
     
-    public void begin (string prop, Value? start_value = null) {
+    public void begin (string prop) {
         switch (prop) {
             case "start":
                 previous_start = start;
@@ -341,6 +341,7 @@ public class Pattern : Object, ListModel, Undoable {
 
     public void draw_controls (Cairo.Context cr, double zoom) {
         if (pattern_type == LINEAR || pattern_type == RADIAL) {
+            cr.set_line_width (1 / zoom);
             cr.move_to (start.x, start.y);
             cr.line_to (end.x, end.y);
             cr.set_source_rgba (0, 1, 0, 0.9);
@@ -417,7 +418,7 @@ public class Stop : Object, Undoable {
         }
     }
 
-    public void begin (string prop, Value? start = null) {
+    public void begin (string prop) {
         if (prop == "display" || prop == "offset") {
             previous_offset = offset;
         } else if (prop == "rgba") {

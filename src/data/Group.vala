@@ -1,4 +1,21 @@
-public class Group : Element {
+public class Group : Element, Container {
+    public override Gtk.TreeListModel tree { get; set; }
+    public override Element? selected_child { get; set; }
+
+    public ModelUpdate updator {
+        set {
+            do_update (value);
+        }
+    }
+
+    protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
+
+    construct {
+        tree = new Gtk.TreeListModel (new ListStore (typeof (Element)), false, false, get_children);
+        signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
+        selected_child = null;
+    }
+
     public Group () {
         title = "Group";
         visible = true;
@@ -8,25 +25,32 @@ public class Group : Element {
    
         setup_signals ();
 
+        select.connect ((selected) => {
+            selected_child = null;
+        });
+
         transform_enabled = true;
     }
 
     public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
         base.from_xml (node, patterns);
 
+        load_elements (node, patterns);
+
         transform_enabled = true;
     }
     
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
-        return;
+        if (visible || always_draw) {
+            draw_children (cr);
+        }
     }
 
     public override void draw_controls (Cairo.Context cr, double zoom) {
-        transform.draw_controls (cr, zoom);
-        return;
+        draw_selected_child (cr, zoom);
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
         return;
     }
     
@@ -34,10 +58,12 @@ public class Group : Element {
         return;
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "g");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        Xml.Node* node = new Xml.Node (null, "g");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
+
+        pattern_index = save_children (node, defs, pattern_index);
 
         root->add_child (node);
         return pattern_index;
@@ -57,9 +83,8 @@ public class Group : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
-        segment = null;
-        return false;
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        return clicked_child (x, y, tolerance, out element, out segment);
     }
 
     public Element get_element (Gtk.TreeIter iter) {

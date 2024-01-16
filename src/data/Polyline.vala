@@ -143,13 +143,9 @@ public class Polyline : Element {
 
         fill.draw_controls (cr, zoom);
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
     }
 
     public override void finish (string prop) {
@@ -170,8 +166,8 @@ public class Polyline : Element {
         });
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "polyline");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        Xml.Node* node = new Xml.Node (null, "polyline");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
@@ -219,16 +215,17 @@ public class Polyline : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
-        segment = null;
-
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         for (var lsegment = root_segment; lsegment != null; lsegment = lsegment.next) {
             if (lsegment.clicked (x, y, tolerance)) {
+                element = this;
                 segment = lsegment;
                 return true;
             }
         }
 
+        element = null;
+        segment = null;
         return false;
     }
 }

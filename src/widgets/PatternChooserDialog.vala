@@ -33,15 +33,16 @@ public class PatternChooserDialog : Gtk.Dialog {
         }
     }
 
-    private Gtk.RadioButton no_color;
-    private Gtk.RadioButton pure_color;
-    private Gtk.RadioButton gradient;
+    private Gtk.ToggleButton no_color;
+    private Gtk.ToggleButton pure_color;
+    private Gtk.ToggleButton gradient;
 
-    private Gtk.ColorButton color;
+    private Gtk.ColorDialogButton color;
     private Granite.ModeSwitch linear_radial;
+    private GradientEditor editor;
     
     construct {
-        no_color = new Gtk.RadioButton.with_label (null, _("None"));
+        no_color = new Gtk.ToggleButton.with_label (_("None"));
         no_color.toggled.connect (() => {
             if (no_color.active) {
                 pattern.begin ("pattern_type");
@@ -51,26 +52,31 @@ public class PatternChooserDialog : Gtk.Dialog {
             }
         });
         
-        pure_color = new Gtk.RadioButton.with_label_from_widget (no_color, _("Solid Color"));
+        pure_color = new Gtk.ToggleButton.with_label (_("Solid Color"));
+        pure_color.group = no_color;
         pure_color.toggled.connect (() => {
             if (pure_color.active) {
                 pattern.begin ("pattern_type");
                 pattern.pattern_type = PatternType.COLOR;
                 pattern.finish ("pattern_type");
-                pattern.rgba = color.rgba;
+                pattern.rgba = color.get_rgba();
                 swap_sensitivity (PatternType.COLOR);
             }
         });
 
-        color = new Gtk.ColorButton ();
-        color.use_alpha = true;
-        color.color_set.connect (() => {
+        var dialog = new Gtk.ColorDialog () {
+            with_alpha = true,
+        };
+        color = new Gtk.ColorDialogButton (dialog);
+        color.notify["rgba"].connect (() => {
             pattern.begin ("rgba");
-            pattern.rgba = color.rgba;
+            pattern.rgba = color.get_rgba();
             pattern.finish ("rgba");
         });
+        color.tooltip_text = _("Select color");
 
-        gradient = new Gtk.RadioButton.with_label_from_widget (pure_color, "Gradient");
+        gradient = new Gtk.ToggleButton.with_label (_("Gradient"));
+        gradient.group = no_color;
         gradient.toggled.connect (() => {
             if (gradient.active) {
                 pattern.begin ("pattern_type");
@@ -80,40 +86,39 @@ public class PatternChooserDialog : Gtk.Dialog {
             }
         });
 
-        linear_radial = new Granite.ModeSwitch.from_icon_name ("gradient-linear", "gradient-radial");
+        linear_radial = new Granite.ModeSwitch.from_icon_name ("gradient-linear-symbolic", "gradient-radial-symbolic");
         linear_radial.primary_icon_tooltip_text = _("Linear");
         linear_radial.secondary_icon_tooltip_text = _("Radial");
         linear_radial.bind_property ("active", this, "is_radial");
+        linear_radial.tooltip_text = _("Gradient type");
 
-        var editor = new GradientEditor ();
+        editor = new GradientEditor ();
         bind_property ("pattern", editor, "pattern");
 
         var color_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-        color_row.pack_start (pure_color, true, true, 0);
-        color_row.pack_end (color, false, false, 0);
+        color_row.append (pure_color);
+        color_row.append (color);
 
         var gradient_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
-        gradient_row.pack_start (gradient, true, true, 0);
-        gradient_row.pack_end (linear_radial, false, false, 0);
+        gradient_row.append (gradient);
+        gradient_row.append (linear_radial);
 
         var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
-        layout.border_width = 3;
-        layout.pack_start (no_color, false, false, 0);
-        layout.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false, 0);
-        layout.pack_start (color_row, false, false, 0);
-        layout.pack_start (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false, 0);
-        layout.pack_start (gradient_row, false, false, 0);
-        layout.pack_start (editor, false, false, 0);
+        layout.append (no_color);
+        layout.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+        layout.append (color_row);
+        layout.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+        layout.append (gradient_row);
+        layout.append (editor);
 
         var content_area = get_content_area ();
-        content_area.add (layout);
-
-        content_area.show_all ();
+        content_area.append (layout);
     }
 
     private void swap_sensitivity (PatternType new_type) {
         linear_radial.sensitive = false;
         color.sensitive = false;
+        editor.sensitive = false;
         switch (new_type) {
             case COLOR:
                 color.sensitive = true;
@@ -122,6 +127,7 @@ public class PatternChooserDialog : Gtk.Dialog {
             case LINEAR:
             case RADIAL:
                 linear_radial.sensitive = true;
+                editor.sensitive = true;
                 gradient.active = true;
                 break;
             case NONE:

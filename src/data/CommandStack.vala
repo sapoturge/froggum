@@ -12,7 +12,6 @@ public class CommandStack : Object {
     public void add_command (Command command) {
         commands.remove_range (current_index, commands.length - current_index);
         commands.append_val (command);
-        // command.apply ();
         current_index += 1;
     }
     

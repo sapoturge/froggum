@@ -22,6 +22,7 @@ executable(
     'src/widgets/PatternChooserDialog.vala',
     'src/widgets/GradientEditor.vala',
     'src/widgets/Tutorial.vala',
+    'src/widgets/PathRow.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',
@@ -43,10 +44,14 @@ executable(
     'src/data/ContextOption.vala',
     'src/data/PathSegment.vala',
     'src/data/LinearSegment.vala',
+    'src/data/Container.vala',
+    'src/data/Updatable.vala',
+    'src/data/Transformed.vala',
     gresource_froggum,
     dependencies: [
-        dependency('gtk+-3.0'),
-        dependency('granite'),
+        dependency('gtk4'),
+        dependency('granite-7'),
+        dependency('libadwaita-1'),
         dependency('libxml-2.0'),
         cc.find_library('m', required: false)
     ],
@@ -94,5 +99,23 @@ install_data(
     join_paths ('data', meson.project_name() + '.gschema.xml'),
     install_dir: join_paths(get_option('datadir'), 'glib-2.0', 'schemas')
 )
+
+symbolic_icon_names = [
+    'circle-new',
+    'ellipse-new',
+    'line-new',
+    'polygon-new',
+    'polyline-new',
+    'rectangle-new',
+    'gradient-linear',
+    'gradient-radial',
+]
+
+foreach i : symbolic_icon_names
+    install_data(
+        join_paths('data', 'icons', 'symbolic', i + '-symbolic.svg'),
+        install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'actions')
+    )
+endforeach
 
 meson.add_install_script('meson/post_install.py')

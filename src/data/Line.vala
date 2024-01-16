@@ -61,13 +61,9 @@ public class Line : Element {
         cr.fill ();
 
         stroke.draw_controls (cr, zoom);
-
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
     }
 
-    public override void begin (string prop, Value? start_location) {
+    public override void begin (string prop) {
         if (prop == "start") {
             last_start = start;
         } else if (prop == "end") {
@@ -95,8 +91,8 @@ public class Line : Element {
         });
     }
 
-    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node) {
-        node = new Xml.Node (null, "line");
+    public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
+        Xml.Node* node = new Xml.Node (null, "line");
 
         pattern_index = add_standard_attributes (node, defs, pattern_index);
 
@@ -137,12 +133,19 @@ public class Line : Element {
         return;
     }
 
-    public override bool clicked (double x, double y, double tolerance, out Segment? segment) {
-        segment = null;
+    public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         var dot = (x - start.x) * (end.x - start.x) + (y - start.y) * (end.y - start.y);
         var len_squared = (end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y);
         var scale = dot / len_squared;
         Point aligned = { start.x + (end.x - start.x) * scale, start.y + (end.y - start.y) * scale };
-        return 0 <= scale && scale <= 1 && aligned.dist ({x, y}) <= tolerance;
+        if (0 <= scale && scale <= 1 && aligned.dist ({x, y}) <= tolerance) {
+            element = this;
+            segment = null;
+            return true;
+        } else {
+            element = null;
+            segment = null;
+            return false;
+        }
     }
 }

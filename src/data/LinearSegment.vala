@@ -47,7 +47,7 @@ public class LinearSegment : Segment {
         return opts;
     }
 
-    public override void begin (string prop, Value? value = 0) {
+    public override void begin (string prop) {
         last_start = start;
         last_end = end;
         editing = true;

@@ -1,11 +1,13 @@
 public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
-    private int _scroll_x;
-    private int _scroll_y;
-    private int base_x;
-    private int base_y;
+    private double _scroll_x;
+    private double _scroll_y;
+    private double base_x;
+    private double base_y;
     private double _zoom = 1;
+    private double base_zoom;
     private int width = 0;
     private int height = 0;
+    private Point base_point;
 
     private bool scrolling = false;
 
@@ -43,7 +45,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private int scroll_x {
+    private double scroll_x {
         get {
             return _scroll_x;
         }
@@ -53,13 +55,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private int scroll_y {
+    private double scroll_y {
         get {
             return _scroll_y;
         }
         set {
             _scroll_y = value;
-            vertical.value = -double.min (scroll_y + height / 2, 0);
+            vertical.value = double.max (scroll_y + height / 2, 0);
         }
     }
 
@@ -161,16 +163,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     construct {
-        background = {0.7, 0.7, 0.7, 1.0};
+        background = {0.7f, 0.7f, 0.7f, 1.0f};
 
         set_size_request (320, 320);
 
-        add_events (Gdk.EventMask.BUTTON_RELEASE_MASK |
-                    Gdk.EventMask.BUTTON_PRESS_MASK |
-                    Gdk.EventMask.BUTTON_MOTION_MASK |
-                    Gdk.EventMask.SCROLL_MASK);
-
-        draw.connect ((cr) => {
+        set_draw_func ((d, cr, w, h) => {
             cr.set_source_rgb (background.red, background.green, background.blue);
             cr.paint ();
 
@@ -205,133 +202,154 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            if (selected_path != null) {
-                selected_path.draw_controls (cr, zoom);
-            }
+            image.draw_selected_child (cr, zoom);
             cr.restore();
-            return false;
         });
 
-        size_allocate.connect ((alloc) => {
-            width = alloc.width;
-            height = alloc.height;
+        var double_click_controller = new Gtk.GestureClick ();
+        add_controller (double_click_controller);
+        double_click_controller.pressed.connect ((n, x, y) => {
+            if (n == 2) {
+                Element path;
+                Segment segment;
+                if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment)) {
+                    if (tutorial != null && tutorial.step == CLICK) {
+                        tutorial.next_step ();
+                    }
 
+                    path.select (true);
+                } else if (selected_path != null) {
+                    selected_path.select (false);
+                }
+            }
+        });
+
+        var right_click_controller = new Gtk.GestureClick ();
+        right_click_controller.set_button (3);
+        add_controller (right_click_controller);
+        right_click_controller.pressed.connect ((n, x, y) => {
+            Element path;
+            Segment segment;
+            if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment)) {
+                path.select (true);
+                show_context_menu (path, segment, x, y);
+            }
+        });
+
+        var drag_controller = new Gtk.GestureDrag ();
+        add_controller (drag_controller);
+        drag_controller.drag_begin.connect ((x, y) => {
+            var sx = scale_x (x);
+            var sy = scale_y (y);
+            control_point = {sx, sy};
+
+            // Check for clicking on a control handle
+            if (selected_path != null) {
+                Undoable obj;
+                string prop;
+                selected_path.check_controls (sx, sy, 6 / zoom, out obj, out prop);
+                if (obj != null) {
+                    bind_point (obj, prop);
+                    return;
+                }
+            }
+
+            // Assume dragging
+            scrolling = true;
+            base_x = scroll_x;
+            base_y = scroll_y;
+        });
+
+        drag_controller.drag_update.connect ((x, y) => {
+            // Drag control handle (only changes if actually dragging something.)
+            if (point_binding != null) {
+                var new_x = x / zoom + base_point.x;
+                var new_y = y / zoom + base_point.y;
+
+                // Snap to grid if within tolerance
+                if ((new_x * 2 - Math.round (new_x * 2)).abs () < 6 / zoom) {
+                    new_x = Math.round (new_x * 2) / 2;
+                }
+
+                if ((new_y * 2 - Math.round (new_y * 2)).abs () < 6 / zoom) {
+                    new_y = Math.round (new_y * 2) / 2;
+                }
+
+                control_point = {new_x, new_y};
+            }
+            // Drag entire segment?
+            // Scroll
+            if (scrolling) {
+                scroll_x = x + base_x;
+                scroll_y = y + base_y;
+                position_tutorial ();
+                queue_draw ();
+            }
+        });
+
+        drag_controller.drag_end.connect ((event) => {
+            // Stop scrolling, dragging, etc.
+            if (point_binding != null) {
+                unbind_point ();
+            }
+
+            scrolling = false;
+        });
+
+        var scroll_controller = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.BOTH_AXES);
+        add_controller (scroll_controller);
+        scroll_controller.scroll.connect ((dx, dy) => {
+            // Differentiates between mice and touchpads: mice zoom by scrolling, touchpads don't
+            if (dx == 0) {
+                update_zoom (Math.pow (2, -dy) * zoom);
+            }
+        });
+
+        var zoom_controller = new Gtk.GestureZoom ();
+        add_controller (zoom_controller);
+        zoom_controller.begin.connect (() => {
+            base_zoom = zoom;
+        });
+        zoom_controller.scale_changed.connect ((scale) => {
+            update_zoom (scale * base_zoom);
+        });
+
+        resize.connect ((width, height) => {
+            this.width = width;
+            this.height = height;
             horizontal.page_size = width;
             vertical.page_size = height;
 
             // Recalculate values.
             scroll_x = scroll_x;
             scroll_y = scroll_y;
-            
-            if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
-                FroggumApplication.settings.set_boolean ("show-tutorial", false);
-                tutorial = new Tutorial ();
-                tutorial.finish.connect (() => { tutorial = null; });
-                tutorial.relative_to = this;
-                position_tutorial ();
-                tutorial.popup ();
-            }
         });
 
-        button_press_event.connect ((event) => {
-            Element path = null;
-            Segment segment = null;
-            var clicked = clicked_path ((int) event.x, (int) event.y, out path, out segment);
-            var x = scale_x (event.x);
-            var y = scale_y (event.y);
-            control_point = {x, y};
-            // Check for right-clicking on a segment
-            if (path != null && event.button == 3) {
-                if (clicked) {
-                    path.select (true);
-                }
-                show_context_menu (path, segment, event);
-                return false;
-            }
-            // Check for double-clicking on a path
-            if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS) {
-                if (clicked) {
-                    if (tutorial != null && tutorial.step == CLICK) {
-                        tutorial.next_step ();
-                    }
-                    path.select (true);
-                } else if (selected_path != null) {
-                    selected_path.select (false);
-                }
-                return false;
-            }
-            // Check for clicking on a control handle
-            if (selected_path != null) {
-                Undoable obj;
-                string prop;
-                selected_path.check_controls (x, y, 6 / zoom, out obj, out prop);
-                if (obj != null) {
-                    bind_point (obj, prop);
-                    return false;
-                }
-            }
-            // Check for clicking on a path (not control handle)
-            if (clicked && path == selected_path) {
-                bind_point (selected_path, "reference");
-                return false;
-            }
-            // Assume dragging
-            scrolling = true;
-            base_x = (int) event.x - scroll_x;
-            base_y = (int) event.y - scroll_y;
-            return false;
-        });
-
-        motion_notify_event.connect ((event) => {
-            // Drag control handle (only changes if actually dragging something.)
-            if (point_binding != null) {
-                var new_x = scale_x (event.x);
-                var new_y = scale_y (event.y);
-                if ((new_x * 2 - Math.round (new_x * 2)).abs () < 6 / zoom) {
-                    new_x = Math.round (new_x * 2) / 2;
-                }
-                if ((new_y * 2 - Math.round (new_y * 2)).abs () < 6 / zoom) {
-                    new_y = Math.round (new_y * 2) / 2;
-                }
-                control_point = {new_x, new_y};
-            }
-            // Drag entire segment?
-            // Scroll
-            if (scrolling) {
-                scroll_x = (int) event.x - base_x;
-                scroll_y = (int) event.y - base_y;
-                position_tutorial ();
-                queue_draw ();
-            }
-            return false;
-        });
-
-        button_release_event.connect ((event) => {
-            // Stop scrolling, dragging, etc.
-            if (point_binding != null) {
-                unbind_point ();
-            }
-            scrolling = false;
-            return false;
-        });
-
-        scroll_event.connect ((event) => {
-            if (event.direction == Gdk.ScrollDirection.UP) {
-                if (tutorial != null && tutorial.step == SCROLL) {
-                    tutorial.next_step ();
-                }
-                zoom *= 2;
-                scroll_x *= 2;
-                scroll_y *= 2;
-            } else if (event.direction == Gdk.ScrollDirection.DOWN && zoom > 1) {
-                zoom /= 2;
-                scroll_x /= 2;
-                scroll_y /= 2;
-            }
+        if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
+            FroggumApplication.settings.set_boolean ("show-tutorial", false);
+            tutorial = new Tutorial ();
+            tutorial.finish.connect (() => { tutorial = null; });
+            tutorial.set_parent (this);
             position_tutorial ();
-            queue_draw ();
-            return false;
-        });
+            tutorial.popup ();
+        }
+    }
+
+    private void update_zoom (double new_zoom) {
+        new_zoom = double.max (new_zoom, 1);
+
+        if (new_zoom > 1 && tutorial != null && tutorial.step == SCROLL) {
+            tutorial.next_step ();
+        }
+
+        scroll_x *= new_zoom;
+        scroll_x /= zoom;
+        scroll_y *= new_zoom;
+        scroll_y /= zoom;
+        zoom = new_zoom;
+
+        position_tutorial ();
+        queue_draw ();
     }
 
     public bool get_border (out Gtk.Border border) {
@@ -343,10 +361,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         if (tutorial != null && tutorial.step == DRAG) {
             tutorial.next_step ();
         }
+
         bound_obj = obj;
         bound_prop = name;
-        obj.begin (name, control_point);
+        obj.begin (name);
         point_binding = bind_property ("control-point", obj, name);
+        base_point = control_point;
     }
 
     private void unbind_point () {
@@ -359,52 +379,26 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         if (tutorial != null) {
             var x = unscale_x (image.width / 2);
             var y = unscale_y (0);
+
             if (y < 0) {
                 y = 0;
                 tutorial.position = BOTTOM;
             } else if (y > height) {
                 y = height;
             }
+
             if (x < 0) {
                 x = 0;
             } else if (x > width) {
                 x = width;
             }
+
             tutorial.pointing_to = { (int) x, (int) y };
         }
     }
 
-    private bool clicked_path (int x, int y, out Element? path, out Segment? segment) {
-        double real_x = scale_x (x);
-        double real_y = scale_y (y);
-        return clicked_subpath (real_x, real_y, null, out path, out segment);
-    }
-
-    private bool clicked_subpath (double x, double y, Gtk.TreeIter? root, out Element? path, out Segment? segment) {
-        Gtk.TreeIter iter;
-        if (image.iter_children (out iter, root)) {
-            do {
-                var element = image.get_element (iter);
-                if (element.visible) {
-                    if (element.clicked (x, y, 6 / zoom, out segment)) {
-                        path = element;
-                        return true;
-                    } else if (element is Group) {
-                        // TODO: Apply transformation
-                        if (clicked_subpath (x, y, iter, out path, out segment)) {
-                            return true;
-                        }
-                    }
-                }
-            } while (image.iter_next (ref iter));
-        }
-        path = null;
-        segment = null;
-        return false;
-    }
-        
-    private void show_context_menu (Element element, Segment? segment, Gdk.EventButton event) {
-        var menu = new Gtk.Popover (this);
+    private void show_context_menu (Element element, Segment? segment, double x, double y) {
+        var menu = new Gtk.Popover ();
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
         var elem_options = element.options (); // Using the full name "element_options" causes a name collision with "Element.options"
@@ -460,7 +454,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             switch (option.option_type) {
             case SEPARATOR:
                 var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
-                menu_layout.pack_start (separator, false, false, 0);
+                menu_layout.append (separator);
                 break;
             case ACTION:
                 var button = new Gtk.Button ();
@@ -469,7 +463,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     option.activate ();
                     menu.popdown ();
                 });
-                menu_layout.pack_start (button, false, false, 0);
+                menu_layout.append (button);
                 break;
             case TOGGLE:
                 var button = new Gtk.CheckButton.with_label (option.label);
@@ -479,40 +473,37 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 button.toggled.connect (() => {
                     bool val = false;
                     option.target.get(option.prop, &val);
-                    option.target.begin (option.prop, val);
+                    option.target.begin (option.prop);
                     option.target.set(option.prop, !val);
                     option.target.finish (option.prop);
                     menu.popdown ();
                 });
-                menu_layout.pack_start (button, false, false, 0);
+                menu_layout.append (button);
                 break;
             case OPTIONS:
                 var caption = new Gtk.Label (option.label);
-                menu_layout.pack_start (caption, false, false, 0);
+                menu_layout.append (caption);
                 int value = 0;
                 option.target.get(option.prop, &value);
-                Gtk.RadioButton first_button = null;
+                Gtk.ToggleButton first_button = null;
 
                 foreach (Gee.Map.Entry<string, int> variant in option.option_values) {
-                    Gtk.RadioButton button;
+                    Gtk.ToggleButton button = new Gtk.ToggleButton.with_label (variant.key);
                     if (first_button == null) {
-                        button = new Gtk.RadioButton.with_label (null, variant.key);
                         first_button = button;
                     } else {
-                        button = new Gtk.RadioButton.with_label_from_widget(first_button, variant.key);
+                        button.group = first_button;
                     }
 
                     button.toggled.connect (() => {
                         if (button.get_active ()) {
-                            Value previous;
-                            option.target.get (option.prop, out previous);
-                            option.target.begin (option.prop, previous);
+                            option.target.begin (option.prop);
                             option.target.set(option.prop, variant.value);
                             option.target.finish (option.prop);
                             menu.popdown ();
                         }
                     });
-                    menu_layout.pack_start (button, false, false, 0);
+                    menu_layout.append (button);
                     if (value == variant.value) {
                         button.active = true;
                     }
@@ -521,11 +512,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
         }
 
-        menu_layout.show_all ();
-
-        menu.add (menu_layout);
-
-        menu.pointing_to = {(int) event.x - 5, (int) event.y - 5, 10, 10};
+        menu.child = menu_layout;
+        menu.set_parent (this);
+        menu.pointing_to = {(int) x - 5, (int) y - 5, 10, 10};
 
         menu.popup ();
     }

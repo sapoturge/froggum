@@ -1,4 +1,4 @@
-public abstract class Element : Object, Undoable {
+public abstract class Element : Object, Undoable, Updatable, Transformed {
     private Pattern _fill;
     public Pattern fill {
         get {
@@ -31,7 +31,7 @@ public abstract class Element : Object, Undoable {
             transform.update.connect (() => { update (); });
             transform.add_command.connect ((c) => { add_command (c); });
         }
-     }
+    }
 
     public bool transform_enabled { get; set; }
 
@@ -39,9 +39,11 @@ public abstract class Element : Object, Undoable {
 
     public bool visible { get; set; }
 
-    public signal void update ();
     public signal void select (bool selected);
     public signal void request_delete ();
+    public signal void swap_up (bool into);
+    public signal void swap_down (bool into);
+    public signal void request_duplicate ();
     public signal void replace (Element replacement);
 
     protected void setup_signals () {
@@ -72,13 +74,19 @@ public abstract class Element : Object, Undoable {
 
     public abstract void draw_controls (Cairo.Context cr, double zoom);
 
-    public abstract void begin (string prop, Value? start_location);
+    public virtual void draw_transform (Cairo.Context cr, double zoom) {
+        if (transform_enabled) {
+            transform.draw_controls (cr, zoom);
+        }
+    }
+
+    public abstract void begin (string prop);
 
     public abstract void finish (string prop);
 
     public abstract Gee.List<ContextOption> options ();
 
-    public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index, out Xml.Node* node);
+    public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index);
 
     protected int add_standard_attributes (Xml.Node* node, Xml.Node* defs, int pattern_index) {
         node->new_prop ("id", title);
@@ -105,5 +113,5 @@ public abstract class Element : Object, Undoable {
 
     public abstract void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop);
 
-    public abstract bool clicked (double x, double y, double tolerance, out Segment? segment);
+    public abstract bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment);
 }

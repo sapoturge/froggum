@@ -53,15 +53,13 @@ public class Tutorial : Gtk.Popover {
         stack.visible_child = scroll;
         
         var button_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
-        button_box.pack_end (skip);
+        button_box.append (skip);
         
         var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 5);
-        layout.pack_start (stack);
-        layout.pack_start (button_box);
-        layout.show_all ();
-        add (layout);
+        layout.append (stack);
+        layout.append (button_box);
+        child = layout;
         
-        modal = false;
         step = SCROLL;
         
         finish.connect (() => { popdown (); });
