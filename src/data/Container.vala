@@ -432,7 +432,23 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+    public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment, out Handle? handle) {
+        if (selected_child != null) {
+            var new_x = x, new_y = y;
+            var new_tolerance = tolerance;
+            Handle inner_handle;
+            selected_child.transform.update_point (x, y, out new_x, out new_y);
+            selected_child.transform.update_distance (tolerance, out new_tolerance);
+            selected_child.check_controls (new_x, new_y, new_tolerance, out inner_handle);
+            if (inner_handle != null) {
+                selected_child.clicked (new_x, new_y, new_tolerance, out element, out segment); // Just for if a segment was also clicked
+                element = selected_child;
+                handle = new TransformedHandle (inner_handle, element.transform);
+                return true;
+            }
+        }
+
+        handle = null;
         var index = 0;
         var elem = model.get_item (index) as Element;
         while (elem != null) {

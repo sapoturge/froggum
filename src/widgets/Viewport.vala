@@ -212,7 +212,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             if (n == 2) {
                 Element path;
                 Segment segment;
-                if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment)) {
+                Handle handle;
+                if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
                     if (tutorial != null && tutorial.step == CLICK) {
                         tutorial.next_step ();
                     }
@@ -230,9 +231,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         right_click_controller.pressed.connect ((n, x, y) => {
             Element path;
             Segment segment;
-            if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment)) {
+            Handle handle;
+            if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
                 path.select (true);
-                show_context_menu (path, segment, x, y);
+                show_context_menu (path, segment, handle, x, y);
             }
         });
 
@@ -396,7 +398,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
     }
 
-    private void show_context_menu (Element element, Segment? segment, double x, double y) {
+    private void show_context_menu (Element element, Segment? segment, Handle? handle, double x, double y) {
         var menu = new Gtk.Popover ();
         var menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
 
@@ -408,6 +410,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             seg_options = segment.options ();
         } else {
             seg_options = null;
+        }
+
+        Gee.List<ContextOption>? hand_options;
+
+        if (handle != null) {
+            hand_options = handle.options;
+        } else {
+            hand_options = null;
         }
 
         var options = new Gee.ArrayList<ContextOption> ();
@@ -434,6 +444,22 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             if (seg_options != null) {
                 foreach (ContextOption op in seg_options) {
+                    if (op.option_type == op_type) {
+                        if (needs_separator) {
+                            needs_separator = false;
+                            options.add (new ContextOption.separator ());
+                        }
+
+                        options.add (op);
+                        will_need_separator = true;
+                    }
+                }
+
+                needs_separator = will_need_separator;
+            }
+
+            if (hand_options != null) {
+                foreach (ContextOption op in hand_options) {
                     if (op.option_type == op_type) {
                         if (needs_separator) {
                             needs_separator = false;
