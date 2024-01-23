@@ -31,7 +31,7 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    public abstract Element? selected_child { get; set; }
+    protected abstract Element? selected_child { get; set; }
     protected abstract Gee.Map<Element, ElementSignalManager> signal_managers { get; set; }
 
     // This has to be abstract so it exists in the child classes
@@ -466,6 +466,29 @@ public interface Container : Undoable, Updatable, Transformed {
 
         element = null;
         segment = null;
+        return false;
+    }
+
+    public virtual bool has_selected () {
+        return selected_child != null;
+    }
+
+    public virtual void deselect () {
+        if (selected_child != null) {
+            selected_child.select (false);
+        }
+    }
+
+    public virtual bool clicked_handle (double x, double y, double tolerance, out Handle? handle) {
+        if (selected_child != null) {
+            var new_x = x, new_y = y;
+            var new_tolerance = tolerance;
+            selected_child.transform.update_point (x, y, out new_x, out new_y);
+            selected_child.transform.update_distance (tolerance, out new_tolerance);
+            return selected_child.check_controls (new_x, new_y, new_tolerance, out handle);
+        }
+
+        handle = null;
         return false;
     }
 }

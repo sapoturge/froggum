@@ -144,31 +144,31 @@ public class Circle : Element {
         return new Circle (x, y, r, fill, stroke);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if (fill.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (stroke.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if ((x - this.x).abs () <= tolerance && (y - this.y).abs () <= tolerance) {
             handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
-            return;
+            return true;
         }
 
         if ((x - radius.x).abs () <= tolerance && (y - radius.y).abs () <= tolerance) {
             handle = new BaseHandle(this, "radius", new Gee.ArrayList<ContextOption> ());
-            return;
+            return true;
         }
 
         handle = null;
-        return;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

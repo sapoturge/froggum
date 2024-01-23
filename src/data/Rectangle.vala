@@ -323,17 +323,17 @@ public class Rectangle : Element {
         stroke.draw_controls (cr, zoom);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if (fill.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (stroke.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         var left_close = (x - this.x).abs () <= tolerance;
@@ -348,43 +348,49 @@ public class Rectangle : Element {
             var ry_bottom_close = (y - this.y - height + ry).abs () <= tolerance;
             if (top_close && rx_left_close) {
                 handle = new BaseHandle(this, "top_left_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             } else if (top_close && rx_right_close) {
                 handle = new BaseHandle(this, "top_right_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             } else if (left_close && ry_top_close) {
                 handle = new BaseHandle(this, "left_top_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             } else if (left_close && ry_bottom_close) {
                 handle = new BaseHandle(this, "left_bottom_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             } else if (bottom_close && rx_left_close) {
                 handle = new BaseHandle(this, "bottom_left_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             } else if (bottom_close && rx_right_close) {
                 handle = new BaseHandle(this, "bottom_right_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             } else if (right_close && ry_top_close) {
                 handle = new BaseHandle(this, "right_top_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             } else if (right_close && ry_bottom_close) {
                 handle = new BaseHandle(this, "right_bottom_round", new Gee.ArrayList<ContextOption> ());
-                return;
+                return true;
             }
         }
 
         if (top_close && left_close) {
             handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if (top_close && right_close) {
             handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if (bottom_close && left_close) {
             handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if (bottom_close && right_close) {
             handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if ((x - center.x).abs () <= tolerance && (y - center.y).abs () <= tolerance) {
             handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else {
             handle = null;
+            return false;
         }
     }
 

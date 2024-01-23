@@ -109,27 +109,27 @@ public class Line : Element {
         return new Line (start.x, start.y, end.x, end.y, stroke);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if (stroke.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if ((x - start.x).abs () <= tolerance && (y - start.y).abs () <= tolerance) {
             handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> ());
-            return;
+            return true;
         }
 
         if ((x - end.x).abs () <= tolerance && (y - end.y).abs () <= tolerance) {
             handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
-            return;
+            return true;
         }
 
         handle = null;
-        return;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

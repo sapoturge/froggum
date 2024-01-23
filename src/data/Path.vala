@@ -272,17 +272,17 @@ public class Path : Element {
         return pattern_index;
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if (fill.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (stroke.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         var s = root_segment;
@@ -291,14 +291,14 @@ public class Path : Element {
             first = false;
 
             if (s.check_controls (x, y, tolerance, out handle)) {
-                return;
+                return true;
             }
  
             s = s.next;
         }
 
         handle = null;
-        return;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

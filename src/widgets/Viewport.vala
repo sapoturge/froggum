@@ -11,8 +11,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private bool scrolling = false;
 
-    private Element? selected_path;
-
     private Gdk.RGBA background;
 
     private Image _image;
@@ -36,9 +34,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _image = value;
             _image.update.connect (() => {
                 queue_draw ();
-            });
-            _image.path_selected.connect ((path) => {
-                selected_path = path;
             });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
@@ -219,8 +214,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     }
 
                     path.select (true);
-                } else if (selected_path != null) {
-                    selected_path.select (false);
+                } else {
+                    image.deselect ();
                 }
             }
         });
@@ -246,10 +241,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             control_point = {sx, sy};
 
             // Check for clicking on a control handle
-            if (selected_path != null) {
+            if (image.has_selected ()) {
                 Handle obj;
-                selected_path.check_controls (sx, sy, 6 / zoom, out obj);
-                if (obj != null) {
+                if (image.clicked_handle (sx, sy, 6 / zoom, out obj)) {
                     bind_point (obj, "point");
                     return;
                 }

@@ -156,17 +156,17 @@ public class Ellipse : Element {
         stroke.draw_controls (cr, zoom);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if (fill.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (stroke.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         var left_close = (x - cx + rx).abs () <= tolerance;
@@ -176,16 +176,22 @@ public class Ellipse : Element {
 
         if (top_close && left_close) {
             handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if (top_close && right_close) {
             handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if (bottom_close && left_close) {
             handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if (bottom_close && right_close) {
             handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else if ((x - cx).abs () <= tolerance && (y - cy).abs () <= tolerance) {
             handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
+            return true;
         } else {
             handle = null;
+            return false;
         }
     }
 

@@ -73,13 +73,17 @@ public class Group : Element, Container {
         return new Group ();
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Handle? handle) {
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (selected_child != null) {
+            return clicked_handle (x, y, tolerance, out handle);
+        }
+
         if (transform.check_controls (x, y, tolerance, out handle)) {
-            return;
+            return true;
         }
 
         handle = null;
-        return;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
