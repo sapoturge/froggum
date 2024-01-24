@@ -6,12 +6,12 @@ public class TransformedHandle : Handle {
         get {
             Point basis = base_handle.point;
             Point new_point = {};
-            transform.update_point (basis.x, basis.y, out new_point.x, out new_point.y);
+            transform.apply_point (basis.x, basis.y, out new_point.x, out new_point.y);
             return new_point;
         }
         set {
             Point new_point = {};
-            transform.apply_point (value.x, value.y, out new_point.x, out new_point.y);
+            transform.update_point (value.x, value.y, out new_point.x, out new_point.y);
             base_handle.point = new_point;
         }
     }

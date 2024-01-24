@@ -4,9 +4,9 @@ public class BaseHandle : Handle {
 
     public override Point point {
         get {
-            Point value = {};
-            target.get(property, value);
-            return value;
+            Point? value = {};
+            target.get(property, ref value);
+            return (!) value;
         }
         set {
             target.set(property, value);

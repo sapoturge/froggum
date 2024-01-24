@@ -306,7 +306,7 @@ public interface Container : Undoable, Updatable, Transformed {
         var cont = element as Container;
         if (cont != null) {
             signal_manager.path_selected = cont.path_selected.connect ((elem) => {
-                selected_child = elem;
+                selected_child = element;
                 path_selected (elem);
             });
 
@@ -483,9 +483,13 @@ public interface Container : Undoable, Updatable, Transformed {
         if (selected_child != null) {
             var new_x = x, new_y = y;
             var new_tolerance = tolerance;
+            Handle inner_handle;
             selected_child.transform.update_point (x, y, out new_x, out new_y);
             selected_child.transform.update_distance (tolerance, out new_tolerance);
-            return selected_child.check_controls (new_x, new_y, new_tolerance, out handle);
+            if (selected_child.check_controls (new_x, new_y, new_tolerance, out inner_handle)) {
+                handle = new TransformedHandle (inner_handle, selected_child.transform);
+                return true;
+            }
         }
 
         handle = null;

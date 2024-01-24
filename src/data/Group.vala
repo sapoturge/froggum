@@ -26,6 +26,7 @@ public class Group : Element, Container {
         setup_signals ();
 
         select.connect ((selected) => {
+            deselect ();
             selected_child = null;
         });
 
@@ -38,6 +39,11 @@ public class Group : Element, Container {
         load_elements (node, patterns);
 
         transform_enabled = true;
+
+        select.connect ((selected) => {
+            deselect ();
+            selected_child = null;
+        });
     }
     
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
