@@ -33,7 +33,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
         }
     }
 
-    public bool transform_enabled { get; set; }
+    public virtual bool transform_enabled { get; set; }
 
     public string title { get; set; }
 
@@ -73,12 +73,6 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
     public abstract void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false);
 
     public abstract void draw_controls (Cairo.Context cr, double zoom);
-
-    public virtual void draw_transform (Cairo.Context cr, double zoom) {
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
-    }
 
     public abstract void begin (string prop);
 

@@ -1,6 +1,12 @@
 public class Group : Element, Container {
     public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
+    public override bool transform_enabled {
+        get {
+            return selected_child == null;
+        }
+        set {}
+    }
 
     public ModelUpdate updator {
         set {
@@ -29,16 +35,12 @@ public class Group : Element, Container {
             deselect ();
             selected_child = null;
         });
-
-        transform_enabled = true;
     }
 
     public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
         base.from_xml (node, patterns);
 
         load_elements (node, patterns);
-
-        transform_enabled = true;
 
         select.connect ((selected) => {
             deselect ();
