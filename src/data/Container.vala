@@ -436,6 +436,14 @@ public interface Container : Undoable, Updatable, Transformed {
 
     public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment, out Handle? handle) {
         if (selected_child != null) {
+            if (selected_child.transform_enabled) {
+                if (selected_child.transform.check_controls (x, y, tolerance, out handle)) {
+                    element = selected_child;
+                    segment = null;
+                    return true;
+                }
+            }
+
             var new_x = x, new_y = y;
             var new_tolerance = tolerance;
             Handle inner_handle;
@@ -483,6 +491,12 @@ public interface Container : Undoable, Updatable, Transformed {
 
     public virtual bool clicked_handle (double x, double y, double tolerance, out Handle? handle) {
         if (selected_child != null) {
+            if (selected_child.transform_enabled) {
+                if (selected_child.transform.check_controls (x, y, tolerance, out handle)) {
+                    return true;
+                }
+            }
+
             var new_x = x, new_y = y;
             var new_tolerance = tolerance;
             Handle inner_handle;
