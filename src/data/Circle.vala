@@ -112,7 +112,7 @@ public class Circle : Element {
     public override void finish (string prop) {
         var command = new Command ();
         if (prop == "center") {
-            command.add_value (this, "prop", center, _last_center);
+            command.add_value (this, "center", center, _last_center);
         } else if (prop == "radius") {
             command.add_value (this, "radius", radius, _last_radius);
         }
