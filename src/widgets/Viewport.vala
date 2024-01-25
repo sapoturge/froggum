@@ -22,6 +22,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     public Point control_point { get; set; }
 
     private Binding point_binding;
+    private Handle? current_handle;
     
     private Undoable bound_obj;
     private string bound_prop;
@@ -198,6 +199,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             // Draw Control Handles
             image.draw_selected_child (cr, zoom);
+            if (current_handle != null) {
+                Point center = current_handle.point;
+                cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);
+                cr.set_line_width (2 / zoom);
+                cr.set_source_rgb (0.95, 0.85, 0.15);
+                cr.stroke ();
+            }
+
             cr.restore();
         });
 
@@ -209,6 +218,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 Segment segment;
                 Handle handle;
                 if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+                    current_handle = handle;
                     if (tutorial != null && tutorial.step == CLICK) {
                         tutorial.next_step ();
                     }
@@ -216,6 +226,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     path.select (true);
                 } else {
                     image.deselect ();
+                    current_handle = null;
                 }
             }
         });
@@ -228,6 +239,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             Segment segment;
             Handle handle;
             if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+                current_handle = handle;
                 path.select (true);
                 show_context_menu (path, segment, handle, x, y);
             }
@@ -244,6 +256,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             if (image.has_selected ()) {
                 Handle obj;
                 if (image.clicked_handle (sx, sy, 6 / zoom, out obj)) {
+                    current_handle = obj;
                     bind_point (obj, "point");
                     return;
                 }
