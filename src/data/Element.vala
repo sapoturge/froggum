@@ -107,5 +107,21 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract bool check_controls (double x, double y, double tolerance, out Handle? handle);
 
+    protected bool check_standard_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (fill.check_controls (x, y, tolerance, out handle)) {
+            return true;
+        }
+
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
+            return true;
+        }
+
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public abstract bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment);
 }

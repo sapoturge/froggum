@@ -86,7 +86,7 @@ public class Group : Element, Container {
             return clicked_handle (x, y, tolerance, out handle);
         }
 
-        if (transform.check_controls (x, y, tolerance, out handle)) {
+        if (check_standard_controls (x, y, tolerance, out handle)) {
             return true;
         }
 

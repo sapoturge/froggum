@@ -273,15 +273,7 @@ public class Path : Element {
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
-        if (fill.check_controls (x, y, tolerance, out handle)) {
-            return true;
-        }
-
-        if (stroke.check_controls (x, y, tolerance, out handle)) {
-            return true;
-        }
-
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
+        if (check_standard_controls (x, y, tolerance, out handle)) {
             return true;
         }
 
