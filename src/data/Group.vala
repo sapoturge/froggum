@@ -1,6 +1,12 @@
 public class Group : Element, Container {
     public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
+    public override bool transform_enabled {
+        get {
+            return selected_child == null;
+        }
+        set {}
+    }
 
     public ModelUpdate updator {
         set {
@@ -26,10 +32,9 @@ public class Group : Element, Container {
         setup_signals ();
 
         select.connect ((selected) => {
+            deselect ();
             selected_child = null;
         });
-
-        transform_enabled = true;
     }
 
     public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
@@ -37,7 +42,10 @@ public class Group : Element, Container {
 
         load_elements (node, patterns);
 
-        transform_enabled = true;
+        select.connect ((selected) => {
+            deselect ();
+            selected_child = null;
+        });
     }
     
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {
@@ -73,18 +81,22 @@ public class Group : Element, Container {
         return new Group ();
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (transform.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (selected_child != null) {
+            return clicked_handle (x, y, tolerance, out handle);
         }
 
-        obj = null;
-        prop = "";
-        return;
+        if (check_standard_controls (x, y, tolerance, out handle)) {
+            return true;
+        }
+
+        handle = null;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
-        return clicked_child (x, y, tolerance, out element, out segment);
+        Handle handle;
+        return clicked_child (x, y, tolerance, out element, out segment, out handle);
     }
 
     public Element get_element (Gtk.TreeIter iter) {

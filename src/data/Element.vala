@@ -33,7 +33,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
         }
     }
 
-    public bool transform_enabled { get; set; }
+    public virtual bool transform_enabled { get; set; }
 
     public string title { get; set; }
 
@@ -74,12 +74,6 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract void draw_controls (Cairo.Context cr, double zoom);
 
-    public virtual void draw_transform (Cairo.Context cr, double zoom) {
-        if (transform_enabled) {
-            transform.draw_controls (cr, zoom);
-        }
-    }
-
     public abstract void begin (string prop);
 
     public abstract void finish (string prop);
@@ -111,7 +105,23 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract Element copy ();
 
-    public abstract void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop);
+    public abstract bool check_controls (double x, double y, double tolerance, out Handle? handle);
+
+    protected bool check_standard_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (fill.check_controls (x, y, tolerance, out handle)) {
+            return true;
+        }
+
+        if (stroke.check_controls (x, y, tolerance, out handle)) {
+            return true;
+        }
+
+        if (transform_enabled && transform.check_controls (x, y, tolerance, out handle)) {
+            return true;
+        }
+
+        return false;
+    }
 
     public abstract bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment);
 }

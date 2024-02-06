@@ -109,28 +109,23 @@ public class Line : Element {
         return new Line (start.x, start.y, end.x, end.y, stroke);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
-        }
-
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (check_standard_controls (x, y, tolerance, out handle)) {
+            return true;
         }
 
         if ((x - start.x).abs () <= tolerance && (y - start.y).abs () <= tolerance) {
-            obj = this;
-            prop = "start";
-            return;
+            handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> ());
+            return true;
         }
+
         if ((x - end.x).abs () <= tolerance && (y - end.y).abs () <= tolerance) {
-            obj = this;
-            prop = "end";
-            return;
+            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
+            return true;
         }
-        obj = null;
-        prop = "";
-        return;
+
+        handle = null;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

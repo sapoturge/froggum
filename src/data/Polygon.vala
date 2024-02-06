@@ -194,26 +194,39 @@ public class Polygon : Element {
         return new Polygon (points, fill, stroke, "Copy of " + title, transform);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
-        }
-
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (check_standard_controls (x, y, tolerance, out handle)) {
+            return true;
         }
 
         var first = true;
+        BaseHandle inner_handle;
         for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
-            if (segment.check_controls (x, y, tolerance, out obj, out prop)) {
-                return;
+            if (segment.check_controls (x, y, tolerance, out inner_handle)) {
+                inner_handle.add_option (new ContextOption.action (_("Split Loop"), () => {
+                    Point[] points = {segment.end};
+                    if (inner_handle.property == "start") {
+                        points = {segment.start, segment.end};
+                    }
+
+                    for (var seg = segment.next; seg != segment; seg = seg.next) {
+                        points += seg.end;
+                    }
+
+                    if (inner_handle.property != "start") {
+                        points += segment.end;
+                    }
+
+                    replace (new Polyline (points, fill, stroke, title, transform));
+                }));
+                handle = inner_handle;
+                return true;
             }
             first = false;
         }
 
-        obj = null;
-        prop = "";
-        return;
+        handle = null;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

@@ -112,7 +112,7 @@ public class Circle : Element {
     public override void finish (string prop) {
         var command = new Command ();
         if (prop == "center") {
-            command.add_value (this, "prop", center, _last_center);
+            command.add_value (this, "center", center, _last_center);
         } else if (prop == "radius") {
             command.add_value (this, "radius", radius, _last_radius);
         }
@@ -144,32 +144,23 @@ public class Circle : Element {
         return new Circle (x, y, r, fill, stroke);
     }
 
-    public override void check_controls (double x, double y, double tolerance, out Undoable obj, out string prop) {
-        if (fill.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
-        }
-
-        if (stroke.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
-        }
-
-        if (transform_enabled && transform.check_controls (x, y, tolerance, out obj, out prop)) {
-            return;
+    public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
+        if (check_standard_controls (x, y, tolerance, out handle)) {
+            return true;
         }
 
         if ((x - this.x).abs () <= tolerance && (y - this.y).abs () <= tolerance) {
-            obj = this;
-            prop = "center";
-            return;
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
+            return true;
         }
+
         if ((x - radius.x).abs () <= tolerance && (y - radius.y).abs () <= tolerance) {
-            obj = this;
-            prop = "radius";
-            return;
+            handle = new BaseHandle(this, "radius", new Gee.ArrayList<ContextOption> ());
+            return true;
         }
-        obj = null;
-        prop = "";
-        return;
+
+        handle = null;
+        return false;
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

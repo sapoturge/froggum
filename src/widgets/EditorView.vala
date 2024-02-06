@@ -26,8 +26,8 @@ public class EditorView : Gtk.Box {
             var row = (Gtk.TreeListRow) selection.selected_item;
             var e = (Element) row.item;
             if (e != null) {
-                if (image.selected_child != null) {
-                    image.selected_child.select (false);
+                if (image.has_selected ()) {
+                    image.deselect ();
                 }
 
                 e.select (true);
