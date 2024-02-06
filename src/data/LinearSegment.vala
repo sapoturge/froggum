@@ -84,7 +84,7 @@ public class LinearSegment : Segment {
         return context.in_stroke(x, y);
     }
 
-    public bool check_controls (double x, double y, double tolerance, out Handle? handle) {
+    public bool check_controls (double x, double y, double tolerance, out BaseHandle? handle) {
         if ((x - start.x).abs () <= tolerance &&
             (y - start.y).abs () <= tolerance) {
             handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> ());

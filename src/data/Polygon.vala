@@ -204,8 +204,26 @@ public class Polygon : Element {
         }
 
         var first = true;
+        BaseHandle inner_handle;
         for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
-            if (segment.check_controls (x, y, tolerance, out handle)) {
+            if (segment.check_controls (x, y, tolerance, out inner_handle)) {
+                inner_handle.add_option (new ContextOption.action (_("Split Loop"), () => {
+                    Point[] points = {segment.end};
+                    if (inner_handle.property == "start") {
+                        points = {segment.start, segment.end};
+                    }
+
+                    for (var seg = segment.next; seg != segment; seg = seg.next) {
+                        points += seg.end;
+                    }
+
+                    if (inner_handle.property != "start") {
+                        points += segment.end;
+                    }
+
+                    replace (new Polyline (points, fill, stroke, title, transform));
+                }));
+                handle = inner_handle;
                 return true;
             }
             first = false;

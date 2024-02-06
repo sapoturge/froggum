@@ -1,6 +1,6 @@
 public class BaseHandle : Handle {
     private Undoable target;
-    private string property;
+    public string property { get; private set; }
 
     public override Point point {
         get {
@@ -36,5 +36,9 @@ public class BaseHandle : Handle {
         if (prop == "point") {
             target.finish (property);
         }
+    }
+
+    public void add_option (ContextOption option) {
+        _options.add (option);
     }
 }
