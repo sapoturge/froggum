@@ -1,6 +1,5 @@
 public class StatusBar : Gtk.Box {
-    private ulong binding;
-    private Handle? _handle;
+    private Gee.Map<Handle, ulong> bindings;
 
     public Handle? handle {
         set {
@@ -10,24 +9,24 @@ public class StatusBar : Gtk.Box {
                 child = get_last_child ();
             }
 
-            if (binding != 0) {
-                _handle.disconnect (binding);
+            foreach (var binding in bindings) {
+                binding.key.disconnect (binding.value);
             }
 
-            binding = 0;
-            _handle = value;
+            bindings.clear ();
 
             if (value != null) {
                 var transformed = value as TransformedHandle;
                 while (transformed != null) {
-                    var point = value.point;
+                    var local = value;
+                    var point = local.point;
                     var xLabel = new Gtk.Label ("%.2f".printf (point.x));
                     var yLabel = new Gtk.Label ("%.2f".printf (point.y));
-                    binding = value.notify["point"].connect (() => {
-                        point = value.point;
+                    bindings.set (local, local.notify["point"].connect (() => {
+                        point = local.point;
                         xLabel.label = "%.2f".printf (point.x);
                         yLabel.label = "%.2f".printf (point.y);
-                    });
+                    }));
                     append (xLabel);
                     append (new Gtk.Label (_(",")));
                     append (yLabel);
@@ -40,11 +39,11 @@ public class StatusBar : Gtk.Box {
                 var point = value.point;
                 var xLabel = new Gtk.Label ("%.2f".printf (point.x));
                 var yLabel = new Gtk.Label ("%.2f".printf (point.y));
-                binding = value.notify["point"].connect (() => {
+                bindings.set (value, value.notify["point"].connect (() => {
                     point = value.point;
                     xLabel.label = "%.2f".printf (point.x);
                     yLabel.label = "%.2f".printf (point.y);
-                });
+                }));
                 append (xLabel);
                 append (new Gtk.Label (_(",")));
                 append (yLabel);
@@ -60,5 +59,6 @@ public class StatusBar : Gtk.Box {
         hexpand = true;
         vexpand = false;
         spacing = 2;
+        bindings = new Gee.HashMap<Handle, ulong> ();
     }
 }
