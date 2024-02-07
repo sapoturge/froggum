@@ -19,8 +19,20 @@ public class StatusBar : Gtk.Box {
 
             if (value != null) {
                 var transformed = value as TransformedHandle;
-                if (transformed != null) {
+                while (transformed != null) {
+                    var point = value.point;
+                    var xLabel = new Gtk.Label ("%.2f".printf (point.x));
+                    var yLabel = new Gtk.Label ("%.2f".printf (point.y));
+                    binding = value.notify["point"].connect (() => {
+                        point = value.point;
+                        xLabel.label = "%.2f".printf (point.x);
+                        yLabel.label = "%.2f".printf (point.y);
+                    });
+                    append (xLabel);
+                    append (yLabel);
                     append (new Gtk.Label (transformed.name));
+                    value = transformed.base_handle;
+                    transformed = value as TransformedHandle;
                 }
 
                 var point = value.point;

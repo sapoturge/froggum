@@ -1,6 +1,6 @@
 public class TransformedHandle : Handle {
-    private Handle base_handle;
-    private Transform transform;
+    public Handle base_handle { get; private set; }
+    public Transform transform { get; private set; }
     public string name { get; private set; }
 
     public override Point point {
