@@ -18,6 +18,11 @@ public class StatusBar : Gtk.Box {
             _handle = value;
 
             if (value != null) {
+                var transformed = value as TransformedHandle;
+                if (transformed != null) {
+                    append (new Gtk.Label (transformed.name));
+                }
+
                 var point = value.point;
                 var xLabel = new Gtk.Label ("%.2f".printf (point.x));
                 var yLabel = new Gtk.Label ("%.2f".printf (point.y));

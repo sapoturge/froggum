@@ -1,6 +1,7 @@
 public class TransformedHandle : Handle {
     private Handle base_handle;
     private Transform transform;
+    public string name { get; private set; }
 
     public override Point point {
         get {
@@ -32,7 +33,8 @@ public class TransformedHandle : Handle {
         }
     }
 
-    public TransformedHandle (Handle base_handle, Transform transform) {
+    public TransformedHandle (string name, Handle base_handle, Transform transform) {
+        this.name = name;
         this.base_handle = base_handle;
         this.transform = transform;
     }

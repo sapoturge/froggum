@@ -453,7 +453,7 @@ public interface Container : Undoable, Updatable, Transformed {
             if (inner_handle != null) {
                 selected_child.clicked (new_x, new_y, new_tolerance, out element, out segment); // Just for if a segment was also clicked
                 element = selected_child;
-                handle = new TransformedHandle (inner_handle, element.transform);
+                handle = new TransformedHandle (element.title, inner_handle, element.transform);
                 return true;
             }
         }
@@ -503,7 +503,7 @@ public interface Container : Undoable, Updatable, Transformed {
             selected_child.transform.update_point (x, y, out new_x, out new_y);
             selected_child.transform.update_distance (tolerance, out new_tolerance);
             if (selected_child.check_controls (new_x, new_y, new_tolerance, out inner_handle)) {
-                handle = new TransformedHandle (inner_handle, selected_child.transform);
+                handle = new TransformedHandle (selected_child.title, inner_handle, selected_child.transform);
                 return true;
             }
         }
