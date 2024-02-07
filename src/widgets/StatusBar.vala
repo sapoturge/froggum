@@ -15,9 +15,8 @@ public class StatusBar : Gtk.Box {
 
             bindings.clear ();
 
-            append (new Gtk.Label (_("(")));
-
             if (value != null) {
+                append (new Gtk.Label (_("(")));
                 var transformed = value as TransformedHandle;
                 while (transformed != null) {
                     var local = value;

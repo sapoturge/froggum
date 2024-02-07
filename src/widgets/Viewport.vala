@@ -375,12 +375,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         obj.begin (name);
         point_binding = bind_property ("control-point", obj, name);
         base_point = control_point;
+        queue_draw ();
     }
 
     private void unbind_point () {
         bound_obj.finish (bound_prop);
         point_binding.unbind ();
         point_binding = null;
+        queue_draw ();
     }
     
     private void position_tutorial () {
