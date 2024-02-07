@@ -263,6 +263,7 @@ public class EditorView : Gtk.Box {
         scrolled.vexpand = true;
 
         status_bar = new StatusBar ();
+        viewport.bind_property ("current_handle", status_bar, "handle");
   
         var main_space = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         main_space.append (scrolled);

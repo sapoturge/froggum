@@ -22,7 +22,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     public Point control_point { get; set; }
 
     private Binding point_binding;
-    private Handle? current_handle;
+    public Handle? current_handle { get; private set; }
     
     private Undoable bound_obj;
     private string bound_prop;
