@@ -23,6 +23,7 @@ executable(
     'src/widgets/GradientEditor.vala',
     'src/widgets/Tutorial.vala',
     'src/widgets/PathRow.vala',
+    'src/widgets/StatusBar.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',

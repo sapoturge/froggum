@@ -4,6 +4,7 @@ public class EditorView : Gtk.Box {
     private Gtk.ListView paths_list;
     private Gtk.SingleSelection selection;
     private Viewport viewport;
+    private StatusBar status_bar;
     private ulong new_button_handler;
     private Gtk.Button new_button;
 
@@ -259,9 +260,16 @@ public class EditorView : Gtk.Box {
         scrolled.hscrollbar_policy = Gtk.PolicyType.ALWAYS;
         scrolled.vscrollbar_policy = Gtk.PolicyType.ALWAYS;
         scrolled.hexpand = true;
+        scrolled.vexpand = true;
+
+        status_bar = new StatusBar ();
+  
+        var main_space = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        main_space.append (scrolled);
+        main_space.append (status_bar);
 
         append (side_bar);
-        append (scrolled);
+        append (main_space);
 
         hexpand = true;
         vexpand = true;
