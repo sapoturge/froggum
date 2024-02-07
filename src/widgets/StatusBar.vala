@@ -29,8 +29,10 @@ public class StatusBar : Gtk.Box {
                         yLabel.label = "%.2f".printf (point.y);
                     });
                     append (xLabel);
+                    append (new Gtk.Label (_(",")));
                     append (yLabel);
-                    append (new Gtk.Label (transformed.name));
+                    append (new Gtk.Image.from_icon_name ("go-next"));
+                    append (new Gtk.Label ("%s: ".printf(transformed.name)));
                     value = transformed.base_handle;
                     transformed = value as TransformedHandle;
                 }
@@ -44,6 +46,7 @@ public class StatusBar : Gtk.Box {
                     yLabel.label = "%.2f".printf (point.y);
                 });
                 append (xLabel);
+                append (new Gtk.Label (_(",")));
                 append (yLabel);
             } else {
                 append (new Gtk.Label (_("No handle selected")));
@@ -56,5 +59,6 @@ public class StatusBar : Gtk.Box {
         append (label);
         hexpand = true;
         vexpand = false;
+        spacing = 2;
     }
 }
