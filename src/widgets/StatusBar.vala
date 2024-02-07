@@ -15,6 +15,8 @@ public class StatusBar : Gtk.Box {
 
             bindings.clear ();
 
+            append (new Gtk.Label (_("(")));
+
             if (value != null) {
                 var transformed = value as TransformedHandle;
                 while (transformed != null) {
@@ -30,8 +32,9 @@ public class StatusBar : Gtk.Box {
                     append (xLabel);
                     append (new Gtk.Label (_(",")));
                     append (yLabel);
+                    append (new Gtk.Label (_(")")));
                     append (new Gtk.Image.from_icon_name ("go-next"));
-                    append (new Gtk.Label ("%s: ".printf(transformed.name)));
+                    append (new Gtk.Label ("%s: (".printf(transformed.name)));
                     value = transformed.base_handle;
                     transformed = value as TransformedHandle;
                 }
@@ -47,6 +50,7 @@ public class StatusBar : Gtk.Box {
                 append (xLabel);
                 append (new Gtk.Label (_(",")));
                 append (yLabel);
+                append (new Gtk.Label (_(")")));
             } else {
                 append (new Gtk.Label (_("No handle selected")));
             }
@@ -58,7 +62,6 @@ public class StatusBar : Gtk.Box {
         append (label);
         hexpand = true;
         vexpand = false;
-        spacing = 2;
         bindings = new Gee.HashMap<Handle, ulong> ();
     }
 }
