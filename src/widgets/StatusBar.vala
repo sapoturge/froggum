@@ -19,41 +19,41 @@ public class StatusBar : Gtk.Box {
                 append (new Gtk.Label (_("(")));
                 var transformed = value as TransformedHandle;
                 while (transformed != null) {
-                    var local = value;
-                    var point = local.point;
-                    var xLabel = new Gtk.Label ("%.2f".printf (point.x));
-                    var yLabel = new Gtk.Label ("%.2f".printf (point.y));
-                    bindings.set (local, local.notify["point"].connect (() => {
-                        point = local.point;
-                        xLabel.label = "%.2f".printf (point.x);
-                        yLabel.label = "%.2f".printf (point.y);
-                    }));
-                    append (xLabel);
-                    append (new Gtk.Label (_(",")));
-                    append (yLabel);
-                    append (new Gtk.Label (_(")")));
+                    add_entry (value);
                     append (new Gtk.Image.from_icon_name ("go-next"));
                     append (new Gtk.Label ("%s: (".printf(transformed.name)));
                     value = transformed.base_handle;
                     transformed = value as TransformedHandle;
                 }
 
-                var point = value.point;
-                var xLabel = new Gtk.Label ("%.2f".printf (point.x));
-                var yLabel = new Gtk.Label ("%.2f".printf (point.y));
-                bindings.set (value, value.notify["point"].connect (() => {
-                    point = value.point;
-                    xLabel.label = "%.2f".printf (point.x);
-                    yLabel.label = "%.2f".printf (point.y);
-                }));
-                append (xLabel);
-                append (new Gtk.Label (_(",")));
-                append (yLabel);
-                append (new Gtk.Label (_(")")));
+                add_entry (value);
             } else {
                 append (new Gtk.Label (_("No handle selected")));
             }
         }
+    }
+
+    private void add_entry (Handle handle) {
+        var point = handle.point;
+        var xLabel = new Gtk.EditableLabel ("%.2f".printf (point.x)) {
+            width_chars = 5,
+            max_width_chars = 5,
+            xalign = 1,
+        };
+        var yLabel = new Gtk.EditableLabel ("%.2f".printf (point.y)) {
+            width_chars = 5,
+            max_width_chars = 5,
+            xalign = 1,
+        };
+        bindings.set (handle, handle.notify["point"].connect (() => {
+            point = handle.point;
+            xLabel.text = "%.2f".printf (point.x);
+            yLabel.text = "%.2f".printf (point.y);
+        }));
+        append (xLabel);
+        append (new Gtk.Label (_(",")));
+        append (yLabel);
+        append (new Gtk.Label (_(")")));
     }
 
     construct {
