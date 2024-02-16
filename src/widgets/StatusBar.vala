@@ -1,5 +1,20 @@
 public class StatusBar : Gtk.Box {
-    private Gee.Map<Handle, ulong> bindings;
+    private Gee.List<SignalManager> bindings;
+
+    private class SignalManager {
+        public Handle handle;
+        public Gtk.Editable x_label;
+        public Gtk.Editable y_label;
+        public ulong handle_notify;
+        public ulong x_insert;
+        public ulong y_insert;
+
+        public void disconnect_all () {
+            handle.disconnect (handle_notify);
+            x_label.disconnect (x_insert);
+            y_label.disconnect (y_insert);
+        }
+    }
 
     public Handle? handle {
         set {
@@ -10,7 +25,7 @@ public class StatusBar : Gtk.Box {
             }
 
             foreach (var binding in bindings) {
-                binding.key.disconnect (binding.value);
+                binding.disconnect_all ();
             }
 
             bindings.clear ();
@@ -34,25 +49,62 @@ public class StatusBar : Gtk.Box {
     }
 
     private void add_entry (Handle handle) {
-        var point = handle.point;
-        var xLabel = new Gtk.EditableLabel ("%.2f".printf (point.x)) {
+        var new_point = handle.point;
+        var x_label = new Gtk.EditableLabel ("%.2f".printf (new_point.x)) {
             width_chars = 5,
             max_width_chars = 5,
             xalign = 1,
         };
-        var yLabel = new Gtk.EditableLabel ("%.2f".printf (point.y)) {
+        var y_label = new Gtk.EditableLabel ("%.2f".printf (new_point.y)) {
             width_chars = 5,
             max_width_chars = 5,
             xalign = 1,
         };
-        bindings.set (handle, handle.notify["point"].connect (() => {
-            point = handle.point;
-            xLabel.text = "%.2f".printf (point.x);
-            yLabel.text = "%.2f".printf (point.y);
-        }));
-        append (xLabel);
+        var x_delegate = x_label.get_delegate ();
+        var y_delegate = y_label.get_delegate ();
+        var signal_manager = new SignalManager ();
+        signal_manager.handle = handle;
+        signal_manager.x_label = x_delegate;
+        signal_manager.y_label = y_delegate;
+        signal_manager.handle_notify = handle.notify["point"].connect (() => {
+            var point = handle.point;
+            x_label.text = "%.2f".printf (point.x);
+            y_label.text = "%.2f".printf (point.y);
+        });
+        signal_manager.x_insert = x_delegate.insert_text.connect ((text, len, ref position) => {
+            var new_text = new StringBuilder ();
+            unichar c;
+            for (int i = 0; text.get_next_char (ref i, out c); ) {
+                if (('0' <= c && c <= '9') || c == '.') {
+                    new_text.append_unichar (c);
+                }
+            }
+
+            SignalHandler.block (x_delegate, signal_manager.x_insert);
+            x_delegate.insert_text (new_text.str, (int) new_text.len, ref position);
+            SignalHandler.unblock (x_delegate, signal_manager.x_insert);
+            Signal.stop_emission_by_name (x_delegate, "insert_text");
+        });
+        signal_manager.y_insert = y_delegate.insert_text.connect ((text, len, ref position) => {
+            var new_text = new StringBuilder ();
+            unichar c;
+            for (int i = 0; text.get_next_char (ref i, out c); ) {
+                if (('0' <= c && c <= '9') || c == '.') {
+                    new_text.append_unichar (c);
+                }
+            }
+
+            var new_position = new_text.len;
+
+            SignalHandler.block (y_delegate, signal_manager.y_insert);
+            y_delegate.insert_text (new_text.str, (int) new_position, ref position);
+            SignalHandler.unblock (y_delegate, signal_manager.y_insert);
+            Signal.stop_emission_by_name (y_delegate, "insert_text");
+        });
+        bindings.add (signal_manager);
+        append (x_label);
         append (new Gtk.Label (_(",")));
-        append (yLabel);
+        append (y_label);
         append (new Gtk.Label (_(")")));
     }
 
@@ -61,6 +113,6 @@ public class StatusBar : Gtk.Box {
         append (label);
         hexpand = true;
         vexpand = false;
-        bindings = new Gee.HashMap<Handle, ulong> ();
+        bindings = new Gee.ArrayList<SignalManager> ();
     }
 }
