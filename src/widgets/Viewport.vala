@@ -36,6 +36,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _image.update.connect (() => {
                 queue_draw ();
             });
+            image.notify["selected_child"].connect (() => {
+                current_handle = null;
+            });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
         }
