@@ -7,6 +7,7 @@ public interface Container : Undoable, Updatable, Transformed {
         uint position;
         uint removals;
         Element[] elements;
+        Element? selection;
     }
 
     protected class ElementSignalManager {
@@ -37,6 +38,10 @@ public interface Container : Undoable, Updatable, Transformed {
     // This has to be abstract so it exists in the child classes
     public abstract ModelUpdate updator { set; }
     protected void do_update (ModelUpdate value) {
+        if (selected_child != value.selection && selected_child != null) {
+            selected_child.select (false);
+        }
+
         for (int i = 0; i < value.removals; i++) {
             var element = (Element) model.get_item (value.position + i);
             if (element != null) {
@@ -49,8 +54,8 @@ public interface Container : Undoable, Updatable, Transformed {
         }
 
         ((ListStore) model).splice (value.position, value.removals, (GLib.Object[]) value.elements);
-        if (value.elements.length > 0) {
-            value.elements[0].select (true);
+        if (value.selection != null && value.selection != selected_child) {
+            value.selection.select (true);
         }
         update ();
     }
@@ -139,12 +144,14 @@ public interface Container : Undoable, Updatable, Transformed {
                 var remove_update = ModelUpdate () {
                     position = index,
                     elements = {},
-                    removals = 1
+                    removals = 1,
+                    selection = null,
                 };
                 var replace_update = ModelUpdate () {
                     position = index,
                     elements = { element },
-                    removals = 0
+                    removals = 0,
+                    selection = element,
                 };
                 updator = remove_update;
                 command.add_value (this, "updator", remove_update, replace_update);
@@ -164,11 +171,13 @@ public interface Container : Undoable, Updatable, Transformed {
                             position = index,
                             elements = {},
                             removals = 1,
+                            selection = null,
                         };
                         var replace = ModelUpdate () {
                             position = index,
                             elements = { element },
                             removals = 0,
+                            selection = element,
                         };
                         command.add_value (this, "updator", removal, replace);
                         cont.insert_bottom (element, command);
@@ -178,11 +187,13 @@ public interface Container : Undoable, Updatable, Transformed {
                             position = index - 1,
                             elements = { element, previous },
                             removals = 2,
+                            selection = element,
                         };
                         var unswapped = ModelUpdate () {
                             position = index - 1,
                             elements = { previous, element },
                             removals = 2,
+                            selection = element,
                         };
                         updator = swapped;
                         command.add_value (this, "updator", swapped, unswapped);
@@ -194,11 +205,13 @@ public interface Container : Undoable, Updatable, Transformed {
                         position = index,
                         elements = {},
                         removals = 1,
+                        selection = null,
                     };
                     var replaced = ModelUpdate () {
                         position = index,
                         elements = { element },
                         removals = 0,
+                        selection = element,
                     };
                     command.add_value (this, "updator", removal, replaced);
                     move_above (element, command);
@@ -218,11 +231,13 @@ public interface Container : Undoable, Updatable, Transformed {
                             position = index,
                             elements = {},
                             removals = 1,
+                            selection = null,
                         };
                         var replace = ModelUpdate () {
                             position = index,
                             elements = { element },
                             removals = 0,
+                            selection = element,
                         };
                         command.add_value (this, "updator", removal, replace);
                         cont.insert_top (element, command);
@@ -232,11 +247,13 @@ public interface Container : Undoable, Updatable, Transformed {
                             position = index,
                             elements = { next, element },
                             removals = 2,
+                            selection = element,
                         };
                         var unswapped = ModelUpdate () {
                             position = index,
                             elements = { element, next },
                             removals = 2,
+                            selection = element,
                         };
                         updator = swapped;
                         command.add_value (this, "updator", swapped, unswapped);
@@ -248,11 +265,13 @@ public interface Container : Undoable, Updatable, Transformed {
                         position = index,
                         elements = {},
                         removals = 1,
+                        selection = null,
                     };
                     var replaced = ModelUpdate () {
                         position = index,
                         elements = { element },
                         removals = 0,
+                        selection = element,
                     };
                     command.add_value (this, "updator", removal, replaced);
                     move_below (element, command);
@@ -268,12 +287,14 @@ public interface Container : Undoable, Updatable, Transformed {
                 var add_duplicate = ModelUpdate () {
                     position = index,
                     elements = { duplicated },
-                    removals = 0
+                    removals = 0,
+                    selection = duplicated,
                 };
                 var remove_duplicate = ModelUpdate () {
                     position = index,
                     elements = { },
-                    removals = 1
+                    removals = 1,
+                    selection = element,
                 };
                 updator = add_duplicate;
                 command.add_value (this, "updator", add_duplicate, remove_duplicate);
@@ -288,12 +309,14 @@ public interface Container : Undoable, Updatable, Transformed {
                 var swap_in = ModelUpdate () {
                     position = index,
                     elements = { new_elem },
-                    removals = 1
+                    removals = 1,
+                    selection = new_elem,
                 };
                 var swap_out = ModelUpdate () {
                     position = index,
                     elements = { element },
-                    removals = 1
+                    removals = 1,
+                    selection = element,
                 };
                 updator = swap_in;
                 command.add_value (this, "updator", swap_in, swap_out);
@@ -317,11 +340,13 @@ public interface Container : Undoable, Updatable, Transformed {
                         position = index,
                         elements = { elem },
                         removals = 0,
+                        selection = elem,
                     };
                     var remove = ModelUpdate () {
                         position = index,
                         elements = {},
                         removals = 1,
+                        selection = null,
                     };
                     command.add_value (this, "updator", add, remove);
                     command.apply ();
@@ -336,11 +361,13 @@ public interface Container : Undoable, Updatable, Transformed {
                         position = index + 1,
                         elements = { elem },
                         removals = 0,
+                        selection = elem,
                     };
                     var remove = ModelUpdate () {
                         position = index + 1,
                         elements = {},
                         removals = 1,
+                        selection = null,
                     };
                     command.add_value (this, "updator", add, remove);
                     command.apply ();
@@ -382,11 +409,13 @@ public interface Container : Undoable, Updatable, Transformed {
             position = 0,
             elements = { element },
             removals = 0,
+            selection = element,
         };
         var remove = ModelUpdate () {
             position = 0,
             elements = {},
             removals = 1,
+            selection = null,
         };
         command.add_value (this, "updator", insert, remove);
         command.apply ();
@@ -398,11 +427,13 @@ public interface Container : Undoable, Updatable, Transformed {
             position = model.get_n_items (),
             elements = { element },
             removals = 0,
+            selection = element,
         };
         var remove = ModelUpdate () {
             position = model.get_n_items (),
             elements = {},
             removals = 1,
+            selection = null,
         };
         command.add_value (this, "updator", insert, remove);
         command.apply ();
