@@ -483,7 +483,10 @@ public interface Container : Undoable, Updatable, Transformed {
             selected_child.check_controls (new_x, new_y, new_tolerance, out inner_handle);
             if (inner_handle != null) {
                 selected_child.clicked (new_x, new_y, new_tolerance, out element, out segment); // Just for if a segment was also clicked
-                element = selected_child;
+                if (element == null) {
+                    element = selected_child;
+                }
+
                 handle = new TransformedHandle (inner_handle, element.transform);
                 return true;
             }
