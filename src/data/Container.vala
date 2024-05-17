@@ -493,12 +493,14 @@ public interface Container : Undoable, Updatable, Transformed {
         var index = 0;
         var elem = model.get_item (index) as Element;
         while (elem != null) {
-            var new_x = x, new_y = y;
-            var new_tolerance = tolerance;
-            elem.transform.update_point (x, y, out new_x, out new_y);
-            elem.transform.update_distance (tolerance, out new_tolerance);
-            if (elem.clicked (new_x, new_y, new_tolerance, out element, out segment)) {
-                return true;
+            if (elem.visible) {
+                var new_x = x, new_y = y;
+                var new_tolerance = tolerance;
+                elem.transform.update_point (x, y, out new_x, out new_y);
+                elem.transform.update_distance (tolerance, out new_tolerance);
+                if (elem.clicked (new_x, new_y, new_tolerance, out element, out segment)) {
+                    return true;
+                }
             }
 
             index += 1;
