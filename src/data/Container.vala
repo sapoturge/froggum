@@ -57,6 +57,7 @@ public interface Container : Undoable, Updatable, Transformed {
         if (value.selection != null && value.selection != selected_child) {
             value.selection.select (true);
         }
+
         update ();
     }
 
@@ -329,7 +330,12 @@ public interface Container : Undoable, Updatable, Transformed {
         var cont = element as Container;
         if (cont != null) {
             signal_manager.path_selected = cont.path_selected.connect ((elem) => {
-                selected_child = element;
+                if (elem == null) {
+                    selected_child = null;
+                } else {
+                    selected_child = element;
+                }
+
                 path_selected (elem);
             });
 
