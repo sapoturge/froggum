@@ -18,6 +18,9 @@ public class EditorView : Gtk.Box {
                     var elem = (Element) image.tree.get_row (position).item;
                     if (elem == e) {
                         selection.selected = position;
+                        var adj = paths_list.vadjustment;
+                        adj.value = position * (adj.upper - adj.lower) / image.tree.get_n_items () + adj.lower;
+                        paths_list.vadjustment = adj;
                     }
                 }
             }
