@@ -32,7 +32,7 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    protected abstract Element? selected_child { get; set; }
+    public abstract Element? selected_child { get; protected set; }
     protected abstract Gee.Map<Element, ElementSignalManager> signal_managers { get; set; }
 
     // This has to be abstract so it exists in the child classes
