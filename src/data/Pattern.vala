@@ -20,7 +20,7 @@ public class Pattern : Object, ListModel, Undoable {
     private PatternType previous_pattern_type;
     private Gdk.RGBA previous_rgba;
 
-    private Array<Stop> stops;
+    private Gee.ArrayList<Stop> stops;
     
     public signal void update ();
 
@@ -133,7 +133,7 @@ public class Pattern : Object, ListModel, Undoable {
     }
 
     construct {
-        stops = new Array<Stop> ();
+        stops = new Gee.ArrayList<Stop> ();
         start = {0, 0};
         end = {5, 5};
 
@@ -142,8 +142,8 @@ public class Pattern : Object, ListModel, Undoable {
     }
 
     public Object? get_item (uint index) {
-        if (index < stops.length) {
-            return stops.index (index);
+        if (index < stops.size) {
+            return stops.@get ((int) index);
         }
         return null;
     }
@@ -153,7 +153,7 @@ public class Pattern : Object, ListModel, Undoable {
     }
 
     public uint get_n_items () {
-        return stops.length;
+        return stops.size;
     }
 
     private void refresh_pattern () {
@@ -166,15 +166,15 @@ public class Pattern : Object, ListModel, Undoable {
                 break;
             case LINEAR:
                 pattern = new Cairo.Pattern.linear (start.x, start.y, end.x, end.y);
-                for (int i = 0; i < stops.length; i++) {
-                    var s = stops.index (i);
+                for (int i = 0; i < stops.size; i++) {
+                    var s = stops.@get (i);
                     pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
                 }
                 break;
             case RADIAL:
                 pattern = new Cairo.Pattern.radial (start.x, start.y, 0, start.x, start.y, Math.hypot (start.x - end.x, start.y - end.y));
-                for (int i = 0; i < stops.length; i++) {
-                    var s = stops.index (i);
+                for (int i = 0; i < stops.size; i++) {
+                    var s = stops.@get (i);
                     pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
                 }
                 break;
@@ -196,15 +196,15 @@ public class Pattern : Object, ListModel, Undoable {
                 break;
             case PatternType.LINEAR:
                 custom_pattern = new Cairo.Pattern.linear (start.x, start.y, end.x, end.y);
-                for (int i = 0; i < stops.length; i++) {
-                    var s = stops.index (i);
+                for (int i = 0; i < stops.size; i++) {
+                    var s = stops.@get (i);
                     custom_pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
                 }
                 break;
             case PatternType.RADIAL:
                 custom_pattern = new Cairo.Pattern.radial (start.x, start.y, 0, start.x, start.y, Math.hypot (end.x - start.x, end.y - start.y));
-                for (int i = 0; i < stops.length; i++) {
-                    var s = stops.index (i);
+                for (int i = 0; i < stops.size; i++) {
+                    var s = stops.@get (i);
                     custom_pattern.add_color_stop_rgba (s.offset, s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
                 }
                 break;
@@ -236,14 +236,31 @@ public class Pattern : Object, ListModel, Undoable {
     }
 
     public void add_stop (Stop stop) {
-        stops.append_val (stop);
+        stops.add (stop);
         stop.start = start;
         stop.end = end;
         bind_property ("start", stop, "start");
         bind_property ("end", stop, "end");
         stop.notify.connect (() => { update (); });
-        stop.add_command.connect ((c) => { add_command (c); });
-        items_changed (stops.length - 1, 0, 1);
+        stop.add_command.connect ((c) => {
+            add_command (c);
+            bool swapped = false;
+            for (int i = 1; i < stops.size; i++) {
+                for (int j = 1; j < stops.size; j++) {
+                    Stop first = stops.@get(j-1);
+                    Stop second = stops.@get(j);
+                    if (first.offset > second.offset) {
+                        swapped = true;
+                        stops.@set (j, first);
+                        stops.@set (j-1, second);
+                    }
+                }
+            }
+            if (swapped) {
+                items_changed (0, stops.size, stops.size);
+            }
+        });
+        items_changed (stops.size - 1, 0, 1);
         update ();
     }
     
