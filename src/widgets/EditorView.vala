@@ -14,10 +14,23 @@ public class EditorView : Gtk.Box {
         viewport.image = image;
         image.path_selected.connect ((e) => {
             if (e != null) {
-                for (var position = 0; position < image.tree.get_n_items (); position++) {
+                Container current_parent = image.selected_child as Container;
+                var num_rows = image.tree.n_items;
+                var start_rows = num_rows;
+                for (var position = 0; position < num_rows; position++) {
                     var elem = (Element) image.tree.get_row (position).item;
                     if (elem == e) {
                         selection.selected = position;
+                        // Once elementary updates to Gtk 4.12, this can be replaced with scroll_to
+                        var adj = paths_list.vadjustment;
+                        adj.upper = (adj.upper - adj.lower) * num_rows / start_rows + adj.lower;
+                        adj.value = (position - num_rows + start_rows) * (adj.upper - adj.lower) / num_rows + adj.lower;
+                        paths_list.vadjustment = adj;
+                        return;
+                    } else if (elem as Container == current_parent && current_parent != null) {
+                        image.tree.get_row (position).expanded = true;
+                        num_rows = image.tree.get_n_items ();
+                        current_parent = current_parent.selected_child as Container;
                     }
                 }
             }
@@ -26,6 +39,15 @@ public class EditorView : Gtk.Box {
             var row = (Gtk.TreeListRow) selection.selected_item;
             var e = (Element) row.item;
             if (e != null) {
+                var parent = (Container) image;
+                while (parent != null) {
+                    if (parent.selected_child == e) {
+                        return;
+                    }
+
+                    parent = parent.selected_child as Container;
+                }
+
                 if (image.has_selected ()) {
                     image.deselect ();
                 }

@@ -222,6 +222,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                              {0.33f, 0.33f, 0.33f, 1f},
                              "New Path");
         add_element (path);
+        path.select (true);
     }
 
     public void new_circle () {
@@ -229,21 +230,25 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                                  new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (circle);
+        circle.select (true);
     }
 
     public void new_rectangle () {
         var rectangle = new Rectangle (2.5, 2.5, width - 5, height - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (rectangle);
+        rectangle.select (true);
     }
 
     public void new_ellipse () {
         var ellipse = new Ellipse (width / 2, height / 2, width / 2 - 5, height / 2 - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (ellipse);
+        ellipse.select (true);
     }
 
     public void new_line () {
         var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         add_element (line);
+        line.select (true);
     }
 
     public void new_polyline () {
@@ -255,6 +260,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polyline");
         add_element (line);
+        line.select (true);
     }
 
     public void new_polygon () {
@@ -266,11 +272,13 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polygon");
         add_element (shape);
+        shape.select (true);
     }
 
     public void new_group () {
         var group = new Group ();
         add_element (group);
+        group.select (true);
     }
 
     private void save_xml () {

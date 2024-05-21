@@ -36,6 +36,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _image.update.connect (() => {
                 queue_draw ();
             });
+            image.path_selected.connect (() => {
+                current_handle = null;
+            });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
         }
@@ -218,12 +221,12 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 Segment segment;
                 Handle handle;
                 if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
-                    current_handle = handle;
                     if (tutorial != null && tutorial.step == CLICK) {
                         tutorial.next_step ();
                     }
 
                     path.select (true);
+                    current_handle = handle;
                 } else {
                     image.deselect ();
                     current_handle = null;
@@ -239,8 +242,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             Segment segment;
             Handle handle;
             if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
-                current_handle = handle;
                 path.select (true);
+                current_handle = handle;
                 show_context_menu (path, segment, handle, x, y);
             }
         });
