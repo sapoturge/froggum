@@ -38,15 +38,18 @@ public class EditorView : Gtk.Box {
         });
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
-            var e = (Element) row.item;
+            var e = row.item as Element;
             if (e != null) {
-                var parent = (Container) image;
-                while (parent != null) {
-                    if (parent.selected_child == e) {
-                        return;
-                    }
+                var cont = e as Container;
+                if (cont == null || cont.selected_child == null) {
+                    var parent = (Container) image;
+                    while (parent != null) {
+                        if (parent.selected_child == e ) {
+                            return;
+                        }
 
-                    parent = parent.selected_child as Container;
+                        parent = parent.selected_child as Container;
+                    }
                 }
 
                 if (image.has_selected ()) {
