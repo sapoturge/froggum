@@ -20,6 +20,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Tutorial tutorial;
 
     public Point control_point { get; set; }
+    public Point cursor { get; private set; }
 
     private Binding point_binding;
     public Handle? current_handle { get; private set; }
@@ -246,6 +247,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 current_handle = handle;
                 show_context_menu (path, segment, handle, x, y);
             }
+        });
+
+        var motion_controller = new Gtk.EventControllerMotion ();
+        add_controller (motion_controller);
+        motion_controller.motion.connect ((x, y) => {
+            var sx = scale_x(x);
+            var sy = scale_y(y);
+            cursor = {sx, sy};
         });
 
         var drag_controller = new Gtk.GestureDrag ();

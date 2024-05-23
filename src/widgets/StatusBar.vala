@@ -1,5 +1,14 @@
 public class StatusBar : Gtk.Box {
+    private Gtk.Label cursor_x;
+    private Gtk.Label cursor_y;
     private Gee.List<SignalManager> bindings;
+
+    public Point cursor_pos {
+        set {
+            cursor_x.label = "%.2f".printf (value.x);
+            cursor_y.label = "%.2f".printf (value.y);
+        }
+    }
 
     private class SignalManager {
         public Handle handle;
@@ -19,7 +28,7 @@ public class StatusBar : Gtk.Box {
     public Handle? handle {
         set {
             var child = get_last_child ();
-            while (child != null) {
+            while (child != null && child as Gtk.Separator == null) {
                 remove (child);
                 child = get_last_child ();
             }
@@ -109,6 +118,18 @@ public class StatusBar : Gtk.Box {
     }
 
     construct {
+        cursor_x = new Gtk.Label (_("0.0"));
+        cursor_y = new Gtk.Label (_("0.0"));
+        append (new Gtk.Label (_("Cursor position: (")));
+        append (cursor_x);
+        append (new Gtk.Label (_(",")));
+        append (cursor_y);
+        append (new Gtk.Label (_(")")));
+        var separator = new Gtk.Separator (Gtk.Orientation.VERTICAL) {
+            margin_start = 5,
+            margin_end = 5,
+        };
+        append (separator);
         var label = new Gtk.Label (_("No handle selected."));
         append (label);
         hexpand = true;
