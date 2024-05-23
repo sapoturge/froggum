@@ -1,7 +1,10 @@
 public class StatusBar : Gtk.Box {
     private Gtk.Label cursor_x;
     private Gtk.Label cursor_y;
+    private Gtk.Button expander_button;
+    private bool expanded;
     private Gee.List<SignalManager> bindings;
+    private Handle _handle;
 
     public Point cursor_pos {
         set {
@@ -26,7 +29,12 @@ public class StatusBar : Gtk.Box {
     }
 
     public Handle? handle {
+        get {
+            return _handle;
+        }
         set {
+            _handle = value;
+
             var child = get_last_child ();
             while (child != null && child as Gtk.Separator == null) {
                 remove (child);
@@ -40,17 +48,23 @@ public class StatusBar : Gtk.Box {
             bindings.clear ();
 
             if (value != null) {
-                append (new Gtk.Label (_("(")));
-                var transformed = value as TransformedHandle;
-                while (transformed != null) {
-                    add_entry (value);
-                    append (new Gtk.Image.from_icon_name ("go-next"));
-                    append (new Gtk.Label ("%s: (".printf(transformed.name)));
-                    value = transformed.base_handle;
-                    transformed = value as TransformedHandle;
+                if (expanded) {
+                    append (new Gtk.Label (_("(")));
+                    var transformed = value as TransformedHandle;
+                    while (transformed != null) {
+                        add_entry (value);
+                        append (new Gtk.Image.from_icon_name ("go-next"));
+                        append (new Gtk.Label ("%s: (".printf(transformed.name)));
+                        value = transformed.base_handle;
+                        transformed = value as TransformedHandle;
+                    }
+                } else {
+                    append (new Gtk.Label (_("(")));
                 }
 
                 add_entry (value);
+
+                append (expander_button);
             } else {
                 append (new Gtk.Label (_("No handle selected")));
             }
@@ -135,5 +149,17 @@ public class StatusBar : Gtk.Box {
         hexpand = true;
         vexpand = false;
         bindings = new Gee.ArrayList<SignalManager> ();
+        expander_button = new Gtk.Button.from_icon_name ("go-next-symbolic");
+        expander_button.clicked.connect (() => {
+            if (expanded) {
+                expanded = false;
+                expander_button.icon_name = "go-next-symbolic";
+            } else {
+                expanded = true;
+                expander_button.icon_name = "go-previous-symbolic";
+            }
+
+            handle = handle;
+        });
     }
 }
