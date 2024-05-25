@@ -295,8 +295,13 @@ public class EditorView : Gtk.Box {
         main_space.append (scrolled);
         main_space.append (status_bar);
 
-        append (side_bar);
-        append (main_space);
+        var panes = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
+        panes.start_child = side_bar;
+        panes.end_child = main_space;
+        panes.resize_start_child = false;
+        panes.shrink_start_child = false;
+        panes.resize_end_child = true;
+        append (panes);
 
         hexpand = true;
         vexpand = true;

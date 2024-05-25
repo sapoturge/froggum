@@ -25,7 +25,9 @@ public class PathRow : Gtk.Box {
         expander = new Gtk.TreeExpander ();
         view = new Gtk.DrawingArea ();
         visibility = new Gtk.ToggleButton ();
-        title = new Gtk.EditableLabel ("Element");
+        title = new Gtk.EditableLabel ("Element") {
+            hexpand = true,
+        };
         fill = new PatternButton ();
         stroke = new PatternButton ();
 
