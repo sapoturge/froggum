@@ -5,6 +5,8 @@ public class StatusBar : Gtk.Box {
     private bool expanded;
     private Gee.List<SignalManager> bindings;
     private Handle _handle;
+    private uint finish_id;
+    private bool editing;
 
     public Point cursor_pos {
         set {
@@ -15,16 +17,20 @@ public class StatusBar : Gtk.Box {
 
     private class SignalManager {
         public Handle handle;
-        public Gtk.Editable x_label;
-        public Gtk.Editable y_label;
+        public Gtk.Text x_delegate;
+        public Gtk.Text y_delegate;
         public ulong handle_notify;
+        public ulong x_activate;
+        public ulong y_activate;
         public ulong x_insert;
         public ulong y_insert;
 
         public void disconnect_all () {
             handle.disconnect (handle_notify);
-            x_label.disconnect (x_insert);
-            y_label.disconnect (y_insert);
+            x_delegate.disconnect (x_insert);
+            y_delegate.disconnect (y_insert);
+            x_delegate.disconnect (x_activate);
+            y_delegate.disconnect (y_activate);
         }
     }
 
@@ -73,61 +79,112 @@ public class StatusBar : Gtk.Box {
 
     private void add_entry (Handle handle) {
         var new_point = handle.point;
-        var x_label = new Gtk.EditableLabel ("%.2f".printf (new_point.x)) {
+        var x_delegate = new Gtk.Text () {
+            text = "%.2f".printf (new_point.x),
             width_chars = 5,
             max_width_chars = 5,
             xalign = 1,
         };
-        var y_label = new Gtk.EditableLabel ("%.2f".printf (new_point.y)) {
+        var y_delegate = new Gtk.Text () {
+            text = "%.2f".printf (new_point.y),
             width_chars = 5,
             max_width_chars = 5,
             xalign = 1,
         };
-        var x_delegate = x_label.get_delegate ();
-        var y_delegate = y_label.get_delegate ();
         var signal_manager = new SignalManager ();
         signal_manager.handle = handle;
-        signal_manager.x_label = x_delegate;
-        signal_manager.y_label = y_delegate;
+        signal_manager.x_delegate = x_delegate;
+        signal_manager.y_delegate = y_delegate;
         signal_manager.handle_notify = handle.notify["point"].connect (() => {
             var point = handle.point;
-            x_label.text = "%.2f".printf (point.x);
-            y_label.text = "%.2f".printf (point.y);
+            if (!x_delegate.has_focus) {
+                SignalHandler.block (x_delegate, signal_manager.x_insert);
+                x_delegate.text = "%.2f".printf (point.x);
+                SignalHandler.unblock (x_delegate, signal_manager.x_insert);
+            }
+            if (!y_delegate.has_focus) {
+                SignalHandler.block (y_delegate, signal_manager.y_insert);
+                y_delegate.text = "%.2f".printf (point.y);
+                SignalHandler.unblock (y_delegate, signal_manager.y_insert);
+            }
+        });
+        signal_manager.x_activate = x_delegate.notify["has_focus"].connect (() => {
+            if (!x_delegate.has_focus) {
+                finish_id = Timeout.add (100, () => {
+                    finish_id = 0;
+                    editing = false;
+                    handle.finish ("point");
+                    return false;
+                });
+            } else if (!editing) {
+                handle.begin ("point");
+                editing = true;
+            } else {
+                Source.remove (finish_id);
+            }
+        });
+        signal_manager.y_activate = y_delegate.notify["has_focus"].connect (() => {
+            if (!y_delegate.has_focus) {
+                finish_id = Timeout.add (100, () => {
+                    finish_id = 0;
+                    editing = false;
+                    handle.finish ("point");
+                    return false;
+                });
+            } else if (!editing) {
+                handle.begin ("point");
+                editing = true;
+            } else {
+                Source.remove (finish_id);
+            }
         });
         signal_manager.x_insert = x_delegate.insert_text.connect ((text, len, ref position) => {
             var new_text = new StringBuilder ();
             unichar c;
+            new_text.append_len (x_delegate.text, position);
+            var start_position = position;
+            var tail = x_delegate.text.substring (position);
             for (int i = 0; text.get_next_char (ref i, out c); ) {
                 if (('0' <= c && c <= '9') || c == '.') {
                     new_text.append_unichar (c);
+                    position += 1;
                 }
             }
-
+            
+            new_text.append (tail);
+            var result = new_text.free_and_steal ();
             SignalHandler.block (x_delegate, signal_manager.x_insert);
-            x_delegate.insert_text (new_text.str, (int) new_text.len, ref position);
+            x_delegate.insert_text (result.substring (start_position, position), position - start_position, ref start_position);
             SignalHandler.unblock (x_delegate, signal_manager.x_insert);
             Signal.stop_emission_by_name (x_delegate, "insert_text");
+            handle.point = { float.parse (result), handle.point.y }; 
         });
         signal_manager.y_insert = y_delegate.insert_text.connect ((text, len, ref position) => {
             var new_text = new StringBuilder ();
             unichar c;
+            new_text.append_len (y_delegate.text, position);
+            var start_position = position;
+            var tail = y_delegate.text.substring (position);
             for (int i = 0; text.get_next_char (ref i, out c); ) {
                 if (('0' <= c && c <= '9') || c == '.') {
                     new_text.append_unichar (c);
+                    position += 1;
                 }
             }
-
-            var new_position = new_text.len;
-
+            
+            new_text.append (tail);
+            var result = new_text.free_and_steal ();
             SignalHandler.block (y_delegate, signal_manager.y_insert);
-            y_delegate.insert_text (new_text.str, (int) new_position, ref position);
+            y_delegate.insert_text (result.substring (start_position, position), position - start_position, ref start_position);
             SignalHandler.unblock (y_delegate, signal_manager.y_insert);
             Signal.stop_emission_by_name (y_delegate, "insert_text");
+            handle.point = { handle.point.x, float.parse (result) }; 
         });
+        //signal_manager.x_cancel = x_delegate.
         bindings.add (signal_manager);
-        append (x_label);
+        append (x_delegate);
         append (new Gtk.Label (_(",")));
-        append (y_label);
+        append (y_delegate);
         append (new Gtk.Label (_(")")));
     }
 
