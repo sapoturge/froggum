@@ -165,6 +165,11 @@ public class Pattern : Object, ListModel, Undoable {
                 pattern = new Cairo.Pattern.rgba (rgba.red, rgba.green, rgba.blue, rgba.alpha);
                 break;
             case LINEAR:
+                if (stops.size == 0) {
+                    add_stop (new Stop (0.0, rgba));
+                    add_stop (new Stop (1.0, rgba));
+                }
+
                 pattern = new Cairo.Pattern.linear (start.x, start.y, end.x, end.y);
                 for (int i = 0; i < stops.size; i++) {
                     var s = stops.@get (i);
@@ -172,6 +177,11 @@ public class Pattern : Object, ListModel, Undoable {
                 }
                 break;
             case RADIAL:
+                if (stops.size == 0) {
+                    add_stop (new Stop (0.0, rgba));
+                    add_stop (new Stop (1.0, rgba));
+                }
+
                 pattern = new Cairo.Pattern.radial (start.x, start.y, 0, start.x, start.y, Math.hypot (start.x - end.x, start.y - end.y));
                 for (int i = 0; i < stops.size; i++) {
                     var s = stops.@get (i);
