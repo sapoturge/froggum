@@ -21,6 +21,25 @@ public class Pattern : Object, ListModel, Undoable {
     private Gdk.RGBA previous_rgba;
     private bool initialized; // Flag to avoid unneeded default stops
 
+    public struct StopUpdate {
+        int position;
+        Stop? stop;
+    }
+
+    public StopUpdate stop_update {
+        set {
+            if (value.stop != null) {
+                stops.insert (value.position, value.stop);
+                items_changed (value.position, 0, 1);
+            } else {
+                stops.remove_at (value.position);
+                items_changed (value.position, 1, 0);
+            }
+
+            update ();
+        }
+    }
+
     private Gee.ArrayList<Stop> stops;
 
     public signal void update ();
@@ -186,8 +205,10 @@ public class Pattern : Object, ListModel, Undoable {
                 break;
             case LINEAR:
                 if (initialized && stops.size == 0) {
+                    initialized = false;
                     add_stop (new Stop (0.0, rgba));
                     add_stop (new Stop (1.0, rgba));
+                    initialized = true;
                 }
 
                 pattern = new Cairo.Pattern.linear (start.x, start.y, end.x, end.y);
@@ -198,8 +219,10 @@ public class Pattern : Object, ListModel, Undoable {
                 break;
             case RADIAL:
                 if (initialized && stops.size == 0) {
+                    initialized = false; // Don't add commands for these stops
                     add_stop (new Stop (0.0, rgba));
                     add_stop (new Stop (1.0, rgba));
+                    initialized = true;
                 }
 
                 pattern = new Cairo.Pattern.radial (start.x, start.y, 0, start.x, start.y, Math.hypot (start.x - end.x, start.y - end.y));
@@ -266,7 +289,6 @@ public class Pattern : Object, ListModel, Undoable {
     }
 
     public void add_stop (Stop stop) {
-        stops.add (stop);
         stop.start = start;
         stop.end = end;
         bind_property ("start", stop, "start");
@@ -290,8 +312,37 @@ public class Pattern : Object, ListModel, Undoable {
                 items_changed (0, stops.size, stops.size);
             }
         });
-        items_changed (stops.size - 1, 0, 1);
-        update ();
+
+        var index = stops.size / 2;
+        var lower = 0;
+        var upper = stops.size - 1;
+        while (upper > lower) {
+            if (stops.@get (index).offset < stop.offset) {
+                lower = index + 1;
+            } else {
+                upper = index - 1;
+            }
+
+            index = (upper + lower) / 2;
+        }
+
+        var insert_update = StopUpdate () {
+            position = index,
+            stop = stop,
+        };
+
+        if (initialized) {
+            // Don't add commands for adding stops when loading or for the default stops
+            var command = new Command ();
+            var remove_update = StopUpdate () {
+                position = index,
+                stop = null,
+            };
+            command.add_value (this, "stop_update", insert_update, remove_update);
+            add_command (command);
+        }
+
+        stop_update = insert_update;
     }
 
     public void begin (string prop) {
@@ -418,7 +469,9 @@ public class Pattern : Object, ListModel, Undoable {
                 var stop = (Stop) get_item (i);
                 if ((x - stop.display.x).abs () <= tolerance &&
                     (y - stop.display.y).abs () <= tolerance) {
-                    handle = new BaseHandle(stop, "display", new Gee.ArrayList<ContextOption> ());
+                    var opts = new Gee.ArrayList<ContextOption> ();
+                    opts.add (new ContextOption.action (_("Delete Stop"), () => { delete_stop (stop); }));
+                    handle = new BaseHandle(stop, "display", opts);
                     return true;
                 }
             }
@@ -438,6 +491,26 @@ public class Pattern : Object, ListModel, Undoable {
 
         handle = null;
         return false;
+    }
+
+    private void delete_stop (Stop stop) {
+        var index = stops.index_of (stop);
+        if (index < 0) {
+            return; // Not in the list; doesn't need to be removed
+        }
+
+        var command = new Command ();
+        var delete_update = StopUpdate () {
+            position = index,
+            stop = null,
+        };
+        var replace_update = StopUpdate () {
+            position = index,
+            stop = stop,
+        };
+        stop_update = delete_update;
+        command.add_value (this, "stop_update", delete_update, replace_update);
+        add_command (command);
     }
 }
 
