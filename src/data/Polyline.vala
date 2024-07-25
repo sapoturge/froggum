@@ -188,7 +188,7 @@ public class Polyline : Element {
             points += segment.end;
         }
 
-        return new Polyline (points, fill, stroke, "Copy of " + title, transform);
+        return new Polyline (points, fill.copy (), stroke.copy (), "Copy of " + title, transform);
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {

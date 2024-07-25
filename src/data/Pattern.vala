@@ -9,19 +9,20 @@ public class Pattern : Object, ListModel, Undoable {
     private Cairo.Pattern pattern;
 
     public PatternType pattern_type { get; set; }
-    
+
     public Gdk.RGBA rgba { get; set; }
 
     public Point start { get; set; }
     public Point end { get; set; }
-    
+
     private Point previous_start;
     private Point previous_end;
     private PatternType previous_pattern_type;
     private Gdk.RGBA previous_rgba;
+    private bool initialized; // Flag to avoid unneeded default stops
 
     private Gee.ArrayList<Stop> stops;
-    
+
     public signal void update ();
 
     public Pattern.none () {
@@ -37,13 +38,91 @@ public class Pattern : Object, ListModel, Undoable {
     public Pattern.linear (Point start, Point end) {
         this.start = start;
         this.end = end;
+        initialized = false; // Don't create default stops; will be updated after stops are added
         pattern_type = LINEAR;
     }
 
     public Pattern.radial (Point start, Point end) {
         this.start = start;
         this.end = end;
+        initialized = false; // Don't create default stops; will be updated after stops are added
         pattern_type = RADIAL;
+    }
+
+    public Pattern copy () {
+        switch (pattern_type) {
+        case NONE:
+            return new Pattern.none ();
+        case COLOR:
+            return new Pattern.color (rgba);
+        default:
+            var pattern = new Pattern.linear (start, end);
+            pattern.rgba = rgba;
+            for (int i = 0; i < stops.size; i++) {
+                var s = stops.@get (i);
+                pattern.add_stop (s.copy ());
+            }
+
+            pattern.initialized = true;
+            pattern.pattern_type = pattern_type;
+            return pattern;
+        }
+    }
+
+    public static Pattern? load_xml (Xml.Node* def) {
+        var pattern = new Pattern.none ();
+
+        for (Xml.Node* stop = def->children; stop != null; stop = stop->next) {
+            var offset_data = stop->get_prop ("offset");
+            double offset;
+            if (offset_data == null) {
+                offset = 0;
+            } else if (offset_data.has_suffix ("%")) {
+                offset = double.parse (offset_data.substring (0, offset_data.length - 1)) / 100;
+            } else {
+                offset = double.parse (offset_data);
+            }
+
+            var color = Gdk.RGBA ();
+            color.parse (stop->get_prop ("stop-color") ?? "#000");
+            var opacity = stop->get_prop ("stop-opacity");
+            if (opacity != null) {
+                if (opacity.has_suffix ("%")) {
+                    color.alpha = float.parse (opacity.substring (0, opacity.length - 1)) / 100;
+                } else {
+                    color.alpha = float.parse (opacity);
+                }
+            }
+
+            pattern.add_stop (new Stop (offset, color));
+        }
+
+        pattern.initialized = true;
+
+        if (def->name == "linearGradient") {
+            var x1 = double.parse (def->get_prop ("x1"));
+            var y1 = double.parse (def->get_prop ("y1"));
+            var x2 = double.parse (def->get_prop ("x2"));
+            var y2 = double.parse (def->get_prop ("y2"));
+
+            pattern.start = { x1, y1 };
+            pattern.end = { x2, y2 };
+
+            pattern.pattern_type = LINEAR;
+            return pattern;
+        } else if (def->name == "radialGradient") {
+            var cx = double.parse (def->get_prop ("cx"));
+            var cy = double.parse (def->get_prop ("cy"));
+            var r = double.parse (def->get_prop ("r"));
+
+            pattern.start = { cx, cy };
+            pattern.end = { cx + r, cy };
+
+            pattern.pattern_type = RADIAL;
+            return pattern;
+        } else {
+            return null;
+        }
     }
 
     public static Pattern get_from_text (string? text, Gee.HashMap<string, Pattern> patterns) {
@@ -51,7 +130,13 @@ public class Pattern : Object, ListModel, Undoable {
             return new Pattern.none ();
         } else {
             Parser parser = new Parser (text);
-            switch (parser.get_keyword ()) {
+            var rgba = parser.get_color();
+            if (rgba != null) {
+                return new Pattern.color (rgba);
+            }
+
+            var keyword = parser.get_keyword ();
+            switch (keyword) {
             case Keyword.URL:
                 parser.match ("(");
                 parser.match ("#");
@@ -59,74 +144,8 @@ public class Pattern : Object, ListModel, Undoable {
                 return patterns.@get (name.substring (0, name.length - 1));
             case Keyword.NONE:
                 return new Pattern.none ();
-            case Keyword.RGB:
-                var rgba = Gdk.RGBA ();
-                int value;
-                parser.match ("(");
-                if (parser.get_int (out value)) {
-                    rgba.red = value / 255.0f;
-                }
-                parser.match (",");
-                if (parser.get_int (out value)) {
-                    rgba.green = value / 255.0f;
-                }
-                parser.match (",");
-                if (parser.get_int (out value)) {
-                    rgba.blue = value / 255.0f;
-                }
-                rgba.alpha = 1.0f;
-                return new Pattern.color (rgba);
-            case Keyword.RGBA:
-                var rgba = Gdk.RGBA ();
-                int value;
-                parser.match ("(");
-                if (parser.get_int (out value)) {
-                    rgba.red = value / 255.0f;
-                }
-                parser.match (",");
-                if (parser.get_int (out value)) {
-                    rgba.green = value / 255.0f;
-                }
-                parser.match (",");
-                if (parser.get_int (out value)) {
-                    rgba.blue = value / 255.0f;
-                }
-                parser.match (",");
-                parser.get_float (out rgba.alpha);
-                return new Pattern.color (rgba);
-             case Keyword.NOT_FOUND:
-                if (parser.match ("#")) {
-                    var rgba = Gdk.RGBA ();
-                    int red = 0, red2 = 0;
-                    int green = 0, green2 = 0;
-                    int blue = 0, blue2 = 0;
-                    parser.get_digit (out red, 16, false);
-                    parser.get_digit (out red2, 16, false);
-                    parser.get_digit (out green, 16, false);
-                    if (parser.get_digit (out green2, 16, false) &&
-                        parser.get_digit (out blue, 16, false) &&
-                        parser.get_digit (out blue2, 16, false)) {
-                        red = red * 16 + red2;
-                        green = green * 16 + green2;
-                        blue = blue * 16 + blue2;
-                    } else {
-                        // Not enough digits for 6; must be three digits
-                        blue = green * 17;
-                        green = red2 * 17;
-                        red = red * 17;
-                    }
-
-                    rgba.red = red / 255.0f;
-                    rgba.green = green / 255.0f;
-                    rgba.blue = blue / 255.0f;
-                    rgba.alpha = 1.0f;
-                    return new Pattern.color (rgba);
-                } else {
-                    parser.error ("Unknown pattern");
-                    return new Pattern.none ();
-                }
             default:
-                parser.error ("Unknown pattern");
+                parser.error ("Unknown pattern: %d".printf (keyword));
                 return new Pattern.none ();
             }
         }
@@ -136,6 +155,7 @@ public class Pattern : Object, ListModel, Undoable {
         stops = new Gee.ArrayList<Stop> ();
         start = {0, 0};
         end = {5, 5};
+        initialized = true; // Set to false in gradient initializers
 
         update.connect (() => { refresh_pattern (); });
         notify.connect (() => { update (); });
@@ -165,7 +185,7 @@ public class Pattern : Object, ListModel, Undoable {
                 pattern = new Cairo.Pattern.rgba (rgba.red, rgba.green, rgba.blue, rgba.alpha);
                 break;
             case LINEAR:
-                if (stops.size == 0) {
+                if (initialized && stops.size == 0) {
                     add_stop (new Stop (0.0, rgba));
                     add_stop (new Stop (1.0, rgba));
                 }
@@ -177,7 +197,7 @@ public class Pattern : Object, ListModel, Undoable {
                 }
                 break;
             case RADIAL:
-                if (stops.size == 0) {
+                if (initialized && stops.size == 0) {
                     add_stop (new Stop (0.0, rgba));
                     add_stop (new Stop (1.0, rgba));
                 }
@@ -273,7 +293,7 @@ public class Pattern : Object, ListModel, Undoable {
         items_changed (stops.size - 1, 0, 1);
         update ();
     }
-    
+
     public void begin (string prop) {
         switch (prop) {
             case "start":
@@ -290,7 +310,7 @@ public class Pattern : Object, ListModel, Undoable {
                 break;
         }
     }
-    
+
     public void finish (string prop) {
         var command = new Command ();
         switch (prop) {
@@ -325,7 +345,7 @@ public class Pattern : Object, ListModel, Undoable {
                 element->new_prop ("x2", end.x.to_string ());
                 element->new_prop ("y2", end.y.to_string ());
                 element->new_prop ("gradientUnits", "userSpaceOnUse");
-                
+
                 for (int j = 0; j < get_n_items (); j++) {
                     var stop = (Stop) get_item (j);
                     Xml.Node* stop_element = new Xml.Node (null, "stop");
@@ -334,7 +354,7 @@ public class Pattern : Object, ListModel, Undoable {
                     stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
                     element->add_child (stop_element);
                 }
-                
+
                 defs->add_child (element);
                 return "url(#linearGrad%d)".printf (pattern_index);
             case RADIAL:
@@ -348,7 +368,7 @@ public class Pattern : Object, ListModel, Undoable {
                 element->new_prop ("r", Math.hypot (end.x - start.x, end.y - start.y).to_string ());
                 element->new_prop ("fr", "0");
                 element->new_prop ("gradientUnits", "userSpaceOnUse");
-                
+
                 for (int j = 0; j < get_n_items (); j++) {
                     var stop = (Stop) get_item (j);
                     Xml.Node* stop_element = new Xml.Node (null, "stop");
@@ -357,7 +377,7 @@ public class Pattern : Object, ListModel, Undoable {
                     stop_element->new_prop ("stop-opacity", stop.rgba.alpha.to_string ());
                     element->add_child (stop_element);
                 }
-                
+
                 defs->add_child (element);
                 return "url(#radialGrad%d)".printf (pattern_index);
             default:
@@ -378,7 +398,7 @@ public class Pattern : Object, ListModel, Undoable {
             cr.new_sub_path ();
             cr.arc (end.x, end.y, 6 / zoom, 0, Math.PI * 2);
             cr.fill ();
-           
+
             for (int i = 0; i < get_n_items (); i++) {
                 var stop = (Stop) get_item (i);
                 cr.arc (stop.display.x, stop.display.y, 6 / zoom, 0, Math.PI * 2);
@@ -424,11 +444,11 @@ public class Pattern : Object, ListModel, Undoable {
 public class Stop : Object, Undoable {
     private double previous_offset;
     private Gdk.RGBA previous_rgba;
-    
+
     public double offset { get; set; }
-    
+
     public Gdk.RGBA rgba { get; set; }
-    
+
     public Point display {
         get {
             return {start.x + (end.x - start.x) * offset,
@@ -467,5 +487,9 @@ public class Stop : Object, Undoable {
     public Stop (double offset, Gdk.RGBA rgba) {
         this.offset = offset;
         this.rgba = rgba;
+    }
+
+    public Stop copy () {
+        return new Stop (offset, rgba);
     }
 }

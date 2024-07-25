@@ -234,7 +234,7 @@ public class Ellipse : Element {
     }
 
     public override Element copy () {
-        return new Ellipse (cx, cy, rx, ry, fill, stroke);
+        return new Ellipse (cx, cy, rx, ry, fill.copy (), stroke.copy ());
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

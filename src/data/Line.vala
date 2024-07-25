@@ -106,7 +106,7 @@ public class Line : Element {
     }
 
     public override Element copy () {
-        return new Line (start.x, start.y, end.x, end.y, stroke);
+        return new Line (start.x, start.y, end.x, end.y, stroke.copy ());
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {

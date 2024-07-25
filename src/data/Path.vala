@@ -146,7 +146,8 @@ public class Path : Element {
             new_segments += current_segment.copy ();
             current_segment = current_segment.next;
         }
-        return new Path.with_pattern (new_segments, fill, stroke, title);
+
+        return new Path.with_pattern (new_segments, fill.copy (), stroke.copy (), title);
     }
 
     public void split_segment (PathSegment segment) {

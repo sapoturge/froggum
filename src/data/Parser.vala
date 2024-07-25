@@ -175,6 +175,18 @@ public class Parser : Object {
         }
     }
 
+    public Gdk.RGBA? get_color () {
+        var rgba = Gdk.RGBA ();
+        if (rgba.parse (data)) {
+            // Assume the color was the entire data
+            data = "";
+            return rgba;
+        } else {
+            return null;
+        }
+    }
+
+
     public bool empty () {
         return data.length == 0;
     }

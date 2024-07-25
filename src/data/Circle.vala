@@ -141,7 +141,7 @@ public class Circle : Element {
     }
 
     public override Element copy () {
-        return new Circle (x, y, r, fill, stroke);
+        return new Circle (x, y, r, fill.copy (), stroke.copy ());
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {

@@ -91,68 +91,9 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
                 if (iter->name == "defs") {
                     for (Xml.Node* def = iter->children; def != null; def = def->next) {
-                        if (def->name == "linearGradient") {
+                        var pattern = Pattern.load_xml (def);
+                        if (pattern != null) {
                             var name = def->get_prop ("id");
-                            var x1 = double.parse (def->get_prop ("x1"));
-                            var y1 = double.parse (def->get_prop ("y1"));
-                            var x2 = double.parse (def->get_prop ("x2"));
-                            var y2 = double.parse (def->get_prop ("y2"));
-                            var pattern = new Pattern.linear ({x1, y1}, {x2, y2});
-                            
-                            for (Xml.Node* stop = def->children; stop != null; stop = stop->next) {
-                                var offset_data = stop->get_prop ("offset");
-                                double offset;
-                                if (offset_data == null) {
-                                    offset = 0;
-                                } else if (offset_data.has_suffix ("%")) {
-                                    offset = double.parse (offset_data.substring (0, offset_data.length - 1)) / 100;
-                                } else {
-                                    offset = double.parse (offset_data);
-                                }
-                                var color = process_color (stop->get_prop ("stop-color") ?? "#000");
-                                var opacity = stop->get_prop ("stop-opacity");
-                                if (opacity != null) {
-                                    if (opacity.has_suffix ("%")) {
-                                        color.alpha = float.parse (opacity.substring (0, opacity.length - 1)) / 100;
-                                    } else {
-                                        color.alpha = float.parse (opacity);
-                                    }
-                                }
-                                pattern.add_stop (new Stop (offset, color));
-                            }
-                            
-                            patterns.@set (name, pattern);
-                        } else if (def->name == "radialGradient") {
-                            var name = def->get_prop ("id");
-                            var cx = double.parse (def->get_prop ("cx"));
-                            var cy = double.parse (def->get_prop ("cy"));
-                            var r = double.parse (def->get_prop ("r"));
-                            var pattern = new Pattern.radial ({cx, cy}, {cx + r, cy});
-                            
-                            for (Xml.Node* stop = def->children; stop != null; stop = stop->next) {
-                                if (stop->name == "stop") {
-                                    var offset_data = stop->get_prop ("offset");
-                                    double offset;
-                                    if (offset_data == null) {
-                                        offset = 0;
-                                    } else if (offset_data.has_suffix ("%")) {
-                                        offset = float.parse (offset_data.substring (0, offset_data.length - 1)) / 100;
-                                    } else {
-                                        offset = float.parse (offset_data);
-                                    }
-                                    var color = process_color (stop->get_prop ("stop-color") ?? "#000");
-                                    var opacity = stop->get_prop ("stop-opacity");
-                                    if (opacity != null) {
-                                        if (opacity.has_suffix ("%")) {
-                                            color.alpha = float.parse (opacity.substring (0, opacity.length - 1)) / 100;
-                                        } else {
-                                            color.alpha = float.parse (opacity);
-                                        }
-                                    }
-                                    pattern.add_stop (new Stop (offset, color));
-                                }
-                            }
-                            
                             patterns.@set (name, pattern);
                         }
                     }

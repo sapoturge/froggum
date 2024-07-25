@@ -506,7 +506,7 @@ public class Rectangle : Element {
     }
 
     public override Element copy () {
-        return new Rectangle (x, y, width, height, fill, stroke);
+        return new Rectangle (x, y, width, height, fill.copy (), stroke.copy ());
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

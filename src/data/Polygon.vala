@@ -191,7 +191,7 @@ public class Polygon : Element {
             first = false;
         }
 
-        return new Polygon (points, fill, stroke, "Copy of " + title, transform);
+        return new Polygon (points, fill.copy (), stroke.copy (), "Copy of " + title, transform);
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
