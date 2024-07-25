@@ -105,28 +105,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         already_loaded = true;
     }
 
-    private Gdk.RGBA process_color (string color) {
-        var rgba = Gdk.RGBA ();
-        if (color.has_prefix ("rgb(")) {
-            var channels = color.substring (4, color.length - 5).split (",");
-            rgba.red = int.parse (channels[0]) / 255.0f;
-            rgba.green = int.parse (channels[1]) / 255.0f;
-            rgba.blue = int.parse (channels[2]) / 255.0f;
-        } else if (color.has_prefix ("rgba(")) {
-            var channels = color.substring (5, color.length - 6).split (",");
-            rgba.red = int.parse (channels[0]) / 255.0f;
-            rgba.green = int.parse (channels[1]) / 255.0f;
-            rgba.blue = int.parse (channels[2]) / 255.0f;
-            rgba.alpha = float.parse (channels[3]);
-        } else if (color.has_prefix ("#")) {
-            var color_length = (color.length - 1) / 3;
-            color.substring (1, color_length).scanf ("%x", &rgba.red);
-            color.substring (1 + color_length, color_length).scanf ("%x", &rgba.green);
-            color.substring (1 + 2 * color_length, color_length).scanf ("%x", &rgba.blue);
-        }
-        return rgba;
-    }
-
     public File file {
         get {
             return _file;
