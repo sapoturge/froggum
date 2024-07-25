@@ -458,7 +458,7 @@ public class Rectangle : Element {
 
     public override Gee.List<ContextOption> options () {
         var options = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Rectangle"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Rectangle"), () => { request_delete(); }),
             new ContextOption.toggle (_("Round Corners"), this, "rounded"),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });

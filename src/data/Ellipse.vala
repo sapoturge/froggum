@@ -205,7 +205,7 @@ public class Ellipse : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Ellipse"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Ellipse"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Path"), () => { 
                 replace (new Path.with_pattern ({
                     new PathSegment.line (cx - rx, cy),

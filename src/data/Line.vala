@@ -83,7 +83,7 @@ public class Line : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Line"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Line"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Polyline"), () => {
                 replace (new Polyline ({start, end}, fill, stroke, title, transform));
             }),

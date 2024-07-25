@@ -150,7 +150,7 @@ public class Polygon : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Polygon"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Polygon"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Path"), () => {
                 var segments = new PathSegment[] {};
                 var seg = root_segment;

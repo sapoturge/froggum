@@ -153,7 +153,7 @@ public class Polyline : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Polyline"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Polyline"), () => { request_delete(); }),
             new ContextOption.action (_("Close Loop"), () => {
                 var points = new Point[] {root_segment.start};
                 for (var segment = root_segment; segment != null; segment = segment.next) {

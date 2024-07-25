@@ -221,7 +221,7 @@ public class Path : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Path"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Path"), () => { request_delete(); }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
     }

@@ -4,6 +4,7 @@ public enum ContextOptionType {
     TOGGLE,
     OPTIONS,
     COLOR,
+    DELETER,
 }
 
 public class ContextOption : Object {
@@ -22,6 +23,12 @@ public class ContextOption : Object {
 
     public ContextOption.action (string label, owned ActionCallback callback) {
         option_type = ACTION;
+        this.label = label;
+        this.callback = (owned) callback;
+    }
+
+    public ContextOption.deleter (string label, owned ActionCallback callback) {
+        option_type = DELETER;
         this.label = label;
         this.callback = (owned) callback;
     }

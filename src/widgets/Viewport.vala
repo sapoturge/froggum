@@ -436,7 +436,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         bool will_need_separator = false;
 
         // Order that options appear. This should include all option types except separator
-        ContextOptionType[] op_types = {COLOR, ACTION, OPTIONS, TOGGLE};
+        ContextOptionType[] op_types = {COLOR, ACTION, OPTIONS, TOGGLE, DELETER};
 
         foreach (int op_type in op_types) {
             foreach (ContextOption op in elem_options) {
@@ -497,6 +497,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 button.label = option.label;
                 button.clicked.connect (() => {
                     option.activate ();
+                    menu.popdown ();
+                });
+                menu_layout.append (button);
+                break;
+            case DELETER:
+                var button = new Gtk.Button ();
+                button.add_css_class ("destructive-action");
+                button.label = option.label;
+                button.clicked.connect (() => {
+                    option.activate ();
+                    current_handle = null;
                     menu.popdown ();
                 });
                 menu_layout.append (button);
