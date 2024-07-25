@@ -471,6 +471,7 @@ public class Pattern : Object, ListModel, Undoable {
                     (y - stop.display.y).abs () <= tolerance) {
                     var opts = new Gee.ArrayList<ContextOption> ();
                     opts.add (new ContextOption.action (_("Delete Stop"), () => { delete_stop (stop); }));
+                    opts.add (new ContextOption.color (_("Change Color"), stop, "rgba"));
                     handle = new BaseHandle(stop, "display", opts);
                     return true;
                 }

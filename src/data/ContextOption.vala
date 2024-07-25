@@ -3,6 +3,7 @@ public enum ContextOptionType {
     ACTION,
     TOGGLE,
     OPTIONS,
+    COLOR,
 }
 
 public class ContextOption : Object {
@@ -27,6 +28,13 @@ public class ContextOption : Object {
 
     public ContextOption.toggle (string label, Undoable obj, string prop) {
         option_type = TOGGLE;
+        this.label = label;
+        this.target = obj;
+        this.prop = prop;
+    }
+
+    public ContextOption.color (string label, Undoable obj, string prop) {
+        option_type = COLOR;
         this.label = label;
         this.target = obj;
         this.prop = prop;
