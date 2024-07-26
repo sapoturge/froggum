@@ -164,6 +164,10 @@ public class Circle : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         segment = null;
         if ((Math.sqrt ((x - this.x) * (x - this.x) + (y - this.y) * (y - this.y)) - r).abs () <= tolerance) {
             element = this;

@@ -207,6 +207,10 @@ public class Polyline : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         for (var lsegment = root_segment; lsegment != null; lsegment = lsegment.next) {
             if (lsegment.clicked (x, y, tolerance)) {
                 element = this;

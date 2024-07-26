@@ -494,6 +494,35 @@ public class Pattern : Object, ListModel, Undoable {
         return false;
     }
 
+    public bool clicked (double x, double y, double tolerance, out Segment? segment) {
+        if (pattern_type == LINEAR || pattern_type == RADIAL) {
+            if ((x - start.x).abs () <= tolerance &&
+                (y - start.y).abs () <= tolerance) {
+                segment = new PatternSegment (this, 0.0);
+                return true;
+            }
+
+            if ((x - end.x).abs () <= tolerance &&
+                (y - end.y).abs () <= tolerance) {
+                segment = new PatternSegment(this, 1.0);
+                return true;
+            }
+
+            var ds = (x - start.x) * (end.x - start.x) + (y - start.y) * (end.y - start.y);
+            var aligned_offset = ds / ((end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y));
+            if (0 < aligned_offset && aligned_offset < 1) {
+                Point inner_point = { start.x + aligned_offset * (end.x - start.x), start.y + aligned_offset * (end.y - start.y) };
+                if (inner_point.dist ({x, y}) <= tolerance) {
+                    segment = new PatternSegment (this, aligned_offset);
+                    return true;
+                }
+            }
+        }
+
+        segment = null;
+        return false;
+    }
+
     private void delete_stop (Stop stop) {
         var index = stops.index_of (stop);
         if (index < 0) {

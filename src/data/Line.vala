@@ -129,6 +129,10 @@ public class Line : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         var dot = (x - start.x) * (end.x - start.x) + (y - start.y) * (end.y - start.y);
         var len_squared = (end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y);
         var scale = dot / len_squared;

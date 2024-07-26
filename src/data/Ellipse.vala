@@ -238,6 +238,10 @@ public class Ellipse : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         segment = null;
         var surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, 1, 1);
         var cr = new Cairo.Context (surf);
