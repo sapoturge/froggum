@@ -20,4 +20,5 @@ public class PatternSegment : Segment {
     // This has no properties to save right now
     public override void begin (string prop) {}
     public override void finish (string prop) {}
+    public override void cancel (string prop) {}
 }
