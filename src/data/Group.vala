@@ -99,10 +99,6 @@ public class Group : Element, Container {
         return clicked_child (x, y, tolerance, out element, out segment, out handle);
     }
 
-    public Element get_element (Gtk.TreeIter iter) {
-        return new Path ();
-    }
-
     public override Gee.List<ContextOption> options () {
         // Groups have no inherent options.
         return new Gee.ArrayList<ContextOption> ();
