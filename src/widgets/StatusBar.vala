@@ -130,7 +130,7 @@ public class StatusBar : Gtk.Box {
         signal_manager.y_delegate = y_delegate;
         signal_manager.x_focus = x_focus;
         signal_manager.y_focus = y_focus;
-        signal_manager.handle_notify = handle.notify["point"].connect (() => {
+        signal_manager.handle_notify = handle.updated.connect (() => {
             var point = handle.point;
             if (!x_delegate.has_focus) {
                 SignalHandler.block (x_delegate, signal_manager.x_insert);

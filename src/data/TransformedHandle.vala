@@ -43,5 +43,6 @@ public class TransformedHandle : Handle {
         this.name = name;
         this.base_handle = base_handle;
         this.transform = transform;
+        base_handle.updated.connect (() => updated ());
     }
 }

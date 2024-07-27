@@ -24,6 +24,7 @@ public class BaseHandle : Handle {
         this.target = target;
         this.property = property;
         this._options = options;
+        this.target.notify.connect (() => updated ());
     }
 
     public override void begin (string prop) {

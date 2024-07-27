@@ -4,4 +4,5 @@ public abstract class Handle : Object, Undoable {
     public abstract void begin (string prop);
     public abstract void finish (string prop);
     public abstract void cancel (string prop);
+    public signal void updated ();
 }
