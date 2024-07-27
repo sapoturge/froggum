@@ -90,7 +90,7 @@ public class GradientEditor : Gtk.Box {
             if (sensitive && n == 2) {
                 for (int i = 0; i < pattern.get_n_items(); i++) {
                     Stop stop = (Stop) pattern.get_item (i);
-                    var cx = 15 + (pattern_view.get_allocated_width () - 30) * stop.offset;
+                    var cx = 15 + (pattern_view.get_width () - 30) * stop.offset;
                     if (cx - 10 < x && x < cx + 10) {
                         var dialog = new Gtk.ColorDialog () {
                             title = _("Stop Color"),
@@ -118,7 +118,7 @@ public class GradientEditor : Gtk.Box {
         pattern_view.add_controller(pattern_click_controller);
         pattern_click_controller.pressed.connect ((n, x, y) => {
             if (sensitive) {
-                var offset = (x - 15) / (pattern_view.get_allocated_width () - 30);
+                var offset = (x - 15) / (pattern_view.get_width () - 30);
                 pattern.add_stop (new Stop (offset, pattern.rgba));
             }
         });
@@ -129,7 +129,7 @@ public class GradientEditor : Gtk.Box {
             if (sensitive) {
                 for (int i = 0; i < pattern.get_n_items(); i++) {
                     Stop stop = (Stop) pattern.get_item (i);
-                    var cx = 15 + (pattern_view.get_allocated_width () - 30) * stop.offset;
+                    var cx = 15 + (pattern_view.get_width () - 30) * stop.offset;
                     if (cx - 10 < x && x < cx + 10) {
                         stop.begin ("offset");
                         bound_stop = stop;
@@ -142,11 +142,11 @@ public class GradientEditor : Gtk.Box {
         });
 
         drag_controller.drag_update.connect ((offset_x, offset_y) => {
-            offset = double.min (1, double.max (0, (offset_x + base_offset) / (pattern_view.get_allocated_width () - 30)));
+            offset = double.min (1, double.max (0, (offset_x + base_offset) / (pattern_view.get_width () - 30)));
         });
 
         drag_controller.drag_end.connect ((offset_x, offset_y) => {
-            offset = double.min (1, double.max (0, (offset_x + base_offset) / (pattern_view.get_allocated_width () - 30)));
+            offset = double.min (1, double.max (0, (offset_x + base_offset) / (pattern_view.get_width () - 30)));
             if (stop_binding != null) {
                 stop_binding.unbind ();
                 stop_binding = null;

@@ -1,4 +1,4 @@
-public class PatternChooserDialog : Gtk.Dialog {
+public class PatternChooserDialog : Gtk.Window {
     private Pattern _pattern;
     public Pattern pattern {
         get {
@@ -111,8 +111,7 @@ public class PatternChooserDialog : Gtk.Dialog {
         layout.append (gradient_row);
         layout.append (editor);
 
-        var content_area = get_content_area ();
-        content_area.append (layout);
+        child = layout;
     }
 
     private void swap_sensitivity (PatternType new_type) {

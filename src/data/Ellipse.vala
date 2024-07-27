@@ -212,7 +212,7 @@ public class Ellipse : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Ellipse"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Ellipse"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Path"), () => { 
                 replace (new Path.with_pattern ({
                     new PathSegment.line (cx - rx, cy),
@@ -241,10 +241,14 @@ public class Ellipse : Element {
     }
 
     public override Element copy () {
-        return new Ellipse (cx, cy, rx, ry, fill, stroke);
+        return new Ellipse (cx, cy, rx, ry, fill.copy (), stroke.copy ());
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         segment = null;
         var surf = new Cairo.ImageSurface (Cairo.Format.ARGB32, 1, 1);
         var cr = new Cairo.Context (surf);

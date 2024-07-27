@@ -446,7 +446,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         bool needs_separator = false;
         bool will_need_separator = false;
 
-        ContextOptionType[] op_types = {ACTION, OPTIONS, TOGGLE};
+        // Order that options appear. This should include all option types except separator
+        ContextOptionType[] op_types = {COLOR, ACTION, OPTIONS, TOGGLE, DELETER};
 
         foreach (int op_type in op_types) {
             foreach (ContextOption op in elem_options) {
@@ -511,6 +512,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 });
                 menu_layout.append (button);
                 break;
+            case DELETER:
+                var button = new Gtk.Button ();
+                button.add_css_class ("destructive-action");
+                button.label = option.label;
+                button.clicked.connect (() => {
+                    option.activate ();
+                    current_handle = null;
+                    menu.popdown ();
+                });
+                menu_layout.append (button);
+                break;
             case TOGGLE:
                 var button = new Gtk.CheckButton.with_label (option.label);
                 bool value = false;
@@ -525,6 +537,28 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                     menu.popdown ();
                 });
                 menu_layout.append (button);
+                break;
+            case COLOR:
+                Gdk.RGBA? rgba = Gdk.RGBA ();
+                option.target.get (option.prop, &rgba);
+                var dialog = new Gtk.ColorDialog () {
+                    with_alpha = true,
+                };
+                var button = new Gtk.ColorDialogButton (dialog) {
+                    rgba = rgba,
+                };
+                button.notify["rgba"].connect (() => {
+                    option.target.begin (option.prop);
+                    option.target.set (option.prop, button.get_rgba ());
+                    option.target.finish (option.prop);
+                });
+                var label = new Gtk.Label (option.label) {
+                    hexpand = true,
+                };
+                var row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+                row.append (label);
+                row.append (button);
+                menu_layout.append (row);
                 break;
             case OPTIONS:
                 var caption = new Gtk.Label (option.label);
@@ -554,6 +588,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                         button.active = true;
                     }
                 }
+                break;
+            default:
+                stderr.printf ("Unknown option type\n");
                 break;
             }
         }
