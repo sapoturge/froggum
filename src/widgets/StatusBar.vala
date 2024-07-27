@@ -64,30 +64,34 @@ public class StatusBar : Gtk.Box {
             bindings.clear ();
 
             if (value != null) {
+                var element_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
                 if (expanded) {
-                    append (new Gtk.Label (_("(")));
+                    element_box.append (new Gtk.Label (_("(")));
                     var transformed = value as TransformedHandle;
                     while (transformed != null) {
-                        add_entry (value);
+                        add_entry (element_box, value);
+                        append (element_box);
                         append (new Gtk.Image.from_icon_name ("go-next"));
-                        append (new Gtk.Label ("%s: (".printf(transformed.name)));
+                        element_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+                        element_box.append (new Gtk.Label ("%s: (".printf(transformed.name)));
                         value = transformed.base_handle;
                         transformed = value as TransformedHandle;
                     }
                 } else {
-                    append (new Gtk.Label (_("(")));
+                    element_box.append (new Gtk.Label (_("(")));
                 }
 
-                add_entry (value);
-
-                append (expander_button);
+                add_entry (element_box, value);
+                append (element_box);
             } else {
                 append (new Gtk.Label (_("No handle selected")));
             }
+
+            append (expander_button);
         }
     }
 
-    private void add_entry (Handle handle) {
+    private void add_entry (Gtk.Box container, Handle handle) {
         var new_point = handle.point;
         var x_delegate = new Gtk.Text () {
             text = "%.2f".printf (new_point.x),
@@ -210,20 +214,23 @@ public class StatusBar : Gtk.Box {
         });
         //signal_manager.x_cancel = x_delegate.
         bindings.add (signal_manager);
-        append (x_delegate);
-        append (new Gtk.Label (_(",")));
-        append (y_delegate);
-        append (new Gtk.Label (_(")")));
+
+        container.append (x_delegate);
+        container.append (new Gtk.Label (_(",")));
+        container.append (y_delegate);
+        container.append (new Gtk.Label (_(")")));
     }
 
     construct {
+        var cursor_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         cursor_x = new Gtk.Label (_("0.0"));
         cursor_y = new Gtk.Label (_("0.0"));
-        append (new Gtk.Label (_("Cursor position: (")));
-        append (cursor_x);
-        append (new Gtk.Label (_(",")));
-        append (cursor_y);
-        append (new Gtk.Label (_(")")));
+        cursor_box.append (new Gtk.Label (_("Cursor position: (")));
+        cursor_box.append (cursor_x);
+        cursor_box.append (new Gtk.Label (_(",")));
+        cursor_box.append (cursor_y);
+        cursor_box.append (new Gtk.Label (_(")")));
+        append (cursor_box);
         var separator = new Gtk.Separator (Gtk.Orientation.VERTICAL) {
             margin_start = 5,
             margin_end = 5,
@@ -246,5 +253,7 @@ public class StatusBar : Gtk.Box {
 
             handle = handle;
         });
+        append (expander_button);
+        spacing = 10;
     }
 }
