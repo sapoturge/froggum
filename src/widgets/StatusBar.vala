@@ -183,6 +183,7 @@ public class StatusBar : Gtk.Box {
             }
         });
         signal_manager.x_changed = x_delegate.changed.connect (() => {
+            x_delegate.width_chars = int.max (5, x_delegate.text.length);
             if (x_delegate.has_focus) {
                 handle.point = { float.parse (x_delegate.text), handle.point.y };
             }
@@ -208,6 +209,7 @@ public class StatusBar : Gtk.Box {
             }
         });
         signal_manager.y_changed = y_delegate.changed.connect (() => {
+            y_delegate.width_chars = int.max (5, y_delegate.text.length);
             if (y_delegate.has_focus) {
                 handle.point = { handle.point.x, float.parse (y_delegate.text) };
             }
