@@ -30,6 +30,8 @@ public class StatusBar : Gtk.Box {
         public ulong y_insert;
         public ulong x_changed;
         public ulong y_changed;
+        public ulong x_finish;
+        public ulong y_finish;
 
         public void disconnect_all () {
             handle.disconnect (handle_notify);
@@ -37,6 +39,8 @@ public class StatusBar : Gtk.Box {
             y_delegate.disconnect (y_insert);
             x_delegate.disconnect (x_changed);
             y_delegate.disconnect (y_changed);
+            x_delegate.disconnect (x_finish);
+            y_delegate.disconnect (y_finish);
             x_focus.disconnect (x_activate);
             y_focus.disconnect (y_activate);
             x_focus.disconnect (x_deactivate);
@@ -218,6 +222,22 @@ public class StatusBar : Gtk.Box {
             if (y_delegate.has_focus) {
                 handle.point = { handle.point.x, float.parse (y_delegate.text) };
             }
+        });
+        signal_manager.x_finish = x_delegate.activate.connect (() => {
+            handle.finish ("point");
+            editing = false;
+            // Hack to remove input focus
+            Gtk.Widget? sibling = x_delegate.get_prev_sibling ();
+            container.remove (x_delegate);
+            container.insert_child_after (x_delegate, sibling);
+        });
+        signal_manager.y_finish = y_delegate.activate.connect (() => {
+            handle.finish ("point");
+            editing = false;
+            // Hack to remove input focus
+            Gtk.Widget? sibling = y_delegate.get_prev_sibling ();
+            container.remove (y_delegate);
+            container.insert_child_after (y_delegate, sibling);
         });
         //signal_manager.x_cancel = x_delegate.
         bindings.add (signal_manager);
