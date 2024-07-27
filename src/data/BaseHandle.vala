@@ -38,6 +38,12 @@ public class BaseHandle : Handle {
         }
     }
 
+    public override void cancel (string prop) {
+        if (prop == "point") {
+            target.cancel (property);
+        }
+    }
+
     public void add_option (ContextOption option) {
         _options.add (option);
     }

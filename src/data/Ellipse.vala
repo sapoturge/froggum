@@ -203,6 +203,13 @@ public class Ellipse : Element {
         add_command (command);
     }
 
+    public override void cancel (string prop) {
+        cx = last_cx;
+        cy = last_cy;
+        rx = last_rx;
+        ry = last_ry;
+    }
+
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.action (_("Delete Ellipse"), () => { request_delete(); }),

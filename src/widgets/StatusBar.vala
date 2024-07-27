@@ -7,6 +7,12 @@ public class StatusBar : Gtk.Box {
     private Handle _handle;
     private uint finish_id;
     private bool editing;
+    private Gtk.Box? focused_container;
+    private Gtk.Widget? focused_element;
+    private Gtk.Widget? focused_sibling;
+
+    [Signal (action = true)]
+    public signal void cancel ();
 
     public Point cursor_pos {
         set {
@@ -145,8 +151,14 @@ public class StatusBar : Gtk.Box {
                 handle.finish ("point");
                 return false;
             });
+            focused_container = null;
+            focused_element = null;
+            focused_sibling = null;
         });
         signal_manager.x_activate = x_focus.enter.connect (() => {
+            focused_container = container;
+            focused_element = x_delegate;
+            focused_sibling = x_delegate.get_prev_sibling ();
             if (!editing) {
                 handle.begin ("point");
                 editing = true;
@@ -162,8 +174,14 @@ public class StatusBar : Gtk.Box {
                 handle.finish ("point");
                 return false;
             });
+            focused_container = null;
+            focused_element = null;
+            focused_sibling = null;
         });
         signal_manager.y_activate = y_focus.enter.connect (() => {
+            focused_container = container;
+            focused_element = y_delegate;
+            focused_sibling = y_delegate.get_prev_sibling ();
             if (!editing) {
                 handle.begin ("point");
                 editing = true;
@@ -227,19 +245,22 @@ public class StatusBar : Gtk.Box {
             handle.finish ("point");
             editing = false;
             // Hack to remove input focus
-            Gtk.Widget? sibling = x_delegate.get_prev_sibling ();
-            container.remove (x_delegate);
-            container.insert_child_after (x_delegate, sibling);
+            focused_container.remove (focused_element);
+            focused_container.insert_child_after (focused_element, focused_sibling);
+            focused_container = null;
+            focused_element = null;
+            focused_sibling = null;
         });
         signal_manager.y_finish = y_delegate.activate.connect (() => {
             handle.finish ("point");
             editing = false;
             // Hack to remove input focus
-            Gtk.Widget? sibling = y_delegate.get_prev_sibling ();
-            container.remove (y_delegate);
-            container.insert_child_after (y_delegate, sibling);
+            focused_container.remove (focused_element);
+            focused_container.insert_child_after (focused_element, focused_sibling);
+            focused_container = null;
+            focused_element = null;
+            focused_sibling = null;
         });
-        //signal_manager.x_cancel = x_delegate.
         bindings.add (signal_manager);
 
         container.append (x_delegate);
@@ -282,5 +303,19 @@ public class StatusBar : Gtk.Box {
         });
         append (expander_button);
         spacing = 10;
+        cancel.connect (() => {
+            if (editing) {
+                handle.cancel ("point");
+                focused_container.remove (focused_element);
+                focused_container.insert_child_after (focused_element, focused_sibling);
+                focused_container = null;
+                focused_element = null;
+                focused_sibling = null;
+            }
+        });
+    }
+
+    static construct {
+        add_binding_signal (Gdk.Key.Escape, 0, "cancel", null);
     }
 }

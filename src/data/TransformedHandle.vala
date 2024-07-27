@@ -33,6 +33,12 @@ public class TransformedHandle : Handle {
         }
     }
 
+    public override void cancel (string prop) {
+        if (prop == "point") {
+            base_handle.cancel ("point");
+        }
+    }
+
     public TransformedHandle (string name, Handle base_handle, Transform transform) {
         this.name = name;
         this.base_handle = base_handle;

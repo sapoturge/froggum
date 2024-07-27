@@ -368,6 +368,43 @@ public class PathSegment : Segment {
         add_command (command);
     }
 
+    public override void cancel (string property) {
+        switch (property) {
+            case "start":
+                start = previous_start;
+                break;
+            case "end":
+                end = previous_end;
+                break;
+            case "p1":
+                p1 = previous_p1;
+                break;
+            case "p2":
+                p2 = previous_p2;
+                break;
+            case "center":
+                start = previous_start;
+                end = previous_end;
+                center = previous_center;
+                break;
+            case "topleft":
+            case "topright":
+            case "bottomleft":
+            case "bottomright":
+                center = previous_center;
+                end = previous_end;
+                start = previous_start;
+                rx = previous_rx;
+                ry = previous_ry;
+                break;
+            case "controller":
+                start = previous_start;
+                end = previous_end;
+                angle = previous_angle;
+                break;
+        }
+    }
+
     public string command_text () {
         switch (segment_type) {
             case LINE:

@@ -66,6 +66,10 @@ public class Group : Element, Container {
         return;
     }
 
+    public override void cancel (string prop) {
+        return;
+    }
+
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
         Xml.Node* node = new Xml.Node (null, "g");
 

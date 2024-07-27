@@ -535,6 +535,15 @@ public class Transform : Object, Undoable {
         add_command (command);
     }
 
+    public void cancel (string prop) {
+        translate_x = last_translate.x;
+        translate_y = last_translate.y;
+        scale_x = last_scale.x;
+        scale_y = last_scale.y;
+        skew = last_skew;
+        angle = last_angle;
+    }
+
     public void apply (Cairo.Context cr) {
         cr.save ();
         cr.translate (translate_x, translate_y);

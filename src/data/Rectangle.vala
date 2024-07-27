@@ -30,6 +30,7 @@ public class Rectangle : Element {
     private double last_height;
     private double last_rx;
     private double last_ry;
+    private bool last_rounded;
 
     public Point top_left {
         get {
@@ -393,6 +394,7 @@ public class Rectangle : Element {
         last_height = height;
         last_rx = rx;
         last_ry = ry;
+        last_rounded = rounded;
     }
 
     public override void finish (string prop) {
@@ -400,7 +402,7 @@ public class Rectangle : Element {
 
         switch (prop) {
         case "rounded":
-            command.add_value (this, "rounded", rounded, !rounded);
+            command.add_value (this, "rounded", rounded, last_rounded);
             break;
         case "center":
             command.add_value (this, "x", x, last_x);
@@ -454,6 +456,16 @@ public class Rectangle : Element {
         }
 
         add_command (command);
+    }
+
+    public override void cancel (string prop) {
+        x = last_x;
+        y = last_y;
+        width = last_width;
+        height = last_height;
+        rx = last_rx;
+        ry = last_ry;
+        rounded = last_rounded;
     }
 
     public override Gee.List<ContextOption> options () {

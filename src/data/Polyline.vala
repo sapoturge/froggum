@@ -151,6 +151,9 @@ public class Polyline : Element {
     public override void finish (string prop) {
     }
 
+    public override void cancel (string prop) {
+    }
+
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.action (_("Delete Polyline"), () => { request_delete(); }),
