@@ -270,7 +270,9 @@ public class StatusBar : Gtk.Box {
     }
 
     construct {
-        var cursor_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        var cursor_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+            margin_start = 10,
+        };
         cursor_x = new Gtk.Label (_("0.0"));
         cursor_y = new Gtk.Label (_("0.0"));
         cursor_box.append (new Gtk.Label (_("Cursor position: (")));
@@ -279,10 +281,7 @@ public class StatusBar : Gtk.Box {
         cursor_box.append (cursor_y);
         cursor_box.append (new Gtk.Label (_(")")));
         append (cursor_box);
-        var separator = new Gtk.Separator (Gtk.Orientation.VERTICAL) {
-            margin_start = 5,
-            margin_end = 5,
-        };
+        var separator = new Gtk.Separator (Gtk.Orientation.VERTICAL);
         append (separator);
         var label = new Gtk.Label (_("No handle selected."));
         append (label);
