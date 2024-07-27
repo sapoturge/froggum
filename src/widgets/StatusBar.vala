@@ -49,6 +49,11 @@ public class StatusBar : Gtk.Box {
             return _handle;
         }
         set {
+            if (editing) {
+                editing = false;
+                _handle.finish ("point");
+            }
+
             _handle = value;
 
             var child = get_last_child ();
