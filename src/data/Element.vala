@@ -124,4 +124,20 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
     }
 
     public abstract bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment);
+
+    public bool check_standard_clicks (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (fill.clicked (x, y, tolerance, out segment)) {
+            element = this;
+            return true;
+        }
+
+        if (stroke.clicked(x, y, tolerance, out segment)) {
+            element = this;
+            return true;
+        }
+
+        element = null;
+        segment = null;
+        return false;
+    }
 }

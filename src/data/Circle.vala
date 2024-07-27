@@ -121,7 +121,7 @@ public class Circle : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Circle"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Circle"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Ellipse"), () => { replace (new Ellipse (x, y, r, r, fill, stroke, title, transform)); }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
@@ -141,7 +141,7 @@ public class Circle : Element {
     }
 
     public override Element copy () {
-        return new Circle (x, y, r, fill, stroke);
+        return new Circle (x, y, r, fill.copy (), stroke.copy ());
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
@@ -164,6 +164,10 @@ public class Circle : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         segment = null;
         if ((Math.sqrt ((x - this.x) * (x - this.x) + (y - this.y) * (y - this.y)) - r).abs () <= tolerance) {
             element = this;

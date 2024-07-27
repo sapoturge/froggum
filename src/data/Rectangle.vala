@@ -458,7 +458,7 @@ public class Rectangle : Element {
 
     public override Gee.List<ContextOption> options () {
         var options = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Rectangle"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Rectangle"), () => { request_delete(); }),
             new ContextOption.toggle (_("Round Corners"), this, "rounded"),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
@@ -506,10 +506,14 @@ public class Rectangle : Element {
     }
 
     public override Element copy () {
-        return new Rectangle (x, y, width, height, fill, stroke);
+        return new Rectangle (x, y, width, height, fill.copy (), stroke.copy ());
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         segment = null;
         var in_x = this.x - tolerance < x && x < this.x + width + tolerance;
         var in_y = this.y - tolerance < y && y < this.y + height + tolerance;

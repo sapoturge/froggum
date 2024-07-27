@@ -150,7 +150,7 @@ public class Polygon : Element {
 
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
-            new ContextOption.action (_("Delete Polygon"), () => { request_delete(); }),
+            new ContextOption.deleter (_("Delete Polygon"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Path"), () => {
                 var segments = new PathSegment[] {};
                 var seg = root_segment;
@@ -191,7 +191,7 @@ public class Polygon : Element {
             first = false;
         }
 
-        return new Polygon (points, fill, stroke, "Copy of " + title, transform);
+        return new Polygon (points, fill.copy (), stroke.copy (), "Copy of " + title, transform);
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
@@ -230,6 +230,10 @@ public class Polygon : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
+            return true;
+        }
+
         segment = null;
 
         var first = true;
