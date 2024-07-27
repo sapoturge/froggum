@@ -19,18 +19,28 @@ public class StatusBar : Gtk.Box {
         public Handle handle;
         public Gtk.Text x_delegate;
         public Gtk.Text y_delegate;
+        public Gtk.EventControllerFocus x_focus;
+        public Gtk.EventControllerFocus y_focus;
         public ulong handle_notify;
         public ulong x_activate;
         public ulong y_activate;
+        public ulong x_deactivate;
+        public ulong y_deactivate;
         public ulong x_insert;
         public ulong y_insert;
+        public ulong x_changed;
+        public ulong y_changed;
 
         public void disconnect_all () {
             handle.disconnect (handle_notify);
             x_delegate.disconnect (x_insert);
             y_delegate.disconnect (y_insert);
-            x_delegate.disconnect (x_activate);
-            y_delegate.disconnect (y_activate);
+            x_delegate.disconnect (x_changed);
+            y_delegate.disconnect (y_changed);
+            x_focus.disconnect (x_activate);
+            y_focus.disconnect (y_activate);
+            x_focus.disconnect (x_deactivate);
+            y_focus.disconnect (y_deactivate);
         }
     }
 
@@ -91,10 +101,16 @@ public class StatusBar : Gtk.Box {
             max_width_chars = 5,
             xalign = 1,
         };
+        var x_focus = new Gtk.EventControllerFocus ();
+        x_delegate.add_controller (x_focus);
+        var y_focus = new Gtk.EventControllerFocus ();
+        y_delegate.add_controller (y_focus);
         var signal_manager = new SignalManager ();
         signal_manager.handle = handle;
         signal_manager.x_delegate = x_delegate;
         signal_manager.y_delegate = y_delegate;
+        signal_manager.x_focus = x_focus;
+        signal_manager.y_focus = y_focus;
         signal_manager.handle_notify = handle.notify["point"].connect (() => {
             var point = handle.point;
             if (!x_delegate.has_focus) {
@@ -108,30 +124,34 @@ public class StatusBar : Gtk.Box {
                 SignalHandler.unblock (y_delegate, signal_manager.y_insert);
             }
         });
-        signal_manager.x_activate = x_delegate.notify["has_focus"].connect (() => {
-            if (!x_delegate.has_focus) {
-                finish_id = Timeout.add (100, () => {
-                    finish_id = 0;
-                    editing = false;
-                    handle.finish ("point");
-                    return false;
-                });
-            } else if (!editing) {
+        signal_manager.x_deactivate = x_focus.leave.connect (() => {
+            x_delegate.text = "%.2f".printf (handle.point.x);
+            finish_id = Timeout.add (100, () => {
+                finish_id = 0;
+                editing = false;
+                handle.finish ("point");
+                return false;
+            });
+        });
+        signal_manager.x_activate = x_focus.enter.connect (() => {
+            if (!editing) {
                 handle.begin ("point");
                 editing = true;
             } else {
                 Source.remove (finish_id);
             }
         });
-        signal_manager.y_activate = y_delegate.notify["has_focus"].connect (() => {
-            if (!y_delegate.has_focus) {
-                finish_id = Timeout.add (100, () => {
-                    finish_id = 0;
-                    editing = false;
-                    handle.finish ("point");
-                    return false;
-                });
-            } else if (!editing) {
+        signal_manager.y_deactivate = y_focus.leave.connect (() => {
+            y_delegate.text = "%.2f".printf (handle.point.y);
+            finish_id = Timeout.add (100, () => {
+                finish_id = 0;
+                editing = false;
+                handle.finish ("point");
+                return false;
+            });
+        });
+        signal_manager.y_activate = y_focus.enter.connect (() => {
+            if (!editing) {
                 handle.begin ("point");
                 editing = true;
             } else {
@@ -139,46 +159,54 @@ public class StatusBar : Gtk.Box {
             }
         });
         signal_manager.x_insert = x_delegate.insert_text.connect ((text, len, ref position) => {
-            var new_text = new StringBuilder ();
-            unichar c;
-            new_text.append_len (x_delegate.text, position);
-            var start_position = position;
-            var tail = x_delegate.text.substring (position);
-            for (int i = 0; text.get_next_char (ref i, out c); ) {
-                if (('0' <= c && c <= '9') || c == '.') {
-                    new_text.append_unichar (c);
-                    position += 1;
+            if (x_delegate.has_focus) {
+                var new_text = new StringBuilder ();
+                unichar c;
+                new_text.append_len (x_delegate.text, position);
+                var start_position = position;
+                for (int i = 0; text.get_next_char (ref i, out c); ) {
+                    if (('0' <= c && c <= '9') || c == '.') {
+                        new_text.append_unichar (c);
+                        position += 1;
+                    }
                 }
+
+                var result = new_text.free_and_steal ();
+                SignalHandler.block (x_delegate, signal_manager.x_insert);
+                x_delegate.insert_text (result.substring (start_position), position - start_position, ref start_position);
+                SignalHandler.unblock (x_delegate, signal_manager.x_insert);
+                Signal.stop_emission_by_name (x_delegate, "insert_text");
             }
-            
-            new_text.append (tail);
-            var result = new_text.free_and_steal ();
-            SignalHandler.block (x_delegate, signal_manager.x_insert);
-            x_delegate.insert_text (result.substring (start_position, position), position - start_position, ref start_position);
-            SignalHandler.unblock (x_delegate, signal_manager.x_insert);
-            Signal.stop_emission_by_name (x_delegate, "insert_text");
-            handle.point = { float.parse (result), handle.point.y }; 
+        });
+        signal_manager.x_changed = x_delegate.changed.connect (() => {
+            if (x_delegate.has_focus) {
+                handle.point = { float.parse (x_delegate.text), handle.point.y };
+            }
         });
         signal_manager.y_insert = y_delegate.insert_text.connect ((text, len, ref position) => {
-            var new_text = new StringBuilder ();
-            unichar c;
-            new_text.append_len (y_delegate.text, position);
-            var start_position = position;
-            var tail = y_delegate.text.substring (position);
-            for (int i = 0; text.get_next_char (ref i, out c); ) {
-                if (('0' <= c && c <= '9') || c == '.') {
-                    new_text.append_unichar (c);
-                    position += 1;
+            if (y_delegate.has_focus) {
+                var new_text = new StringBuilder ();
+                unichar c;
+                new_text.append_len (y_delegate.text, position);
+                var start_position = position;
+                for (int i = 0; text.get_next_char (ref i, out c); ) {
+                    if (('0' <= c && c <= '9') || c == '.') {
+                        new_text.append_unichar (c);
+                        position += 1;
+                    }
                 }
+
+                var result = new_text.free_and_steal ();
+                SignalHandler.block (y_delegate, signal_manager.y_insert);
+                y_delegate.insert_text (result.substring (start_position), position - start_position, ref start_position);
+                SignalHandler.unblock (y_delegate, signal_manager.y_insert);
+                Signal.stop_emission_by_name (y_delegate, "insert_text");
             }
-            
-            new_text.append (tail);
-            var result = new_text.free_and_steal ();
-            SignalHandler.block (y_delegate, signal_manager.y_insert);
-            y_delegate.insert_text (result.substring (start_position, position), position - start_position, ref start_position);
-            SignalHandler.unblock (y_delegate, signal_manager.y_insert);
-            Signal.stop_emission_by_name (y_delegate, "insert_text");
-            handle.point = { handle.point.x, float.parse (result) }; 
+        });
+        signal_manager.y_changed = y_delegate.changed.connect (() => {
+            if (y_delegate.has_focus) {
+                handle.point = { handle.point.x, float.parse (y_delegate.text) };
+            }
         });
         //signal_manager.x_cancel = x_delegate.
         bindings.add (signal_manager);
