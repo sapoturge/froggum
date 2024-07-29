@@ -78,6 +78,8 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract void finish (string prop);
 
+    public abstract void cancel (string prop);
+
     public abstract Gee.List<ContextOption> options ();
 
     public abstract int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index);

@@ -148,6 +148,9 @@ public class Polygon : Element {
         // These don't have any properties to save now.
     }
 
+    public override void cancel (string prop) {
+    }
+
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Polygon"), () => { request_delete(); }),

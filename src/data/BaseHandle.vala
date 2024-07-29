@@ -24,6 +24,7 @@ public class BaseHandle : Handle {
         this.target = target;
         this.property = property;
         this._options = options;
+        this.target.notify.connect (() => updated ());
     }
 
     public override void begin (string prop) {
@@ -35,6 +36,12 @@ public class BaseHandle : Handle {
     public override void finish (string prop) {
         if (prop == "point") {
             target.finish (property);
+        }
+    }
+
+    public override void cancel (string prop) {
+        if (prop == "point") {
+            target.cancel (property);
         }
     }
 

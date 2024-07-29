@@ -119,6 +119,14 @@ public class Circle : Element {
         add_command (command);
     }
 
+    public override void cancel (string prop) {
+        if (prop == "center") {
+            center = _last_center;
+        } else if (prop == "radius") {
+            radius = _last_radius;
+        }
+    }
+
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Circle"), () => { request_delete(); }),

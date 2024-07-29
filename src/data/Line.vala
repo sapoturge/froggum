@@ -81,6 +81,14 @@ public class Line : Element {
         add_command (command);
     }
 
+    public override void cancel (string prop) {
+        if (prop == "start") {
+            start = last_start;
+        } else if (prop == "end") {
+            end = last_end;
+        }
+    }
+
     public override Gee.List<ContextOption> options () {
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Line"), () => { request_delete(); }),

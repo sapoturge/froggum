@@ -73,6 +73,12 @@ public class LinearSegment : Segment {
         add_command (command);
     }
 
+    public override void cancel (string prop) {
+        start = last_start;
+        end = last_end;
+        editing = false;
+    }
+
     public bool clicked (double x, double y, double tolerance) {
         // Have Cairo check if the point would be covered by
         // stroking the path by tolerance.

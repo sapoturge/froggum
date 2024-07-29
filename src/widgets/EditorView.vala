@@ -4,6 +4,7 @@ public class EditorView : Gtk.Box {
     private Gtk.ListView paths_list;
     private Gtk.SingleSelection selection;
     private Viewport viewport;
+    private StatusBar status_bar;
     private ulong new_button_handler;
     private Gtk.Button new_button;
 
@@ -37,15 +38,18 @@ public class EditorView : Gtk.Box {
         });
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
-            var e = (Element) row.item;
+            var e = row.item as Element;
             if (e != null) {
-                var parent = (Container) image;
-                while (parent != null) {
-                    if (parent.selected_child == e) {
-                        return;
-                    }
+                var cont = e as Container;
+                if (cont == null || cont.selected_child == null) {
+                    var parent = (Container) image;
+                    while (parent != null) {
+                        if (parent.selected_child == e ) {
+                            return;
+                        }
 
-                    parent = parent.selected_child as Container;
+                        parent = parent.selected_child as Container;
+                    }
                 }
 
                 if (image.has_selected ()) {
@@ -281,9 +285,23 @@ public class EditorView : Gtk.Box {
         scrolled.hscrollbar_policy = Gtk.PolicyType.ALWAYS;
         scrolled.vscrollbar_policy = Gtk.PolicyType.ALWAYS;
         scrolled.hexpand = true;
+        scrolled.vexpand = true;
 
-        append (side_bar);
-        append (scrolled);
+        status_bar = new StatusBar ();
+        viewport.bind_property ("current_handle", status_bar, "handle");
+        viewport.bind_property ("cursor_pos", status_bar, "cursor_pos");
+  
+        var main_space = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        main_space.append (scrolled);
+        main_space.append (status_bar);
+
+        var panes = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
+        panes.start_child = side_bar;
+        panes.end_child = main_space;
+        panes.resize_start_child = false;
+        panes.shrink_start_child = false;
+        panes.resize_end_child = true;
+        append (panes);
 
         hexpand = true;
         vexpand = true;

@@ -1,6 +1,7 @@
 public class TransformedHandle : Handle {
-    private Handle base_handle;
-    private Transform transform;
+    public Handle base_handle { get; private set; }
+    public Transform transform { get; private set; }
+    public string name { get; private set; }
 
     public override Point point {
         get {
@@ -32,8 +33,16 @@ public class TransformedHandle : Handle {
         }
     }
 
-    public TransformedHandle (Handle base_handle, Transform transform) {
+    public override void cancel (string prop) {
+        if (prop == "point") {
+            base_handle.cancel ("point");
+        }
+    }
+
+    public TransformedHandle (string name, Handle base_handle, Transform transform) {
+        this.name = name;
         this.base_handle = base_handle;
         this.transform = transform;
+        base_handle.updated.connect (() => updated ());
     }
 }

@@ -20,9 +20,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Tutorial tutorial;
 
     public Point control_point { get; set; }
+    public Point cursor_pos { get; private set; }
 
     private Binding point_binding;
-    private Handle? current_handle;
+    public Handle? current_handle { get; private set; }
     
     private Undoable bound_obj;
     private string bound_prop;
@@ -248,6 +249,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
         });
 
+        var motion_controller = new Gtk.EventControllerMotion ();
+        add_controller (motion_controller);
+        motion_controller.motion.connect ((x, y) => {
+            var sx = scale_x(x);
+            var sy = scale_y(y);
+            cursor_pos = {sx, sy};
+        });
+
         var drag_controller = new Gtk.GestureDrag ();
         add_controller (drag_controller);
         drag_controller.drag_begin.connect ((x, y) => {
@@ -378,12 +387,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         obj.begin (name);
         point_binding = bind_property ("control-point", obj, name);
         base_point = control_point;
+        queue_draw ();
     }
 
     private void unbind_point () {
         bound_obj.finish (bound_prop);
         point_binding.unbind ();
         point_binding = null;
+        queue_draw ();
     }
     
     private void position_tutorial () {

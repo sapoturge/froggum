@@ -381,6 +381,23 @@ public class Pattern : Object, ListModel, Undoable {
         add_command (command);
     }
 
+    public void cancel (string prop) {
+        switch (prop) {
+            case "start":
+                start = previous_start;
+                break;
+            case "end":
+                end = previous_end;
+                break;
+            case "pattern_type":
+                pattern_type = previous_pattern_type;
+                break;
+            case "rgba":
+                rgba = previous_rgba;
+                break;
+        }
+    }
+
     public string to_xml (Xml.Node* defs, ref int pattern_index) {
         switch (pattern_type) {
             case NONE:
@@ -581,6 +598,14 @@ public class Stop : Object, Undoable {
             var command = new Command ();
             command.add_value (this, "rgba", rgba, previous_rgba);
             add_command (command);
+        }
+    }
+
+    public void cancel (string prop) {
+        if (prop == "display" || prop == "offset") {
+            offset = previous_offset;
+        } else if (prop == "rgba") {
+            rgba = previous_rgba;
         }
     }
 

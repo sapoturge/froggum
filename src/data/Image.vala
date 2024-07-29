@@ -235,4 +235,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
     public void finish (string prop) {
     }
+
+    public void cancel (string prop) {
+    }
 }
