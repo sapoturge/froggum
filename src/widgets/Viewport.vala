@@ -8,6 +8,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private int width = 0;
     private int height = 0;
     private Point base_point;
+    private uint cancel_drag_id;
 
     private bool scrolling = false;
 
@@ -309,10 +310,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         drag_controller.drag_end.connect ((event) => {
             // Stop scrolling, dragging, etc.
-            if (point_binding != null) {
-                unbind_point ();
-            }
-
+            unbind_point ();
             scrolling = false;
         });
 
@@ -378,23 +376,31 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private void bind_point (Undoable obj, string name) {
-        if (tutorial != null && tutorial.step == DRAG) {
-            tutorial.next_step ();
-        }
+        cancel_drag_id = Timeout.add (100, () => {
+            if (tutorial != null && tutorial.step == DRAG) {
+                tutorial.next_step ();
+            }
 
-        bound_obj = obj;
-        bound_prop = name;
-        obj.begin (name);
-        point_binding = bind_property ("control-point", obj, name);
-        base_point = control_point;
-        queue_draw ();
+            bound_obj = obj;
+            bound_prop = name;
+            obj.begin (name);
+            point_binding = bind_property ("control-point", obj, name);
+            base_point = control_point;
+            queue_draw ();
+            cancel_drag_id = 0;
+            return false;
+        });
     }
 
     private void unbind_point () {
-        bound_obj.finish (bound_prop);
-        point_binding.unbind ();
-        point_binding = null;
-        queue_draw ();
+        if (cancel_drag_id != 0) {
+            Source.remove (cancel_drag_id);
+        } else if (point_binding != null) {
+            bound_obj.finish (bound_prop);
+            point_binding.unbind ();
+            point_binding = null;
+            queue_draw ();
+        }
     }
     
     private void position_tutorial () {
