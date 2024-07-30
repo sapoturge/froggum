@@ -298,10 +298,6 @@ public class Path : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
-        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
-            return true;
-        }
-
         var current_segment = root_segment;
         var first = true;
         while (first || current_segment != root_segment) {
