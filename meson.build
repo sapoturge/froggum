@@ -52,6 +52,7 @@ executable(
     'src/data/BaseHandle.vala',
     'src/data/TransformedHandle.vala',
     'src/data/PatternSegment.vala',
+    'src/data/Error.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk4'),

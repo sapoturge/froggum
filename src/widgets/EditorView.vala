@@ -7,6 +7,7 @@ public class EditorView : Gtk.Box {
     private StatusBar status_bar;
     private ulong new_button_handler;
     private Gtk.Button new_button;
+    private Gtk.Revealer error_bar;
 
     public EditorView (Image image) {
         this.image = image;
@@ -36,6 +37,7 @@ public class EditorView : Gtk.Box {
                 }
             }
         });
+        image.notify["error"].connect (() => update_error ());
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
             var e = row.item as Element;
@@ -60,8 +62,9 @@ public class EditorView : Gtk.Box {
             }
         });
         new_button_handler = new_button.clicked.connect (image.new_path);
+        update_error ();
     }
-    
+
     construct {
         var builder = new Gtk.SignalListItemFactory ();
         builder.setup.connect ((l) => {
@@ -191,10 +194,10 @@ public class EditorView : Gtk.Box {
         new_menu_layout.append (new_polyline);
         new_menu_layout.append (new_polygon);
         new_menu.child = new_menu_layout;
- 
+
         var new_menu_button = new Gtk.MenuButton();
         new_menu_button.popover = new_menu;
-        
+
         var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
         new_group.tooltip_text = _("New group");
         new_group.has_frame = false;
@@ -272,12 +275,17 @@ public class EditorView : Gtk.Box {
         task_bar.append (path_down);
         task_bar.append (delete_path);
         task_bar.vexpand = false;
-        
+
         var side_bar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         side_bar.hexpand = false;
         side_bar.vexpand = true;
         side_bar.prepend (list_box_scroll);
         side_bar.append (task_bar);
+
+        error_bar = new Gtk.Revealer () {
+            reveal_child = false,
+            transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN,
+        };
 
         viewport = new Viewport ();
         var scrolled = new Gtk.ScrolledWindow ();
@@ -290,8 +298,9 @@ public class EditorView : Gtk.Box {
         status_bar = new StatusBar ();
         viewport.bind_property ("current_handle", status_bar, "handle");
         viewport.bind_property ("cursor_pos", status_bar, "cursor_pos");
-  
+
         var main_space = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        main_space.append (error_bar);
         main_space.append (scrolled);
         main_space.append (status_bar);
 
@@ -305,5 +314,69 @@ public class EditorView : Gtk.Box {
 
         hexpand = true;
         vexpand = true;
+    }
+
+    private void update_error () {
+        if (image.error == ErrorKind.NO_ERROR) {
+            error_bar.reveal_child = false;
+            return;
+        }
+
+        var container = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
+            margin_start = 12,
+            margin_end = 12,
+            margin_top = 12,
+            margin_bottom = 12,
+        };
+
+        switch (error_severity (image.error)) {
+        case Severity.WARNING:
+            error_bar.remove_css_class ("error");
+            error_bar.remove_css_class ("info");
+            error_bar.add_css_class ("warning");
+            container.append (new Gtk.Image.from_icon_name ("dialog-warning"));
+            break;
+        case Severity.ERROR:
+            error_bar.remove_css_class ("info");
+            error_bar.remove_css_class ("warning");
+            error_bar.add_css_class ("error");
+            container.append (new Gtk.Image.from_icon_name ("dialog-error"));
+            break;
+        default:
+            error_bar.remove_css_class ("error");
+            error_bar.remove_css_class ("warning");
+            error_bar.add_css_class ("info");
+            container.append (new Gtk.Image.from_icon_name ("dialog-question"));
+            break;
+        };
+
+        switch (image.error) {
+        case NO_ERROR:
+             container.append (new Gtk.Label (_("No error found.")));
+             break;
+        case CANT_READ:
+             container.append (new Gtk.Label (_("Could not read file.")));
+             break;
+        case CANT_WRITE:
+             container.append (new Gtk.Label (_("Could not save file.")));
+             break;
+        case INVALID_SVG:
+             container.append (new Gtk.Label (_("Invalid SVG file.")));
+             break;
+        case UNKNOWN_ELEMENT:
+             container.append (new Gtk.Label (_("Unknown element encountered.")));
+             break;
+        case UNKNOWN_ATTRIBUTE:
+             container.append (new Gtk.Label (_("Unknown attribute encountered.")));
+             break;
+        default:
+             container.append (new Gtk.Label (_("Unknown error occurred.")));
+             break;
+        };
+
+        // TODO: Add buttons.
+
+        error_bar.child = container;
+        error_bar.reveal_child = true;
     }
 }

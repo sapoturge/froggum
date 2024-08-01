@@ -4,6 +4,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
     public int width { get; private set; }
     public int height { get; private set; }
+    public ErrorKind error { get; private set; }
 
     private string? _name;
     public string name {
@@ -48,6 +49,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
+        error = ErrorKind.CANT_WRITE;
     }
 
     public Image (int width, int height, Element[] paths = {}) {
@@ -64,9 +66,16 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public Image.load (File file) {
         setup_signals ();
         this._file = file;
-        var doc = Xml.Parser.parse_file (file.get_path ());
+        var parser = new Xml.ParserCtxt ();
+        var doc = parser.read_file (file.get_path ());
         if (doc == null) {
-            // Mark for error somehow: Could not open file
+            var xml_error = parser.get_last_error ();
+            if (xml_error == null || xml_error->domain == 8) {
+                error = ErrorKind.CANT_READ;
+            } else {
+                error = ErrorKind.INVALID_SVG;
+            }
+
             this.width = 16;
             this.height = 16;
             setup_signals ();
@@ -74,7 +83,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         }
         Xml.Node* root = doc->get_root_element ();
         if (root == null) {
-            // Mark for error again: Empty file
+            error = ErrorKind.INVALID_SVG;
             delete doc;
             this.width = 16;
             this.height = 16;
