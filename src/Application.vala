@@ -1,30 +1,30 @@
-public class FroggumApplication : Gtk.Application {
+public class FroggumApplication : Adw.Application {
     private uint configure_id;
     private bool activated = false;
     private bool will_open = false;
-    
+
     public static Settings settings;
-    
+
     private Gtk.ApplicationWindow main_window;
     private Adw.TabView notebook;
     private Gtk.FileDialog dialog;
-    
+
     public FroggumApplication () {
         Object (
             application_id: "io.github.sapoturge.froggum",
             flags: ApplicationFlags.HANDLES_OPEN
         );
     }
-    
+
     public SimpleActionGroup actions { get; construct; }
-    
+
     public const string ACTION_UNDO = "action_undo";
     public const string ACTION_REDO = "action_redo";
-    
+
     static construct {
         settings = new Settings ("io.github.sapoturge.froggum");
     }
-    
+
     construct {
         var undo_action = new SimpleAction ("action_undo", null);
         undo_action.activate.connect (() => {
@@ -45,11 +45,11 @@ public class FroggumApplication : Gtk.Application {
                 image.redo ();
             }
         });
-        
+
         actions = new SimpleActionGroup ();
         actions.add_action (undo_action);
         actions.add_action (redo_action);
-        
+
         set_accels_for_action ("froggum.action_undo", {"<Control>Z", null});
         set_accels_for_action ("froggum.action_redo", {"<Control>Y", null});
         undo_action.set_enabled (true);
@@ -59,14 +59,10 @@ public class FroggumApplication : Gtk.Application {
     protected override void activate () {
         Gtk.IconTheme default_theme = new Gtk.IconTheme ();
         default_theme.add_resource_path ("/io/github/sapoturge/froggum");
-        
+
         main_window = new Gtk.ApplicationWindow (this);
         main_window.insert_action_group ("froggum", actions);
         main_window.title = _("Froggum - Untitled");
-
-        var provider = new Gtk.CssProvider ();
-        provider.load_from_resource ("/io/github/sapoturge/froggum/style.css");
-        Gtk.StyleContext.add_provider_for_display (main_window.get_display (), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 
         if (settings.get_boolean ("window-maximized")) {
             main_window.maximize ();
@@ -92,9 +88,9 @@ public class FroggumApplication : Gtk.Application {
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "close:maximize";
         header.show_title_buttons = true;
-        
+
         notebook = new Adw.TabView ();
-        
+
         notebook.notify["selected-page"].connect((param) => {
             var page = notebook.selected_page;
             var child = page.child;
@@ -163,9 +159,9 @@ public class FroggumApplication : Gtk.Application {
 
         var last_files = settings.get_strv ("open-files");
         var focused_file = settings.get_string ("focused-file");
-        
+
         Adw.TabPage focused = null;
-        
+
         foreach (string file in last_files) {
             if (file != "") {
                 var real_file = File.new_for_uri (file);
@@ -180,7 +176,7 @@ public class FroggumApplication : Gtk.Application {
                 }
             }
         }
-        
+
         if (notebook.n_pages == 0 && !will_open) {
             new_tab ();
         } else if (focused != null) {
@@ -246,7 +242,7 @@ public class FroggumApplication : Gtk.Application {
 
         recalculate_open_files ();
     }
-    
+
     private void new_image (int width, int height, Adw.TabPage tab) {
         var radius = int.min (int.min (width, height) / 8, 16) + 0.5;
         var segments = new PathSegment[] {
@@ -387,7 +383,7 @@ public class FroggumApplication : Gtk.Application {
 
          notebook.selected_page = tab;
     }
-    
+
     private void recalculate_open_files () {
         var filenames = new string[] {};
         for (int i = 0; i < notebook.n_pages; i++) {
