@@ -1,4 +1,4 @@
-public class FroggumApplication : Adw.Application {
+public class FroggumApplication : Gtk.Application {
     private uint configure_id;
     private bool activated = false;
     private bool will_open = false;

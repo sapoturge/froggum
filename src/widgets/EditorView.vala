@@ -92,12 +92,15 @@ public class EditorView : Gtk.Box {
 
         paths_list = new Gtk.ListView (selection, builder);
 
-        var list_box_scroll = new Gtk.ScrolledWindow ();
+        var list_box_scroll = new Gtk.ScrolledWindow () {
+            hscrollbar_policy = Gtk.PolicyType.NEVER,
+        };
         list_box_scroll.propagate_natural_width = true;
         list_box_scroll.child = paths_list;
         list_box_scroll.vexpand = true;
 
         new_button = new Gtk.Button.from_icon_name("list-add-symbolic");
+        new_button.hexpand = true;
         new_button.tooltip_text = _("New path");
 
         var new_path = new Gtk.Button () {
@@ -186,6 +189,7 @@ public class EditorView : Gtk.Box {
 
         var new_menu = new Gtk.Popover ();
         var new_menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        new_menu_layout.add_css_class ("linked");
         new_menu_layout.append (new_path);
         new_menu_layout.append (new_circle);
         new_menu_layout.append (new_rectangle);
@@ -196,18 +200,19 @@ public class EditorView : Gtk.Box {
         new_menu.child = new_menu_layout;
 
         var new_menu_button = new Gtk.MenuButton();
+        new_menu_button.hexpand = true;
         new_menu_button.popover = new_menu;
 
         var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
         new_group.tooltip_text = _("New group");
-        new_group.has_frame = false;
+        new_group.hexpand = true;
         new_group.clicked.connect (() => {
             image.new_group ();
         });
 
         var duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
         duplicate_path.tooltip_text = _("Duplicate element");
-        duplicate_path.has_frame = false;
+        duplicate_path.hexpand = true;
         duplicate_path.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             var elem = row.item as Element;
@@ -218,7 +223,7 @@ public class EditorView : Gtk.Box {
 
         var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
         path_up.tooltip_text = _("Move element up");
-        path_up.has_frame = false;
+        path_up.hexpand = true;
         path_up.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             var prev_row = image.tree.get_row (selection.selected - 1);
@@ -237,7 +242,7 @@ public class EditorView : Gtk.Box {
 
         var path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
         path_down.tooltip_text = _("Move element down");
-        path_down.has_frame = false;
+        path_down.hexpand = true;
         path_down.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             if (row != null) {
@@ -255,7 +260,7 @@ public class EditorView : Gtk.Box {
 
         var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
         delete_path.tooltip_text = _("Delete element");
-        delete_path.has_frame = false;
+        delete_path.hexpand = true;
         delete_path.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             if (row != null) {
@@ -267,6 +272,7 @@ public class EditorView : Gtk.Box {
         });
 
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        task_bar.add_css_class ("linked");
         task_bar.append (new_button);
         task_bar.append (new_menu_button);
         task_bar.append (new_group);

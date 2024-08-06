@@ -21,6 +21,7 @@ public class PathRow : Gtk.Box {
 
     construct {
         orientation = Gtk.Orientation.HORIZONTAL;
+        spacing = 6;
 
         expander = new Gtk.TreeExpander ();
         view = new Gtk.DrawingArea ();
