@@ -24,6 +24,7 @@ executable(
     'src/widgets/Tutorial.vala',
     'src/widgets/PathRow.vala',
     'src/widgets/StatusBar.vala',
+    'src/widgets/ErrorBar.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',

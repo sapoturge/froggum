@@ -105,7 +105,7 @@ public class GradientEditor : Gtk.Box {
                                     stop.rgba = color;
                                     stop.finish ("rgba");
                                 }
-                            } catch (Error e) {
+                            } catch (GLib.Error e) {
                                 // TODO: Display error
                             }
                         });

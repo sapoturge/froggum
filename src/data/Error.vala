@@ -1,3 +1,17 @@
+public class Error : GLib.Object {
+    public ErrorKind kind { get; construct; }
+    public string detail { get; construct; }
+    public Severity severity {
+        get {
+            return error_severity (kind);
+        }
+    }
+
+    public Error (ErrorKind kind, string detail) {
+        Object (kind: kind, detail: detail);
+    }
+}
+
 public enum ErrorKind {
     NO_ERROR,
     CANT_READ,

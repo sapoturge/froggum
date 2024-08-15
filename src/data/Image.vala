@@ -4,7 +4,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
     public int width { get; private set; }
     public int height { get; private set; }
-    public ErrorKind error { get; private set; }
+    public Error error { get; private set; }
 
     private string? _name;
     public string name {
@@ -49,7 +49,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
-        error = ErrorKind.CANT_WRITE;
+        error = new Error (ErrorKind.UNKNOWN_ATTRIBUTE, "animate");
     }
 
     public Image (int width, int height, Element[] paths = {}) {
@@ -71,9 +71,9 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         if (doc == null) {
             var xml_error = parser.get_last_error ();
             if (xml_error == null || xml_error->domain == 8) {
-                error = ErrorKind.CANT_READ;
+                error = new Error (ErrorKind.CANT_READ, file.get_basename ());
             } else {
-                error = ErrorKind.INVALID_SVG;
+                error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
             }
 
             this.width = 16;
@@ -83,7 +83,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         }
         Xml.Node* root = doc->get_root_element ();
         if (root == null) {
-            error = ErrorKind.INVALID_SVG;
+            error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
             delete doc;
             this.width = 16;
             this.height = 16;

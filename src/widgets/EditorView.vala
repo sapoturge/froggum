@@ -7,7 +7,7 @@ public class EditorView : Gtk.Box {
     private StatusBar status_bar;
     private ulong new_button_handler;
     private Gtk.Button new_button;
-    private Gtk.Revealer error_bar;
+    private ErrorBar error_bar;
 
     public EditorView (Image image) {
         this.image = image;
@@ -37,7 +37,8 @@ public class EditorView : Gtk.Box {
                 }
             }
         });
-        image.notify["error"].connect (() => update_error ());
+        image.bind_property ("error", error_bar, "error");
+        error_bar.error = image.error;
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
             var e = row.item as Element;
@@ -62,7 +63,6 @@ public class EditorView : Gtk.Box {
             }
         });
         new_button_handler = new_button.clicked.connect (image.new_path);
-        update_error ();
     }
 
     construct {
@@ -288,10 +288,7 @@ public class EditorView : Gtk.Box {
         side_bar.prepend (list_box_scroll);
         side_bar.append (task_bar);
 
-        error_bar = new Gtk.Revealer () {
-            reveal_child = false,
-            transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN,
-        };
+        error_bar = new ErrorBar ();
 
         viewport = new Viewport ();
         var scrolled = new Gtk.ScrolledWindow ();
@@ -320,69 +317,5 @@ public class EditorView : Gtk.Box {
 
         hexpand = true;
         vexpand = true;
-    }
-
-    private void update_error () {
-        if (image.error == ErrorKind.NO_ERROR) {
-            error_bar.reveal_child = false;
-            return;
-        }
-
-        var container = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
-            margin_start = 12,
-            margin_end = 12,
-            margin_top = 12,
-            margin_bottom = 12,
-        };
-
-        switch (error_severity (image.error)) {
-        case Severity.WARNING:
-            error_bar.remove_css_class ("error");
-            error_bar.remove_css_class ("info");
-            error_bar.add_css_class ("warning");
-            container.append (new Gtk.Image.from_icon_name ("dialog-warning"));
-            break;
-        case Severity.ERROR:
-            error_bar.remove_css_class ("info");
-            error_bar.remove_css_class ("warning");
-            error_bar.add_css_class ("error");
-            container.append (new Gtk.Image.from_icon_name ("dialog-error"));
-            break;
-        default:
-            error_bar.remove_css_class ("error");
-            error_bar.remove_css_class ("warning");
-            error_bar.add_css_class ("info");
-            container.append (new Gtk.Image.from_icon_name ("dialog-question"));
-            break;
-        };
-
-        switch (image.error) {
-        case NO_ERROR:
-             container.append (new Gtk.Label (_("No error found.")));
-             break;
-        case CANT_READ:
-             container.append (new Gtk.Label (_("Could not read file.")));
-             break;
-        case CANT_WRITE:
-             container.append (new Gtk.Label (_("Could not save file.")));
-             break;
-        case INVALID_SVG:
-             container.append (new Gtk.Label (_("Invalid SVG file.")));
-             break;
-        case UNKNOWN_ELEMENT:
-             container.append (new Gtk.Label (_("Unknown element encountered.")));
-             break;
-        case UNKNOWN_ATTRIBUTE:
-             container.append (new Gtk.Label (_("Unknown attribute encountered.")));
-             break;
-        default:
-             container.append (new Gtk.Label (_("Unknown error occurred.")));
-             break;
-        };
-
-        // TODO: Add buttons.
-
-        error_bar.child = container;
-        error_bar.reveal_child = true;
     }
 }
