@@ -19,6 +19,8 @@ public enum ErrorKind {
     INVALID_SVG,
     UNKNOWN_ELEMENT,
     UNKNOWN_ATTRIBUTE,
+    INVALID_PROPERTY,
+    MISSING_PROPERTY,
 }
 
 public enum Severity {
@@ -36,6 +38,10 @@ public Severity error_severity (ErrorKind kind) {
     case CANT_WRITE:
         return Severity.ERROR;
     case INVALID_SVG:
+        return Severity.ERROR;
+    case INVALID_PROPERTY:
+        return Severity.ERROR;
+    case MISSING_PROPERTY:
         return Severity.ERROR;
     case UNKNOWN_ELEMENT:
         return Severity.WARNING;

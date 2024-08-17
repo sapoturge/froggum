@@ -2,8 +2,10 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     private File _file;
     private CommandStack stack;
 
-    public int width { get; private set; }
-    public int height { get; private set; }
+    private int _width;
+    public int width { get { return _width; } }
+    private int _height;
+    public int height { get { return _height; } }
     public Error error { get; private set; }
 
     private string? _name;
@@ -20,7 +22,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
 
     private uint save_id;
-    private bool already_loaded = false;
 
     public ModelUpdate updator {
         set {
@@ -33,7 +34,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             if (save_id != 0) {
                 Source.remove (save_id);
             }
-            
+
             save_id = Timeout.add (100, () => {
                 save_id = 0;
                 if (error.severity == Severity.NO_ERROR) {
@@ -43,7 +44,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             });
         });
     }
-    
+
     construct {
         transform = new Transform.identity ();
         stack = new CommandStack ();
@@ -51,21 +52,25 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
+        error = new Error (ErrorKind.NO_ERROR, "");
     }
 
     public Image (int width, int height, Element[] paths = {}) {
         setup_signals ();
-        this.width = width;
-        this.height = height;
+        this._width = width;
+        this._height = height;
         set_size (width, height);
         foreach (Element element in paths) {
             add_element (element);
         }
-        already_loaded = true;
     }
 
     public Image.load (File file) {
         setup_signals ();
+        // Set defaults for if an error occurs
+        this._width = 16;
+        this._height = 16;
+
         this._file = file;
         var parser = new Xml.ParserCtxt ();
         var doc = parser.read_file (file.get_path ());
@@ -77,42 +82,75 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
             }
 
-            this.width = 16;
-            this.height = 16;
-            setup_signals ();
             return;
         }
+
         Xml.Node* root = doc->get_root_element ();
         if (root == null) {
             error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
             delete doc;
-            this.width = 16;
-            this.height = 16;
-            setup_signals ();
             return;
         }
-        if (root->name == "svg") {
-            this.width = int.parse (root->get_prop ("width"));
-            this.height = int.parse (root->get_prop ("height"));
-            set_size (this.width, this.height);
-            
-            var patterns = new Gee.HashMap<string, Pattern> ();
 
-            for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
-                if (iter->name == "defs") {
-                    for (Xml.Node* def = iter->children; def != null; def = def->next) {
-                        var pattern = Pattern.load_xml (def);
-                        if (pattern != null) {
-                            var name = def->get_prop ("id");
-                            patterns.@set (name, pattern);
-                        }
+        if (root->name != "svg") {
+            error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
+            delete doc;
+            return;
+        }
+
+        string? width = null;
+        string? height = null;
+
+        for (var property = root->properties; property != null; property = property->next) {
+            switch (property->name) {
+            case "width":
+                width = ((Xml.Node*) property)->get_content ();
+                break;
+            case "height":
+                height = ((Xml.Node*) property)->get_content ();
+                break;
+            case "version":
+                // This should probably by checked eventually
+                break;
+            default:
+                error = new Error (ErrorKind.UNKNOWN_ATTRIBUTE, "svg.%s".printf (property->name));
+                break;
+            }
+        }
+
+        if (width == null) {
+            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.width");
+            return;
+        } else if (height == null) {
+            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.height");
+            return;
+        }
+
+        if (!int.try_parse (width, out this._width)) {
+            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.width = '%s'".printf (width));
+            return;
+        } else if (!int.try_parse (height, out this._height)) {
+            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.height = '%s'".printf (height));
+            return;
+        }
+
+        set_size (this.width, this.height);
+
+        var patterns = new Gee.HashMap<string, Pattern> ();
+
+        for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
+            if (iter->name == "defs") {
+                for (Xml.Node* def = iter->children; def != null; def = def->next) {
+                    var pattern = Pattern.load_xml (def);
+                    if (pattern != null) {
+                        var name = def->get_prop ("id");
+                        patterns.@set (name, pattern);
                     }
                 }
             }
-
-            load_elements (root, patterns);
         }
-        already_loaded = true;
+
+        load_elements (root, patterns);
     }
 
     public File file {
@@ -137,7 +175,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public void undo () {
         stack.undo ();
     }
-    
+
     public void redo () {
         stack.redo ();
     }
@@ -223,10 +261,10 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         svg->new_prop ("width", width.to_string ());
         svg->new_prop ("height", height.to_string ());
         svg->new_prop ("xmlns", "http://www.w3.org/2000/svg");
-        
+
         Xml.Node* defs = new Xml.Node (null, "defs");
         svg->add_child (defs);
-        
+
         save_children (svg, defs, 0);
 
         var res = doc->save_file (file.get_path ());

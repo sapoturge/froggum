@@ -18,6 +18,12 @@ public class ErrorBar : Adw.Bin {
             case ErrorKind.INVALID_SVG:
                 header.label = _("%s is not a valid SVG file").printf (value.detail);
                 break;
+            case ErrorKind.INVALID_PROPERTY:
+                header.label = _("Invalid property value %s").printf (value.detail);
+                break;
+            case ErrorKind.MISSING_PROPERTY:
+                header.label = _("Missing property value %s").printf (value.detail);
+                break;
             case ErrorKind.UNKNOWN_ELEMENT:
                 header.label = _("Unrecognized element %s encountered.").printf (value.detail);
                 break;
