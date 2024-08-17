@@ -36,7 +36,9 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             
             save_id = Timeout.add (100, () => {
                 save_id = 0;
-                save_xml ();
+                if (error.severity == Severity.NO_ERROR) {
+                    save_xml ();
+                }
                 return false;
             });
         });
@@ -49,7 +51,6 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
-        error = new Error (ErrorKind.UNKNOWN_ATTRIBUTE, "animate");
     }
 
     public Image (int width, int height, Element[] paths = {}) {
