@@ -275,6 +275,8 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             if (err != null) {
                 print ("Error: %d, %d: %s\n", err->domain, err->code, err->message);
             }
+
+            error = new Error (ErrorKind.CANT_WRITE, file.get_basename ());
         }
     }
 
