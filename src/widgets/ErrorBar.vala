@@ -1,10 +1,15 @@
 public class ErrorBar : Adw.Bin {
     private Gtk.Revealer bar;
     private Gtk.Label header;
+    private Gtk.TextBuffer full;
     private Severity last_severity;
 
     public Error error {
         set {
+            // This isn't localized
+            full.text = value.full_message;
+
+            // This is
             switch (value.kind) {
             case ErrorKind.NO_ERROR:
                 header.label = _("No error found.");
@@ -75,11 +80,19 @@ public class ErrorBar : Adw.Bin {
             margin_end = 12,
             margin_top = 12,
             margin_bottom = 12,
+            hexpand = true,
         };
         header = new Gtk.Label ("<big><b>No Error</b></big>") {
             use_markup = true,
         };
-        container.append (header);
+        full = new Gtk.TextBuffer (null);
+        var full_message = new Gtk.TextView.with_buffer (full);
+        var expander = new Gtk.Expander (null) {
+            label_widget = header,
+            child = full_message,
+            hexpand = true,
+        };
+        container.append (expander);
         bar.child = container;
         child = bar;
     }

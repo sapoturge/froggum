@@ -52,7 +52,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
-        error = new Error (ErrorKind.NO_ERROR, "");
+        error = new Error (ErrorKind.NO_ERROR, "", "No error.");
     }
 
     public Image (int width, int height, Element[] paths = {}) {
@@ -76,10 +76,12 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         var doc = parser.read_file (file.get_path ());
         if (doc == null) {
             var xml_error = parser.get_last_error ();
-            if (xml_error == null || xml_error->domain == 8) {
-                error = new Error (ErrorKind.CANT_READ, file.get_basename ());
+            if (xml_error == null) {
+                error = new Error (ErrorKind.CANT_READ, file.get_basename (), "Reading failed.");
+            } else if (xml_error->domain == 8) {
+                error = new Error (ErrorKind.CANT_READ, file.get_basename (), xml_error->message);
             } else {
-                error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
+                error = new Error (ErrorKind.INVALID_SVG, file.get_basename (), xml_error->message);
             }
 
             return;
@@ -87,13 +89,19 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
         Xml.Node* root = doc->get_root_element ();
         if (root == null) {
-            error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
+            var xml_error = parser.get_last_error ();
+            var message = "No root element found.";
+            if (xml_error != null) {
+                message = xml_error->message;
+            }
+
+            error = new Error (ErrorKind.INVALID_SVG, file.get_basename (), message);
             delete doc;
             return;
         }
 
         if (root->name != "svg") {
-            error = new Error (ErrorKind.INVALID_SVG, file.get_basename ());
+            error = new Error (ErrorKind.INVALID_SVG, file.get_basename (), "Root element is not svg.\nActual element: '%s'".printf (root->name));
             delete doc;
             return;
         }
@@ -102,35 +110,36 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         string? height = null;
 
         for (var property = root->properties; property != null; property = property->next) {
+            var content = ((Xml.Node*) property)->get_content ();
             switch (property->name) {
             case "width":
-                width = ((Xml.Node*) property)->get_content ();
+                width = content;
                 break;
             case "height":
-                height = ((Xml.Node*) property)->get_content ();
+                height = content;
                 break;
             case "version":
                 // This should probably by checked eventually
                 break;
             default:
-                error = new Error (ErrorKind.UNKNOWN_ATTRIBUTE, "svg.%s".printf (property->name));
+                error = new Error (ErrorKind.UNKNOWN_ATTRIBUTE, "svg.%s".printf (property->name), "This attribute is not supported by Froggum. We report an error so that the information won't be lost.\nElement: svg\nAttribute: '%s'\nValue: '%s'".printf (property->name, content));
                 break;
             }
         }
 
         if (width == null) {
-            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.width");
+            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.width", "Required attribute missing.\nElement: svg\nAttribute: 'height'");
             return;
         } else if (height == null) {
-            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.height");
+            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.height", "Required attribute missing.\nElement: svg\nAttribute: 'height'");
             return;
         }
 
         if (!int.try_parse (width, out this._width)) {
-            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.width = '%s'".printf (width));
+            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.width = '%s'".printf (width), "This attribute value is not supported.\nElement: svg\nAttribute: 'width'\nValue: '%s'".printf (width));
             return;
         } else if (!int.try_parse (height, out this._height)) {
-            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.height = '%s'".printf (height));
+            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.height = '%s'".printf (height), "This attribute value is not supported.\nElement: svg\nAttribute: 'height'\nValue: '%s'".printf (height));
             return;
         }
 
@@ -272,11 +281,13 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             // TODO: communicate error
             print ("Error saving file: %d\n", res);
             var err = Xml.get_last_error ();
+            var message = "Saving failed.";
             if (err != null) {
                 print ("Error: %d, %d: %s\n", err->domain, err->code, err->message);
+                message = err->message;
             }
 
-            error = new Error (ErrorKind.CANT_WRITE, file.get_basename ());
+            error = new Error (ErrorKind.CANT_WRITE, file.get_basename (), message);
         }
     }
 
