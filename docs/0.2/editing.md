@@ -1,6 +1,7 @@
 ---
-previous: /docs/overview
+previous: overview
 previous-text: UI Overview
+layout: docs
 ---
 
 # Using Froggum

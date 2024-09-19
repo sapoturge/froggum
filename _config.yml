@@ -7,3 +7,5 @@ tabicon: /assets/images/froggum_icons/16.svg
 background-color: "#C2FA96"
 title-color: "#690"
 bold-color: "#242"
+latest: 0.2
+dev: 0.3

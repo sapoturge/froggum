@@ -1,13 +1,23 @@
 ---
-previous: /docs/install
-previous-text: Installing
-next: /docs/editing
-next-text: Editing
+layout: docs
 ---
 
 # Using Froggum
 
-## UI Overview
+## Getting Started
+
+When you first open **Froggum**, you will see a page similar to this:
+
+![New Tab Page](https://github.com/sapoturge/froggum/raw/master/screenshot.png)
+
+*Yes, this is the wrong picture. I'll get the right one soon.*
+
+Clicking on any of the buttons will get you a new icon.
+
+**Warning: Opening files created in other applications is potentially dangerous.
+Data loss may result.**
+
+## Overview
 
 1. Tab Bar
 
@@ -54,3 +64,17 @@ next-text: Editing
     The editor view is where all editing occurs. All visible paths are shown
     here, including any control handles for the selected path. You can scroll to
     zoom in or out, and drag to pan around.
+
+## Editing
+
+In the editor view, double-clicking on a path will select it. You can also
+select a path by double-clicking on its row in the sidebar.
+
+When a path is selected, it will be outlined in red, with a blue frame on some
+segments, and red control handles will appear around any draggable point. All
+control handles can be dragged around as you wish, and everything is
+automatically saved.
+
+Control-Z and Control-Y can be used for undo and redo, respectively.
+
+Double-clicking off of a path will deselect it, and hide all controls.

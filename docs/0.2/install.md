@@ -1,6 +1,7 @@
 ---
 next-text: UI Overview
-next: /docs/overview
+next: overview
+layout: docs
 ---
 
 # Installing

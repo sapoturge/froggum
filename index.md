@@ -4,7 +4,7 @@
 
 ![Screenshot](https://github.com/sapoturge/froggum/raw/master/screenshot.png)
 
-### [Install now]({{site.url}}/docs/install)
+### [Install now]({{site.url}}/docs/latest/install)
 
 ## Latest release: 0.2.1
 
