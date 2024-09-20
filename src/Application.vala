@@ -64,10 +64,6 @@ public class FroggumApplication : Gtk.Application {
         main_window.insert_action_group ("froggum", actions);
         main_window.title = _("Froggum - Untitled");
 
-        var provider = new Gtk.CssProvider ();
-        provider.load_from_resource ("io/github/sapoturge/froggum/style.css");
-        Gtk.StyleContext.add_provider_for_display (main_window.get_display (), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
-
         if (settings.get_boolean ("window-maximized")) {
             main_window.maximize ();
         }

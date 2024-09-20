@@ -1,80 +1,62 @@
 public class ErrorBar : Adw.Bin {
-    private Gtk.Revealer bar;
+    private Gtk.InfoBar bar;
     private Gtk.Label header;
     private Gtk.TextBuffer full;
-    private Severity last_severity;
 
     public Error error {
         set {
             // This isn't localized
             full.text = value.full_message;
 
-            // This is
+            // This is localized
             switch (value.kind) {
             case ErrorKind.NO_ERROR:
-                header.label = _("No error found.");
+                header.label = _("<big><b>No error found.</b></big>");
                 break;
             case ErrorKind.CANT_READ:
-                header.label = _("Can't read file %s").printf (value.detail);
+                header.label = _("<big><b>Can't read file %s</b></big>").printf (value.detail);
                 break;
             case ErrorKind.CANT_WRITE:
-                header.label = _("Failed to write file %s").printf (value.detail);
+                header.label = _("<big><b>Failed to write file %s</b></big>").printf (value.detail);
                 break;
             case ErrorKind.INVALID_SVG:
-                header.label = _("%s is not a valid SVG file").printf (value.detail);
+                header.label = _("<big><b>%s is not a valid SVG file</b></big>").printf (value.detail);
                 break;
             case ErrorKind.INVALID_PROPERTY:
-                header.label = _("Invalid property value %s").printf (value.detail);
+                header.label = _("<big><b>Invalid property value %s</b></big>").printf (value.detail);
                 break;
             case ErrorKind.MISSING_PROPERTY:
-                header.label = _("Missing property value %s").printf (value.detail);
+                header.label = _("<big><b>Missing property value %s</b></big>").printf (value.detail);
                 break;
             case ErrorKind.UNKNOWN_ELEMENT:
-                header.label = _("Unrecognized element %s encountered.").printf (value.detail);
+                header.label = _("<big><b>Unrecognized element %s encountered.</b></big>").printf (value.detail);
                 break;
             case ErrorKind.UNKNOWN_ATTRIBUTE:
-                header.label = _("Unrecognized attribute %s encountered.").printf (value.detail);
-                break;
-            }
-
-            switch (last_severity) {
-            case NO_ERROR:
-                bar.remove_css_class ("info");
-                break;
-            case WARNING:
-                bar.remove_css_class ("warning");
-                break;
-            case ERROR:
-                bar.remove_css_class ("error");
+                header.label = _("<big><b>Unrecognized attribute %s encountered.</b></big>").printf (value.detail);
                 break;
             }
 
             switch (value.severity) {
             case NO_ERROR:
-                bar.add_css_class ("info");
-                bar.reveal_child = false;
+                bar.message_type = Gtk.MessageType.INFO;
+                bar.revealed = false;
                 break;
             case WARNING:
-                bar.add_css_class ("warning");
-                bar.reveal_child = true;
+                bar.message_type = Gtk.MessageType.WARNING;
+                bar.revealed = true;
                 break;
             case ERROR:
-                bar.add_css_class ("error");
-                bar.reveal_child = true;
+                bar.message_type = Gtk.MessageType.ERROR;
+                bar.revealed = true;
                 break;
             }
-
-            last_severity = value.severity;
         }
     }
 
     public ErrorBar () {}
 
     construct {
-        bar = new Gtk.Revealer () {
-            reveal_child = false,
-            transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN,
-        };
+        bar = new Gtk.InfoBar ();
         var container = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
             margin_start = 12,
             margin_end = 12,
@@ -93,7 +75,7 @@ public class ErrorBar : Adw.Bin {
             hexpand = true,
         };
         container.append (expander);
-        bar.child = container;
+        bar.add_child (container);
         child = bar;
     }
 }

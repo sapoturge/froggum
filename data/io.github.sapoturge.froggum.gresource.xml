@@ -9,6 +9,5 @@
     <file alias="line-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/line-new-symbolic.svg</file>
     <file alias="polyline-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/polyline-new-symbolic.svg</file>
     <file alias="polygon-new-symbolic.svg" compressed="true" preprocess="xml-stripblanks">icons/symbolic/polygon-new-symbolic.svg</file>
-    <file alias="style.css" compressed="true">css/style.css</file>
   </gresource>
 </gresources>
