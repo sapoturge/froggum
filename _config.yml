@@ -9,3 +9,5 @@ title-color: "#690"
 bold-color: "#242"
 latest: 0.2
 dev: 0.3
+collections:
+  - doc_versions

@@ -1,5 +1,6 @@
 ---
 layout: docs
+version: 0.2
 ---
 
 # Using Froggum

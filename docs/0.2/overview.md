@@ -4,6 +4,7 @@ previous-text: Installing
 next: editing
 next-text: Editing
 layout: docs
+version: 0.2
 ---
 
 # Using Froggum

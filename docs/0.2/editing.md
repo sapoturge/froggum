@@ -2,6 +2,7 @@
 previous: overview
 previous-text: UI Overview
 layout: docs
+version: 0.2
 ---
 
 # Using Froggum
