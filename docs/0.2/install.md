@@ -9,7 +9,7 @@ layout: docs
 Jump to:
 * [Linux](#linux)
 * [Windows](#windows)
-* [Mac OS](mac-os)
+* [Mac OS](#mac-os)
 
 ## Linux
 
@@ -58,6 +58,7 @@ ninja install
 
 ## Mac OS
 
+I was not able to install **Froggum** while I had access to a Mac, but you are welcome to try.
 Mac is Unix-derived, so `Granite` might work on it. Try following the instructions
 for [Linux](#linux) above, and if that doesn't work install as for [Windows](#windows).
 These two branches will be merged eventually, without `Granite`, so the process
