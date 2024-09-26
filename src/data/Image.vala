@@ -122,24 +122,24 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 // This should probably by checked eventually
                 break;
             default:
-                error = new Error (ErrorKind.UNKNOWN_ATTRIBUTE, "svg.%s".printf (property->name), "This attribute is not supported by Froggum. We report an error so that the information won't be lost.\nElement: svg\nAttribute: '%s'\nValue: '%s'".printf (property->name, content));
+                error = new Error.unknown_attribute ("svg", property->name, content);
                 break;
             }
         }
 
         if (width == null) {
-            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.width", "Required attribute missing.\nElement: svg\nAttribute: 'height'");
+            error = new Error.missing_property ("svg", "width");
             return;
         } else if (height == null) {
-            error = new Error (ErrorKind.MISSING_PROPERTY, "svg.height", "Required attribute missing.\nElement: svg\nAttribute: 'height'");
+            error = new Error.missing_property ("svg", "height");
             return;
         }
 
         if (!int.try_parse (width, out this._width)) {
-            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.width = '%s'".printf (width), "This attribute value is not supported.\nElement: svg\nAttribute: 'width'\nValue: '%s'".printf (width));
+            error = new Error.invalid_property ("svg", "width", width);
             return;
         } else if (!int.try_parse (height, out this._height)) {
-            error = new Error (ErrorKind.INVALID_PROPERTY, "svg.height = '%s'".printf (height), "This attribute value is not supported.\nElement: svg\nAttribute: 'height'\nValue: '%s'".printf (height));
+            error = new Error.invalid_property ("svg", "height", height);
             return;
         }
 
@@ -150,10 +150,15 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
             if (iter->name == "defs") {
                 for (Xml.Node* def = iter->children; def != null; def = def->next) {
-                    var pattern = Pattern.load_xml (def);
+                    Error? inner_error = null;
+                    var pattern = Pattern.load_xml (def, out inner_error);
                     if (pattern != null) {
                         var name = def->get_prop ("id");
                         patterns.@set (name, pattern);
+                    }
+
+                    if (inner_error != null) {
+                        error = inner_error;
                     }
                 }
             }
