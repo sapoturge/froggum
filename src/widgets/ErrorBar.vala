@@ -5,6 +5,11 @@ public class ErrorBar : Adw.Bin {
 
     public Error error {
         set {
+            if (value == null) {
+                bar.revealed = false;
+                return;
+            }
+
             // This isn't localized
             full.text = value.full_message;
 

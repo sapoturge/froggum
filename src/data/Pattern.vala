@@ -88,9 +88,8 @@ public class Pattern : Object, ListModel, Undoable {
         }
     }
 
-    public static Pattern? load_xml (Xml.Node* def, out Error? error) {
+    public static Pattern? load_xml (Xml.Node* def, Gee.Queue<Error> errors) {
         var pattern = new Pattern.none ();
-        error = null;
 
         for (Xml.Node* stop = def->children; stop != null; stop = stop->next) {
             var offset_data = stop->get_prop ("offset");
@@ -142,29 +141,29 @@ public class Pattern : Object, ListModel, Undoable {
                     break;
                 case "gradientUnits":
                     if (content != "userSpaceOnUse") {
-                        error = new Error.invalid_property ("linearGradient", "gradientUnits", content);
+                        errors.offer (new Error.invalid_property ("linearGradient", "gradientUnits", content));
                     }
 
                     break;
                 case "id":
                     break; // We allow this property, but don't do anything with it here
                 default:
-                    error = new Error.unknown_attribute ("linearGradient", property->name, content);
+                    errors.offer (new Error.unknown_attribute ("linearGradient", property->name, content));
                     break;
                 }
             }
 
             if (x1_text == null) {
-                error = new Error.missing_property ("linearGradient", "x1");
+                errors.offer (new Error.missing_property ("linearGradient", "x1"));
                 return null;
             } else if (y1_text == null) {
-                error = new Error.missing_property ("linearGradient", "y1");
+                errors.offer (new Error.missing_property ("linearGradient", "y1"));
                 return null;
             } else if (x2_text == null) {
-                error = new Error.missing_property ("linearGradient", "x2");
+                errors.offer (new Error.missing_property ("linearGradient", "x2"));
                 return null;
             } else if (y2_text == null) {
-                error = new Error.missing_property ("linearGradient", "y2");
+                errors.offer (new Error.missing_property ("linearGradient", "y2"));
                 return null;
             }
 
@@ -174,16 +173,16 @@ public class Pattern : Object, ListModel, Undoable {
             double y2;
 
             if (!double.try_parse (x1_text, out x1)) {
-                error = new Error.invalid_property ("linearGradient", "x1", x1_text);
+                errors.offer (new Error.invalid_property ("linearGradient", "x1", x1_text));
                 return null;
             } else if (!double.try_parse (y1_text, out y1)) {
-                error = new Error.invalid_property ("linearGradient", "y1", y1_text);
+                errors.offer (new Error.invalid_property ("linearGradient", "y1", y1_text));
                 return null;
             } else if (!double.try_parse (x2_text, out x2)) {
-                error = new Error.invalid_property ("linearGradient", "x2", x2_text);
+                errors.offer (new Error.invalid_property ("linearGradient", "x2", x2_text));
                 return null;
             } else if (!double.try_parse (y2_text, out y2)) {
-                error = new Error.invalid_property ("linearGradient", "y2", y2_text);
+                errors.offer (new Error.invalid_property ("linearGradient", "y2", y2_text));
                 return null;
             }
 
@@ -214,7 +213,7 @@ public class Pattern : Object, ListModel, Undoable {
                     break;
                 case "fr":
                     if (!double.try_parse (content, out scratch) || scratch != 0.0) {
-                        error = new Error.invalid_property ("radialGradient", "fr", content);
+                        errors.offer (new Error.invalid_property ("radialGradient", "fr", content));
                     }
 
                     break;
@@ -226,26 +225,26 @@ public class Pattern : Object, ListModel, Undoable {
                     break;
                 case "gradientUnits":
                     if (content != "userSpaceOnUse") {
-                        error = new Error.invalid_property ("radialGradient", "gradientUnits", content);
+                        errors.offer (new Error.invalid_property ("radialGradient", "gradientUnits", content));
                     }
 
                     break;
                 case "id":
                     break; // We allow this, but don't do anything with it here
                 default:
-                    error = new Error.unknown_attribute ("radialGradient", prop->name, content);
+                    errors.offer (new Error.unknown_attribute ("radialGradient", prop->name, content));
                     break;
                 }
             }
 
             if (cx_text == null) {
-                error = new Error.missing_property ("radialGradient", "cx");
+                errors.offer (new Error.missing_property ("radialGradient", "cx"));
                 return null;
             } else if (cy_text == null) {
-                error = new Error.missing_property ("radialGradient", "cy");
+                errors.offer (new Error.missing_property ("radialGradient", "cy"));
                 return null;
             } else if (r_text == null) {
-                error = new Error.missing_property ("radialGradient", "r");
+                errors.offer (new Error.missing_property ("radialGradient", "r"));
                 return null;
             }
 
@@ -254,21 +253,21 @@ public class Pattern : Object, ListModel, Undoable {
             double r;
 
             if (!double.try_parse (cx_text, out cx)) {
-                error = new Error.invalid_property ("radialGradient", "cx", cx_text);
+                errors.offer (new Error.invalid_property ("radialGradient", "cx", cx_text));
                 return null;
             } else if (!double.try_parse (cy_text, out cy)) {
-                error = new Error.invalid_property ("radialGradient", "cy", cy_text);
+                errors.offer (new Error.invalid_property ("radialGradient", "cy", cy_text));
                 return null;
             } else if (!double.try_parse (r_text, out r)) {
-                error = new Error.invalid_property ("radialGradient", "r", r_text);
+                errors.offer (new Error.invalid_property ("radialGradient", "r", r_text));
                 return null;
             }
 
             if (fx_text != null && (!double.try_parse (fx_text, out scratch) || scratch != cx)) {
-                error = new Error.invalid_property ("radialGradient", "fx", fx_text);
+                errors.offer (new Error.invalid_property ("radialGradient", "fx", fx_text));
                 return null;
             } else if (fy_text != null && (!double.try_parse (fy_text, out scratch) || scratch != cy)) {
-                error = new Error.invalid_property ("radialGradient", "fy", fy_text);
+                errors.offer (new Error.invalid_property ("radialGradient", "fy", fy_text));
                 return null;
             }
 
@@ -278,7 +277,7 @@ public class Pattern : Object, ListModel, Undoable {
             pattern.pattern_type = RADIAL;
             return pattern;
         } else {
-            error = new Error (ErrorKind.UNKNOWN_ELEMENT, def->name, "This was decoded as a pattern, but is not recognized as a pattern.\nElement: '%s'".printf (def->name));
+            errors.offer (new Error (ErrorKind.UNKNOWN_ELEMENT, def->name, "This was decoded as a pattern, but is not recognized as a pattern.\nElement: '%s'".printf (def->name)));
             return null;
         }
     }

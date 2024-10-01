@@ -1,12 +1,12 @@
 public class Image : Object, Undoable, Updatable, Transformed, Container {
     private File _file;
     private CommandStack stack;
+    private Gee.Queue<Error> errors;
 
     private int _width;
     public int width { get { return _width; } }
     private int _height;
     public int height { get { return _height; } }
-    public Error error { get; private set; }
 
     private string? _name;
     public string name {
@@ -18,6 +18,12 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
     public Transform transform { get; set; }
+
+    public Error error {
+        owned get {
+            return errors.peek ();
+        }
+    }
 
     protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
 
@@ -37,7 +43,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
             save_id = Timeout.add (100, () => {
                 save_id = 0;
-                if (error.severity == Severity.NO_ERROR) {
+                if (errors.size == 0) {
                     save_xml ();
                 }
                 return false;
@@ -52,7 +58,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
-        error = new Error (ErrorKind.NO_ERROR, "", "No error.");
+        errors = new Gee.LinkedList<Error> ();
     }
 
     public Image (int width, int height, Element[] paths = {}) {
@@ -77,11 +83,11 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         if (doc == null) {
             var xml_error = parser.get_last_error ();
             if (xml_error == null) {
-                error = new Error (ErrorKind.CANT_READ, file.get_basename (), "Reading failed.");
+                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), "Reading failed."));
             } else if (xml_error->domain == 8) {
-                error = new Error (ErrorKind.CANT_READ, file.get_basename (), xml_error->message);
+                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), xml_error->message));
             } else {
-                error = new Error (ErrorKind.INVALID_SVG, file.get_basename (), xml_error->message);
+                errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), xml_error->message));
             }
 
             return;
@@ -95,13 +101,13 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 message = xml_error->message;
             }
 
-            error = new Error (ErrorKind.INVALID_SVG, file.get_basename (), message);
+            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), message));
             delete doc;
             return;
         }
 
         if (root->name != "svg") {
-            error = new Error (ErrorKind.INVALID_SVG, file.get_basename (), "Root element is not svg.\nActual element: '%s'".printf (root->name));
+            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), "Root element is not svg.\nActual element: '%s'".printf (root->name)));
             delete doc;
             return;
         }
@@ -122,24 +128,24 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 // This should probably by checked eventually
                 break;
             default:
-                error = new Error.unknown_attribute ("svg", property->name, content);
+                errors.offer (new Error.unknown_attribute ("svg", property->name, content));
                 break;
             }
         }
 
         if (width == null) {
-            error = new Error.missing_property ("svg", "width");
+            errors.offer (new Error.missing_property ("svg", "width"));
             return;
         } else if (height == null) {
-            error = new Error.missing_property ("svg", "height");
+            errors.offer (new Error.missing_property ("svg", "height"));
             return;
         }
 
         if (!int.try_parse (width, out this._width)) {
-            error = new Error.invalid_property ("svg", "width", width);
+            errors.offer (new Error.invalid_property ("svg", "width", width));
             return;
         } else if (!int.try_parse (height, out this._height)) {
-            error = new Error.invalid_property ("svg", "height", height);
+            errors.offer (new Error.invalid_property ("svg", "height", height));
             return;
         }
 
@@ -150,15 +156,10 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
             if (iter->name == "defs") {
                 for (Xml.Node* def = iter->children; def != null; def = def->next) {
-                    Error? inner_error = null;
-                    var pattern = Pattern.load_xml (def, out inner_error);
+                    var pattern = Pattern.load_xml (def, errors);
                     if (pattern != null) {
                         var name = def->get_prop ("id");
                         patterns.@set (name, pattern);
-                    }
-
-                    if (inner_error != null) {
-                        error = inner_error;
                     }
                 }
             }
@@ -292,7 +293,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 message = err->message;
             }
 
-            error = new Error (ErrorKind.CANT_WRITE, file.get_basename (), message);
+            errors.offer (new Error (ErrorKind.CANT_WRITE, file.get_basename (), message));
         }
     }
 
