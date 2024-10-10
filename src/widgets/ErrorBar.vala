@@ -15,9 +15,6 @@ public class ErrorBar : Adw.Bin {
 
             // This is localized
             switch (value.kind) {
-            case ErrorKind.NO_ERROR:
-                header.label = _("<big><b>No error found.</b></big>");
-                break;
             case ErrorKind.CANT_READ:
                 header.label = _("<big><b>Can't read file %s</b></big>").printf (value.detail);
                 break;
@@ -42,10 +39,6 @@ public class ErrorBar : Adw.Bin {
             }
 
             switch (value.severity) {
-            case NO_ERROR:
-                bar.message_type = Gtk.MessageType.INFO;
-                bar.revealed = false;
-                break;
             case WARNING:
                 bar.message_type = Gtk.MessageType.WARNING;
                 bar.revealed = true;

@@ -58,7 +58,15 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
-        errors = new Gee.LinkedList<Error> ();
+        errors = new Gee.PriorityQueue<Error> ((a, b) => {
+            if (a.severity == b.severity) {
+                return 0;
+            } else if (a.severity == Severity.ERROR) {
+                return -1;
+            } else { // b.severity == Severity.ERROR
+                return 1;
+            }
+        });
     }
 
     public Image (int width, int height, Element[] paths = {}) {

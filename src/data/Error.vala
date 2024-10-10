@@ -26,7 +26,6 @@ public class Error : GLib.Object {
 }
 
 public enum ErrorKind {
-    NO_ERROR,
     CANT_READ,
     CANT_WRITE,
     INVALID_SVG,
@@ -39,13 +38,10 @@ public enum ErrorKind {
 public enum Severity {
     WARNING,
     ERROR,
-    NO_ERROR,
 }
 
 public Severity error_severity (ErrorKind kind) {
     switch (kind) {
-    case NO_ERROR:
-        return Severity.NO_ERROR;
     case CANT_READ:
         return Severity.ERROR;
     case CANT_WRITE:
