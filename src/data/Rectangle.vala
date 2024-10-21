@@ -522,10 +522,6 @@ public class Rectangle : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
-        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
-            return true;
-        }
-
         segment = null;
         var in_x = this.x - tolerance < x && x < this.x + width + tolerance;
         var in_y = this.y - tolerance < y && y < this.y + height + tolerance;
