@@ -315,12 +315,12 @@ public class Pattern : Object, ListModel, Undoable {
 
         var index = stops.size / 2;
         var lower = 0;
-        var upper = stops.size - 1;
+        var upper = stops.size;
         while (upper > lower) {
             if (stops.@get (index).offset < stop.offset) {
                 lower = index + 1;
             } else {
-                upper = index - 1;
+                upper = index;
             }
 
             index = (upper + lower) / 2;
