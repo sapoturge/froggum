@@ -5,4 +5,6 @@ public interface Transformed: Object {
         transform.width = width;
         transform.height = height;
     }
+
+    public signal void apply_transform (Cairo.Matrix inner);
 }

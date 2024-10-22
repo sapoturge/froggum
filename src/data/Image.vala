@@ -15,6 +15,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
     public Transform transform { get; set; }
+    private Cairo.Matrix applied_transform;
 
     protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
 
@@ -39,10 +40,14 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 return false;
             });
         });
+        apply_transform.connect ((atransform) => {
+            applied_transform = atransform;
+        });
     }
     
     construct {
         transform = new Transform.identity ();
+        applied_transform = Cairo.Matrix.identity ();
         stack = new CommandStack ();
         var model = new ListStore (typeof (Element));
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
@@ -121,7 +126,17 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     }
 
     public void draw (Cairo.Context cr) {
+        cr.save ();
+        cr.transform (applied_transform);
         draw_children (cr);
+        cr.restore ();
+    }
+
+    public void draw_selection (Cairo.Context cr, double zoom) {
+        cr.save ();
+        cr.transform (applied_transform);
+        draw_selected_child (cr, zoom);
+        cr.restore ();
     }
 
     public void undo () {

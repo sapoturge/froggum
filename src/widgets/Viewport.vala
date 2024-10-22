@@ -177,7 +177,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             cr.save ();
             cr.scale (zoom, zoom);
 
-            // Draw Image
             image.draw (cr);
 
             // Draw Grid
@@ -203,7 +202,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            image.draw_selected_child (cr, zoom);
+            image.draw_selection (cr, zoom);
             if (current_handle != null) {
                 Point center = current_handle.point;
                 cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);

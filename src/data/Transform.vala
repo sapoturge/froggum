@@ -668,4 +668,17 @@ public class Transform : Object, Undoable {
         matrix.transform_distance (ref dist, ref new_dist);
         new_dist = Math.sqrt ((dist * dist + new_dist * new_dist) / 2);
     }
+
+    public Cairo.Matrix invert () {
+        var inverted = matrix;
+        inverted.invert ();
+        return inverted;
+    }
+
+    public Cairo.Matrix invert_with (Cairo.Matrix base_matrix) {
+        var new_matrix = matrix;
+        new_matrix.invert ();
+        new_matrix.multiply(new_matrix, base_matrix);
+        return new_matrix;
+    }
 }

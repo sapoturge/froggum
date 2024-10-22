@@ -223,10 +223,15 @@ public class Path : Element {
     }
 
     public override Gee.List<ContextOption> options () {
-        return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+        var opts = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Path"), () => { request_delete(); }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
+        if (transform_enabled) {
+            opts.add (new ContextOption.action (_("Apply Transformation"), () => apply_transform (transform.invert ())));
+        }
+
+        return opts;
     }
 
     private static int skip_whitespace (string source, int start) {

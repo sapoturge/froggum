@@ -23,6 +23,7 @@ public interface Container : Undoable, Updatable, Transformed {
         public ulong request_duplicate;
         public ulong replace;
         public ulong add_command;
+        public ulong apply_transform;
     }
 
     public abstract Gtk.TreeListModel tree { get; set; }
@@ -326,6 +327,7 @@ public interface Container : Undoable, Updatable, Transformed {
         });
 
         signal_manager.add_command = element.add_command.connect ((c) => add_command (c));
+        signal_manager.apply_transform = element.apply_transform.connect ((t) => apply_transform (transform.invert_with (t)));
 
         var cont = element as Container;
         if (cont != null) {
@@ -401,6 +403,7 @@ public interface Container : Undoable, Updatable, Transformed {
             element.disconnect (manager.swap_down);
             element.disconnect (manager.replace);
             element.disconnect (manager.add_command);
+            element.disconnect (manager.apply_transform);
             var cont = element as Container;
             if (cont != null) {
                 cont.disconnect (manager.path_selected);
@@ -458,7 +461,7 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    public void draw_selected_child (Cairo.Context cr, double zoom) {
+    protected void draw_selected_child (Cairo.Context cr, double zoom) {
         if (selected_child != null) {
             selected_child.transform.apply (cr);
             var new_zoom = zoom;
