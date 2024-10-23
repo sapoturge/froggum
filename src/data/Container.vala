@@ -468,7 +468,7 @@ public interface Container : Undoable, Updatable, Transformed {
             selected_child.transform.update_distance (zoom, out new_zoom);
             selected_child.draw_controls (cr, new_zoom);
             cr.restore ();
-            if (selected_child.transform_enabled) {
+            if (selected_child.transform_enabled && !selected_child.transform_applied) {
                 selected_child.transform.draw_controls (cr, zoom);
             }
         }
@@ -476,7 +476,7 @@ public interface Container : Undoable, Updatable, Transformed {
 
     public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment, out Handle? handle) {
         if (selected_child != null) {
-            if (selected_child.transform_enabled) {
+            if (selected_child.transform_enabled && !selected_child.transform_applied) {
                 if (selected_child.transform.check_controls (x, y, tolerance, out handle)) {
                     element = selected_child;
                     segment = null;
@@ -539,7 +539,7 @@ public interface Container : Undoable, Updatable, Transformed {
 
     public bool clicked_handle (double x, double y, double tolerance, out Handle? handle) {
         if (selected_child != null) {
-            if (selected_child.transform_enabled) {
+            if (selected_child.transform_enabled && !selected_child.transform_applied) {
                 if (selected_child.transform.check_controls (x, y, tolerance, out handle)) {
                     return true;
                 }
