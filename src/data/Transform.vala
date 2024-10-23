@@ -68,7 +68,7 @@ public class Transform : Object, Undoable {
             }
 
             var new_scale_y = scale_y - ae / height;
-            
+
             var aa = a.dist (left);
 
             side = (bottom.x - left.x) * (value.y - left.y) - (bottom.y - left.y) * (value.x - left.x);
@@ -80,7 +80,7 @@ public class Transform : Object, Undoable {
             if (scale_y < 0) {
                 aa = -aa;
             }
-            
+
             var new_scale_x = scale_x - (aa - ae * skew) / width;
 
             if (new_scale_x == 0 || new_scale_y == 0) {
@@ -134,7 +134,7 @@ public class Transform : Object, Undoable {
             }
 
             var new_scale_y = scale_y - ae / height;
-            
+
             var aa = a.dist (right);
 
             side = (bottom.x - right.x) * (value.y - right.y) - (bottom.y - right.y) * (value.x - right.x);
@@ -146,7 +146,7 @@ public class Transform : Object, Undoable {
             if (scale_y < 0) {
                 aa = -aa;
             }
-            
+
             var new_scale_x = scale_x - (aa + ae * skew) / width;
 
             if (new_scale_x == 0 || new_scale_y == 0) {
@@ -205,7 +205,7 @@ public class Transform : Object, Undoable {
             }
 
             var new_scale_y = scale_y - ae / height;
-            
+
             var aa = a.dist (left);
 
             side = (top.x - left.x) * (value.y - left.y) - (top.y - left.y) * (value.x - left.x);
@@ -217,7 +217,7 @@ public class Transform : Object, Undoable {
             if (scale_y < 0) {
                 aa = -aa;
             }
-            
+
             var new_scale_x = scale_x - (aa + ae * skew) / width;
 
             if (new_scale_x == 0 || new_scale_y == 0) {
@@ -272,7 +272,7 @@ public class Transform : Object, Undoable {
             }
 
             var new_scale_y = scale_y - ae / height;
-            
+
             var aa = a.dist (right);
 
             side = (top.x - right.x) * (value.y - right.y) - (top.y - right.y) * (value.x - right.x);
@@ -284,7 +284,7 @@ public class Transform : Object, Undoable {
             if (scale_y < 0) {
                 aa = -aa;
             }
-            
+
             var new_scale_x = scale_x - (aa - ae * skew) / width;
 
             if (new_scale_x == 0 || new_scale_y == 0) {
@@ -347,6 +347,37 @@ public class Transform : Object, Undoable {
         });
     }
 
+    public Transform.from_matrix (Cairo.Matrix matrix) {
+        translate_x = matrix.x0;
+        translate_y = matrix.y0;
+
+        // The remaining matrix values are as follows:
+        //
+        // +-              -+
+        // | C*S  C*S*K-N*s |
+        // | N*S  N*S*K+C*s |
+        // +-              -+
+        //
+        // Where
+        //    C = cos(angle)
+        //    N = sin(angle)
+        //    S = scale in X direction
+        //    s = scale in Y direction
+        //    K = skew on X axis
+
+        scale_x = Math.sqrt (matrix.xx * matrix.xx + matrix.yx * matrix.yx);
+        this.angle = Math.atan2 (matrix.yx, matrix.xx);
+        // I really hope my math is right on these.
+        skew = (matrix.xy + matrix.yx * matrix.yy / matrix.xx) / (matrix.xx + matrix.yx * matrix.yx / matrix.xx);
+        scale_y = (matrix.yy - matrix.yx * matrix.xy / matrix.xx) / (matrix.yx * matrix.yx / (scale_x * matrix.xx) + matrix.xx / scale_x);
+        this.matrix = matrix;
+
+        notify.connect (() => {
+            update_matrix ();
+            update ();
+        });
+    }
+
     public Transform.from_string (string? description) {
         translate_x = 0;
         translate_y = 0;
@@ -401,7 +432,7 @@ public class Transform : Object, Undoable {
                             parser.get_double (out cy);
                             parser.match (")");
                         }
-               
+
                         matrix.translate (cx, cy);
                         matrix.rotate (local_angle * Math.PI / 180.0);
                         matrix.translate (-cx, -cy);
@@ -416,7 +447,7 @@ public class Transform : Object, Undoable {
                             parser.get_double (out sy);
                             parser.match (")");
                         }
- 
+
                         if (sx == 0) { sx = 1; }
                         if (sy == 0) { sy = 1; }
                         matrix.scale (sx, sy);
@@ -449,21 +480,21 @@ public class Transform : Object, Undoable {
 
             translate_x = matrix.x0;
             translate_y = matrix.y0;
-            
+
             // The remaining matrix values are as follows:
-            // 
+            //
             // +-              -+
             // | C*S  C*S*K-N*s |
             // | N*S  N*S*K+C*s |
             // +-              -+
-            // 
+            //
             // Where
             //    C = cos(angle)
             //    N = sin(angle)
             //    S = scale in X direction
             //    s = scale in Y direction
             //    K = skew on X axis
-            
+
             scale_x = Math.sqrt (matrix.xx * matrix.xx + matrix.yx * matrix.yx);
             this.angle = Math.atan2 (matrix.yx, matrix.xx);
             // I really hope my math is right on these.
@@ -669,16 +700,16 @@ public class Transform : Object, Undoable {
         new_dist = Math.sqrt ((dist * dist + new_dist * new_dist) / 2);
     }
 
-    public Cairo.Matrix invert () {
-        var inverted = matrix;
-        inverted.invert ();
-        return inverted;
+    public Transform invert () {
+        var mat = matrix;
+        mat.invert ();
+        return new Transform.from_matrix (mat);
     }
 
-    public Cairo.Matrix invert_with (Cairo.Matrix base_matrix) {
+    public Transform invert_with (Transform base_transform) {
         var new_matrix = matrix;
         new_matrix.invert ();
-        new_matrix.multiply(new_matrix, base_matrix);
-        return new_matrix;
+        new_matrix.multiply(new_matrix, base_transform.matrix);
+        return new Transform.from_matrix(new_matrix);
     }
 }

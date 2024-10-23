@@ -6,5 +6,5 @@ public interface Transformed: Object {
         transform.height = height;
     }
 
-    public signal void apply_transform (Cairo.Matrix inner, Element? element);
+    public signal void apply_transform (Transform inner, Element? element);
 }

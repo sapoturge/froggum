@@ -537,7 +537,7 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    public virtual bool clicked_handle (double x, double y, double tolerance, out Handle? handle) {
+    public bool clicked_handle (double x, double y, double tolerance, out Handle? handle) {
         if (selected_child != null) {
             if (selected_child.transform_enabled) {
                 if (selected_child.transform.check_controls (x, y, tolerance, out handle)) {

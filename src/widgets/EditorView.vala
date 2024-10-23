@@ -297,7 +297,7 @@ public class EditorView : Gtk.Box {
         transform_label = new Gtk.Label (_("Viewing with no transform applied."));
         transform_bar.add_child (transform_label);
         transform_bar.add_button (_("Revert view"), 0);
-        transform_bar.response.connect ((response) => image.apply_transform (Cairo.Matrix.identity(), null));
+        transform_bar.response.connect ((response) => image.apply_transform (new Transform.identity(), null));
 
         viewport = new Viewport ();
         var scrolled = new Gtk.ScrolledWindow ();

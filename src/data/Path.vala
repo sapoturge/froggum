@@ -229,7 +229,7 @@ public class Path : Element {
         });
         if (transform_enabled && transform_applied) {
             opts.add (new ContextOption.action (_("Revert View"), () => {
-                apply_transform (Cairo.Matrix.identity(), null);
+                apply_transform (new Transform.identity(), null);
             }));
         } else if (transform_enabled) {
             opts.add (new ContextOption.action (_("Apply Transformation"), () => {
