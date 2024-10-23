@@ -104,7 +104,18 @@ public class Group : Element, Container {
     }
 
     public override Gee.List<ContextOption> options () {
-        // Groups have no inherent options.
-        return new Gee.ArrayList<ContextOption> ();
+        var opts = new Gee.ArrayList<ContextOption> ();
+        if (transform_applied) {
+            opts.add (new ContextOption.action (_("Revert View"), () => {
+                apply_transform (new Transform.identity(), null);
+            }));
+        } else {
+            opts.add (new ContextOption.action (_("Apply Transformation"), () => {
+                apply_transform (transform.invert (), this);
+                transform_applied = true;
+            }));
+        }
+
+        return opts;
     }
 }
