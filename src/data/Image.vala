@@ -16,6 +16,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public override Element? selected_child { get; set; }
     public Transform transform { get; set; }
     private Cairo.Matrix applied_transform;
+    private Element? applied_element;
 
     protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
 
@@ -40,8 +41,13 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 return false;
             });
         });
-        apply_transform.connect ((atransform) => {
+        apply_transform.connect ((atransform, element) => {
+            if (applied_element != null) {
+                applied_element.transform_applied = false;
+            }
+
             applied_transform = atransform;
+            applied_element = element;
         });
     }
     

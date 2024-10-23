@@ -327,7 +327,7 @@ public interface Container : Undoable, Updatable, Transformed {
         });
 
         signal_manager.add_command = element.add_command.connect ((c) => add_command (c));
-        signal_manager.apply_transform = element.apply_transform.connect ((t) => apply_transform (transform.invert_with (t)));
+        signal_manager.apply_transform = element.apply_transform.connect ((t, e) => apply_transform (transform.invert_with (t), e));
 
         var cont = element as Container;
         if (cont != null) {

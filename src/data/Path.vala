@@ -227,8 +227,15 @@ public class Path : Element {
             new ContextOption.deleter (_("Delete Path"), () => { request_delete(); }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
-        if (transform_enabled) {
-            opts.add (new ContextOption.action (_("Apply Transformation"), () => apply_transform (transform.invert ())));
+        if (transform_enabled && transform_applied) {
+            opts.add (new ContextOption.action (_("Revert View"), () => {
+                apply_transform (Cairo.Matrix.identity(), null);
+            }));
+        } else if (transform_enabled) {
+            opts.add (new ContextOption.action (_("Apply Transformation"), () => {
+                apply_transform (transform.invert (), this);
+                transform_applied = true;
+            }));
         }
 
         return opts;

@@ -34,6 +34,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
     }
 
     public virtual bool transform_enabled { get; set; }
+    public virtual bool transform_applied { get; set; }
 
     public string title { get; set; }
 
