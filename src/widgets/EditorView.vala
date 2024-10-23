@@ -7,6 +7,8 @@ public class EditorView : Gtk.Box {
     private StatusBar status_bar;
     private ulong new_button_handler;
     private Gtk.Button new_button;
+    private Gtk.InfoBar transform_bar;
+    private Gtk.Label transform_label;
 
     public EditorView (Image image) {
         this.image = image;
@@ -57,6 +59,14 @@ public class EditorView : Gtk.Box {
                 }
 
                 e.select (true);
+            }
+        });
+        image.apply_transform.connect ((trans, elem) => {
+            if (elem == null) {
+                transform_bar.revealed = false;
+            } else {
+                transform_label.label = _("Viewing with the transform of '%s' applied.").printf (elem.title);
+                transform_bar.revealed = true;
             }
         });
         new_button_handler = new_button.clicked.connect (image.new_path);
@@ -279,6 +289,16 @@ public class EditorView : Gtk.Box {
         side_bar.prepend (list_box_scroll);
         side_bar.append (task_bar);
 
+        transform_bar = new Gtk.InfoBar () {
+            message_type = QUESTION,
+            show_close_button = false,
+            revealed = false,
+        };
+        transform_label = new Gtk.Label (_("Viewing with no transform applied."));
+        transform_bar.add_child (transform_label);
+        transform_bar.add_button (_("Revert view"), 0);
+        transform_bar.response.connect ((response) => image.apply_transform (Cairo.Matrix.identity(), null));
+
         viewport = new Viewport ();
         var scrolled = new Gtk.ScrolledWindow ();
         scrolled.child = viewport;
@@ -292,6 +312,7 @@ public class EditorView : Gtk.Box {
         viewport.bind_property ("cursor_pos", status_bar, "cursor_pos");
   
         var main_space = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        main_space.append (transform_bar);
         main_space.append (scrolled);
         main_space.append (status_bar);
 
