@@ -128,11 +128,23 @@ public class Circle : Element {
     }
 
     public override Gee.List<ContextOption> options () {
-        return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+        var opts = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Circle"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Ellipse"), () => { replace (new Ellipse (x, y, r, r, fill, stroke, title, transform)); }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
+        if (transform_enabled && transform_applied) {
+            opts.add (new ContextOption.action (_("Revert View"), () => {
+                apply_transform (new Transform.identity(), null);
+            }));
+        } else if (transform_enabled) {
+            opts.add (new ContextOption.action (_("Apply Transformation"), () => {
+                apply_transform (transform.invert (), this);
+                transform_applied = true;
+            }));
+        }
+
+        return opts;
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {

@@ -41,6 +41,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             image.path_selected.connect (() => {
                 current_handle = null;
             });
+            image.apply_transform.connect ((t, e) => {
+                current_handle = null;
+            });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
         }
@@ -177,7 +180,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             cr.save ();
             cr.scale (zoom, zoom);
 
-            // Draw Image
             image.draw (cr);
 
             // Draw Grid
@@ -203,7 +205,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            image.draw_selected_child (cr, zoom);
+            image.draw_selection (cr, zoom);
             if (current_handle != null) {
                 Point center = current_handle.point;
                 cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);
@@ -222,7 +224,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 Element path;
                 Segment segment;
                 Handle handle;
-                if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+                if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
                     if (tutorial != null && tutorial.step == CLICK) {
                         tutorial.next_step ();
                     }
@@ -243,7 +245,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             Element path;
             Segment segment;
             Handle handle;
-            if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
                 path.select (true);
                 current_handle = handle;
                 show_context_menu (path, segment, handle, x, y);
@@ -268,7 +270,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for clicking on a control handle
             if (image.has_selected ()) {
                 Handle obj;
-                if (image.clicked_handle (sx, sy, 6 / zoom, out obj)) {
+                if (image.clicked_control (sx, sy, 6 / zoom, out obj)) {
                     current_handle = obj;
                     bind_point (obj, "point");
                     return;

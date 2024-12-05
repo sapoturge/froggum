@@ -493,6 +493,16 @@ public class Rectangle : Element {
                 replace (new Polygon ({Point(x, y), Point(x+width, y), Point(x + width, y + height), Point(x, y + height)}, fill, stroke, title, transform));
             }));
         }
+        if (transform_enabled && transform_applied) {
+            options.add (new ContextOption.action (_("Revert View"), () => {
+                apply_transform (new Transform.identity(), null);
+            }));
+        } else if (transform_enabled) {
+            options.add (new ContextOption.action (_("Apply Transformation"), () => {
+                apply_transform (transform.invert (), this);
+                transform_applied = true;
+            }));
+        }
 
         return options;
     }
