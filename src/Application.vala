@@ -150,7 +150,7 @@ public class FroggumApplication : Gtk.Application {
 
         var new_button = new Gtk.Button.from_icon_name ("list-add-symbolic");
         new_button.clicked.connect (() => {
-            new_tab ();
+            make_new_tab (null);
         });
         new_button.tooltip_text = _("New icon");
 
@@ -171,6 +171,7 @@ public class FroggumApplication : Gtk.Application {
                 editor.vexpand = true;
                 var tab = notebook.append (editor);
                 tab.title = real_file.get_basename ();
+                editor.stop_loading.connect (() => make_new_tab (tab));
                 if (file == focused_file) {
                     focused = tab;
                 }
@@ -178,7 +179,7 @@ public class FroggumApplication : Gtk.Application {
         }
 
         if (notebook.n_pages == 0 && !will_open) {
-            new_tab ();
+            make_new_tab (null);
         } else if (focused != null) {
             notebook.selected_page = focused;
         }
@@ -216,6 +217,7 @@ public class FroggumApplication : Gtk.Application {
             editor.hexpand = true;
             editor.vexpand = true;
             var tab = notebook.append (editor);
+            editor.stop_loading.connect (() => make_new_tab (tab));
             tab.title = file.get_basename ();
         }
 
@@ -238,6 +240,7 @@ public class FroggumApplication : Gtk.Application {
             editor.vexpand = true;
             var tab = notebook.append (editor);
             tab.title = file.get_basename ();
+            editor.stop_loading.connect (() => make_new_tab (tab));
         }
 
         recalculate_open_files ();
@@ -265,6 +268,7 @@ public class FroggumApplication : Gtk.Application {
         var new_tab = notebook.add_page (editor, tab);
         new_tab.title = _("New Image");
         notebook.close_page (tab);
+        editor.stop_loading.connect (() => make_new_tab (new_tab));
     }
 
     private void open_image (Adw.TabPage tab) {
@@ -278,6 +282,7 @@ public class FroggumApplication : Gtk.Application {
                     editor.hexpand = true;
                     editor.vexpand = true;
                     var new_tab = notebook.add_page (editor, tab);
+                    editor.stop_loading.connect (() => make_new_tab (new_tab));
                     new_tab.title = file.get_basename ();
                     notebook.close_page (tab);
                     recalculate_open_files ();
@@ -288,9 +293,15 @@ public class FroggumApplication : Gtk.Application {
         });
     }
 
-    private void new_tab () {
+    private void make_new_tab (Adw.TabPage? old_tab) {
          var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
-         var tab = notebook.append (inner_layout);
+         Adw.TabPage tab;
+         if (old_tab == null) {
+             tab = notebook.append (inner_layout);
+         } else {
+             tab = notebook.add_page (inner_layout, old_tab);
+             notebook.close_page (old_tab);
+         }
          tab.title = _("New Image");
 
          var title = new Gtk.Label (_("Create a new icon:"));

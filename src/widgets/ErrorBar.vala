@@ -90,7 +90,7 @@ public class ErrorBar : Adw.Bin {
             halign = Gtk.Align.END,
         };
         var stop_loading_button = new Gtk.Button.with_label (_("Stop loading"));
-        stop_loading_button.activate.connect (() => stop_loading ());
+        stop_loading_button.clicked.connect (() => stop_loading ());
         stop_loading_button.add_css_class ("suggested-action");
         button_box.append (stop_loading_button);
         container.append (header);

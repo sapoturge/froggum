@@ -9,6 +9,8 @@ public class EditorView : Gtk.Box {
     private Gtk.Button new_button;
     private ErrorBar error_bar;
 
+    public signal void stop_loading ();
+
     public EditorView (Image image) {
         this.image = image;
         selection = new Gtk.SingleSelection (image.tree);
@@ -289,6 +291,7 @@ public class EditorView : Gtk.Box {
         side_bar.append (task_bar);
 
         error_bar = new ErrorBar ();
+        error_bar.stop_loading.connect (() => stop_loading ());
 
         viewport = new Viewport ();
         var scrolled = new Gtk.ScrolledWindow ();
