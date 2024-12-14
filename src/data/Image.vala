@@ -91,11 +91,11 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         if (doc == null) {
             var xml_error = parser.get_last_error ();
             if (xml_error == null) {
-                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), "Reading failed."));
+                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), "Reading failed.", ""));
             } else if (xml_error->domain == 8) {
-                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), xml_error->message));
+                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), xml_error->message, ""));
             } else {
-                errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), xml_error->message));
+                errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), xml_error->message, ""));
             }
 
             return;
@@ -109,13 +109,13 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 message = xml_error->message;
             }
 
-            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), message));
+            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), message, ""));
             delete doc;
             return;
         }
 
         if (root->name != "svg") {
-            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), "Root element is not svg.\nActual element: '%s'".printf (root->name)));
+            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), "Root element is not svg.\nActual element: '%s'".printf (root->name), ""));
             delete doc;
             return;
         }
@@ -142,19 +142,21 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         }
 
         if (width == null) {
-            errors.offer (new Error.missing_property ("svg", "width"));
-            return;
-        } else if (height == null) {
-            errors.offer (new Error.missing_property ("svg", "height"));
-            return;
+            // The real default is auto (= 100%), which is not supported
+            errors.offer (new Error.missing_property ("svg", "width", "16"));
+            this._width = 16;
+        } else if (!int.try_parse (width, out this._width)) {
+            errors.offer (new Error.invalid_property ("svg", "width", width, "16"));
+            this._width = 16;
         }
 
-        if (!int.try_parse (width, out this._width)) {
-            errors.offer (new Error.invalid_property ("svg", "width", width));
-            return;
+        if (height == null) {
+            // The real default is auto (= 100%), which is not supported
+            errors.offer (new Error.missing_property ("svg", "height", "16"));
+            this._height = 16;
         } else if (!int.try_parse (height, out this._height)) {
-            errors.offer (new Error.invalid_property ("svg", "height", height));
-            return;
+            errors.offer (new Error.invalid_property ("svg", "height", height, "16"));
+            this._height = 16;
         }
 
         set_size (this.width, this.height);
@@ -301,7 +303,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 message = err->message;
             }
 
-            errors.offer (new Error (ErrorKind.CANT_WRITE, file.get_basename (), message));
+            errors.offer (new Error (ErrorKind.CANT_WRITE, file.get_basename (), message, ""));
         }
     }
 

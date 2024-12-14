@@ -141,7 +141,7 @@ public class Pattern : Object, ListModel, Undoable {
                     break;
                 case "gradientUnits":
                     if (content != "userSpaceOnUse") {
-                        errors.offer (new Error.invalid_property ("linearGradient", "gradientUnits", content));
+                        errors.offer (new Error.invalid_property ("linearGradient", "gradientUnits", content, "userSpaceOnUse"));
                     }
 
                     break;
@@ -153,37 +153,45 @@ public class Pattern : Object, ListModel, Undoable {
                 }
             }
 
-            if (x1_text == null) {
-                errors.offer (new Error.missing_property ("linearGradient", "x1"));
-                return null;
-            } else if (y1_text == null) {
-                errors.offer (new Error.missing_property ("linearGradient", "y1"));
-                return null;
-            } else if (x2_text == null) {
-                errors.offer (new Error.missing_property ("linearGradient", "x2"));
-                return null;
-            } else if (y2_text == null) {
-                errors.offer (new Error.missing_property ("linearGradient", "y2"));
-                return null;
-            }
-
             double x1;
             double y1;
             double x2;
             double y2;
 
-            if (!double.try_parse (x1_text, out x1)) {
-                errors.offer (new Error.invalid_property ("linearGradient", "x1", x1_text));
-                return null;
+            if (x1_text == null) {
+                // The real default is 0%, which is not yet supported
+                errors.offer (new Error.missing_property ("linearGradient", "x1", "0"));
+                x1 = 0;
+            } else if (!double.try_parse (x1_text, out x1)) {
+                errors.offer (new Error.invalid_property ("linearGradient", "x1", x1_text, "0"));
+                x1 = 0;
+            }
+
+            if (y1_text == null) {
+                // The real default is 0%, which is not yet supported
+                errors.offer (new Error.missing_property ("linearGradient", "y1", "0"));
+                y1 = 0;
             } else if (!double.try_parse (y1_text, out y1)) {
-                errors.offer (new Error.invalid_property ("linearGradient", "y1", y1_text));
-                return null;
+                errors.offer (new Error.invalid_property ("linearGradient", "y1", y1_text, "0"));
+                y1 = 0;
+            }
+
+            if (x2_text == null) {
+                // The real default is 100%, which is not yet supported
+                errors.offer (new Error.missing_property ("linearGradient", "x2", "16"));
+                x2 = 0;
             } else if (!double.try_parse (x2_text, out x2)) {
-                errors.offer (new Error.invalid_property ("linearGradient", "x2", x2_text));
-                return null;
+                errors.offer (new Error.invalid_property ("linearGradient", "x2", x2_text, "16"));
+                x2 = 0;
+            }
+
+            if (y2_text == null) {
+                // The real default is 0%, which is not yet supported
+                errors.offer (new Error.missing_property ("linearGradient", "y2", "0"));
+                y2 = 0;
             } else if (!double.try_parse (y2_text, out y2)) {
-                errors.offer (new Error.invalid_property ("linearGradient", "y2", y2_text));
-                return null;
+                errors.offer (new Error.invalid_property ("linearGradient", "y2", y2_text, "0"));
+                y2 = 0;
             }
 
             pattern.start = { x1, y1 };
@@ -213,7 +221,7 @@ public class Pattern : Object, ListModel, Undoable {
                     break;
                 case "fr":
                     if (!double.try_parse (content, out scratch) || scratch != 0.0) {
-                        errors.offer (new Error.invalid_property ("radialGradient", "fr", content));
+                        errors.offer (new Error.invalid_property ("radialGradient", "fr", content, "0"));
                     }
 
                     break;
@@ -225,7 +233,7 @@ public class Pattern : Object, ListModel, Undoable {
                     break;
                 case "gradientUnits":
                     if (content != "userSpaceOnUse") {
-                        errors.offer (new Error.invalid_property ("radialGradient", "gradientUnits", content));
+                        errors.offer (new Error.invalid_property ("radialGradient", "gradientUnits", content, "userSpaceOnUse"));
                     }
 
                     break;
@@ -237,38 +245,41 @@ public class Pattern : Object, ListModel, Undoable {
                 }
             }
 
-            if (cx_text == null) {
-                errors.offer (new Error.missing_property ("radialGradient", "cx"));
-                return null;
-            } else if (cy_text == null) {
-                errors.offer (new Error.missing_property ("radialGradient", "cy"));
-                return null;
-            } else if (r_text == null) {
-                errors.offer (new Error.missing_property ("radialGradient", "r"));
-                return null;
-            }
-
             double cx;
             double cy;
             double r;
 
-            if (!double.try_parse (cx_text, out cx)) {
-                errors.offer (new Error.invalid_property ("radialGradient", "cx", cx_text));
-                return null;
+            if (cx_text == null) {
+                // The real default is 50%, which is not supported
+                errors.offer (new Error.missing_property ("radialGradient", "cx", "8"));
+                cx = 8;
+            } else if (!double.try_parse (cx_text, out cx)) {
+                errors.offer (new Error.invalid_property ("radialGradient", "cx", cx_text, "8"));
+                cx = 8;
+            }
+
+            if (cy_text == null) {
+                // The real default is 50%, which is not supported
+                errors.offer (new Error.missing_property ("radialGradient", "cy", "8"));
+                cy = 8;
             } else if (!double.try_parse (cy_text, out cy)) {
-                errors.offer (new Error.invalid_property ("radialGradient", "cy", cy_text));
-                return null;
+                errors.offer (new Error.invalid_property ("radialGradient", "cy", cy_text, "8"));
+                cy = 8;
+            }
+
+            if (r_text == null) {
+                // The real default is 50%, which is not supported
+                errors.offer (new Error.missing_property ("radialGradient", "r", "8"));
+                r = 8;
             } else if (!double.try_parse (r_text, out r)) {
-                errors.offer (new Error.invalid_property ("radialGradient", "r", r_text));
-                return null;
+                errors.offer (new Error.invalid_property ("radialGradient", "r", r_text, "8"));
+                r = 8;
             }
 
             if (fx_text != null && (!double.try_parse (fx_text, out scratch) || scratch != cx)) {
-                errors.offer (new Error.invalid_property ("radialGradient", "fx", fx_text));
-                return null;
+                errors.offer (new Error.invalid_property ("radialGradient", "fx", fx_text, "%f".printf (cx)));
             } else if (fy_text != null && (!double.try_parse (fy_text, out scratch) || scratch != cy)) {
-                errors.offer (new Error.invalid_property ("radialGradient", "fy", fy_text));
-                return null;
+                errors.offer (new Error.invalid_property ("radialGradient", "fy", fy_text, "%f".printf (cy)));
             }
 
             pattern.start = { cx, cy };
@@ -277,7 +288,7 @@ public class Pattern : Object, ListModel, Undoable {
             pattern.pattern_type = RADIAL;
             return pattern;
         } else {
-            errors.offer (new Error (ErrorKind.UNKNOWN_ELEMENT, def->name, "This was decoded as a pattern, but is not recognized as a pattern.\nElement: '%s'".printf (def->name)));
+            errors.offer (new Error (ErrorKind.UNKNOWN_ELEMENT, def->name, "This was decoded as a pattern, but is not recognized as a pattern.\nElement: '%s'".printf (def->name), ""));
             return null;
         }
     }
