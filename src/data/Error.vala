@@ -18,11 +18,27 @@ public class Error : GLib.Object {
     }
 
     public Error.unknown_attribute (string element, string property, string value) {
-        this (ErrorKind.UNKNOWN_ATTRIBUTE, "%s.%s".printf (element, property), "This attribute is not supported by Froggum.\nElement: %s\nAttribute: %s\nValue: %s\n".printf (element, property, value), "");
+        this (ErrorKind.UNKNOWN_PROPERTY, "%s.%s".printf (element, property), "This attribute is not supported by Froggum.\nElement: %s\nAttribute: %s\nValue: %s\n".printf (element, property, value), "");
     }
 
     public Error.invalid_property (string element, string property, string value, string default) {
         this (ErrorKind.INVALID_PROPERTY, "%s.%s".printf (element, property), "The given value for this attribute is not supported by Froggum\nElement: %s\nAttribute: %s\nValue: %s\nApplied default: %s\n".printf (element, property, value, default), default);
+    }
+
+    public bool has_default () {
+        switch (kind) {
+        case CANT_READ:
+        case CANT_WRITE:
+        case INVALID_SVG:
+        case UNKNOWN_ELEMENT:
+        case UNKNOWN_PROPERTY:
+            return false;
+        case INVALID_PROPERTY:
+        case MISSING_PROPERTY:
+            return true;
+        default:
+            return false;
+        }
     }
 }
 
@@ -31,7 +47,7 @@ public enum ErrorKind {
     CANT_WRITE,
     INVALID_SVG,
     UNKNOWN_ELEMENT,
-    UNKNOWN_ATTRIBUTE,
+    UNKNOWN_PROPERTY,
     INVALID_PROPERTY,
     MISSING_PROPERTY,
 }
@@ -55,7 +71,7 @@ public Severity error_severity (ErrorKind kind) {
         return Severity.ERROR;
     case UNKNOWN_ELEMENT:
         return Severity.WARNING;
-    case UNKNOWN_ATTRIBUTE:
+    case UNKNOWN_PROPERTY:
         return Severity.WARNING;
     default:
         return Severity.ERROR;

@@ -292,6 +292,10 @@ public class EditorView : Gtk.Box {
 
         error_bar = new ErrorBar ();
         error_bar.stop_loading.connect (() => stop_loading ());
+        error_bar.resolve_error.connect (() => {
+            image.resolve_error ();
+            error_bar.error = image.error;
+        });
 
         viewport = new Viewport ();
         var scrolled = new Gtk.ScrolledWindow ();

@@ -1,5 +1,6 @@
 private enum Responses {
     STOP_LOADING,
+    ACCEPT_DEFAULT,
 }
 
 public class ErrorBar : Adw.Bin {
@@ -9,7 +10,9 @@ public class ErrorBar : Adw.Bin {
     private Gtk.TextBuffer full;
 
     private Gtk.Button stop_loading_button;
+    private Gtk.Button accept_default_button;
 
+    public signal void resolve_error ();
     public signal void stop_loading ();
 
     public Error error {
@@ -48,15 +51,20 @@ public class ErrorBar : Adw.Bin {
                 header.label = _("<big><b>Unknown element encountered</b></big>");
                 message.label = _("Unrecognized element %s encountered..").printf (value.detail);
                 break;
-            case ErrorKind.UNKNOWN_ATTRIBUTE:
+            case ErrorKind.UNKNOWN_PROPERTY:
                 header.label = _("<big><b>Unknown attribute encountered</b></big>");
                 message.label = _("Unrecognized attribute %s encountered..").printf (value.detail);
                 break;
             }
 
             // Reset action buttons by removing all that are there and putting back the relevant
-            // ones. (This will make more sense when there are multiple buttons.)
+            // ones.
             bar.remove_action_widget (stop_loading_button);
+            bar.remove_action_widget (accept_default_button);
+
+            if (value.has_default ()) {
+                bar.add_action_widget (accept_default_button, Responses.ACCEPT_DEFAULT);
+            }
 
             bar.add_action_widget (stop_loading_button, Responses.STOP_LOADING);
 
@@ -112,6 +120,8 @@ public class ErrorBar : Adw.Bin {
             hexpand = true,
         };
         stop_loading_button = bar.add_button (_("Stop loading"), Responses.STOP_LOADING);
+        accept_default_button = bar.add_button (_("Accept default"), Responses.ACCEPT_DEFAULT);
+        accept_default_button.add_css_class ("destructive-action");
         container.append (header);
         container.append (message);
         container.append (expander);
@@ -121,6 +131,9 @@ public class ErrorBar : Adw.Bin {
             switch (response) {
             case Responses.STOP_LOADING:
                 stop_loading ();
+                break;
+            case Responses.ACCEPT_DEFAULT:
+                resolve_error ();
                 break;
             }
         });

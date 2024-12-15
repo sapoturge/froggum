@@ -25,6 +25,12 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         }
     }
 
+    public void resolve_error () {
+        // All errors are designed to be handled when detected; this approves the handling that
+        // was already done.
+        errors.poll ();
+    }
+
     protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
 
     private uint save_id;
