@@ -1,8 +1,14 @@
+private enum Responses {
+    STOP_LOADING,
+}
+
 public class ErrorBar : Adw.Bin {
     private Gtk.InfoBar bar;
     private Gtk.Label header;
     private Gtk.Label message;
     private Gtk.TextBuffer full;
+
+    private Gtk.Button stop_loading_button;
 
     public signal void stop_loading ();
 
@@ -48,6 +54,12 @@ public class ErrorBar : Adw.Bin {
                 break;
             }
 
+            // Reset action buttons by removing all that are there and putting back the relevant
+            // ones. (This will make more sense when there are multiple buttons.)
+            bar.remove_action_widget (stop_loading_button);
+
+            bar.add_action_widget (stop_loading_button, Responses.STOP_LOADING);
+
             switch (value.severity) {
             case WARNING:
                 bar.message_type = Gtk.MessageType.WARNING;
@@ -65,6 +77,19 @@ public class ErrorBar : Adw.Bin {
 
     construct {
         bar = new Gtk.InfoBar ();
+        bar.map.connect (() => {
+            if (bar.revealed) {
+                // This needs to be in a signal callback because it only works after it is attached
+                // to a window, which happens long after the bar is created and the error is
+                // assigned.
+                // Theoretically, this should be all that is needed.
+                bar.set_default_response (Responses.STOP_LOADING);
+                // Unfortunately, (on Windows) it doesn't make the stop loading button actually
+                // "selected" for the purpose of activating on hitting enter, so this line is also
+                // needed.
+                stop_loading_button.grab_focus ();
+            }
+        });
         var container = new Gtk.Box (Gtk.Orientation.VERTICAL, 12) {
             margin_start = 12,
             margin_end = 12,
@@ -86,18 +111,18 @@ public class ErrorBar : Adw.Bin {
             child = full_message,
             hexpand = true,
         };
-        var button_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
-            halign = Gtk.Align.END,
-        };
-        var stop_loading_button = new Gtk.Button.with_label (_("Stop loading"));
-        stop_loading_button.clicked.connect (() => stop_loading ());
-        stop_loading_button.add_css_class ("suggested-action");
-        button_box.append (stop_loading_button);
+        stop_loading_button = bar.add_button (_("Stop loading"), Responses.STOP_LOADING);
         container.append (header);
         container.append (message);
         container.append (expander);
-        container.append (button_box);
         bar.add_child (container);
         child = bar;
+        bar.response.connect ((response) => {
+            switch (response) {
+            case Responses.STOP_LOADING:
+                stop_loading ();
+                break;
+            }
+        });
     }
 }
