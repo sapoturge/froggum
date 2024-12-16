@@ -1,10 +1,16 @@
 public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
-    private double _scroll_x;
-    private double _scroll_y;
+    // Pixel offset from center to start drawing icon
+    private int _scroll_x;
+    private int _scroll_y;
+
     private double base_x;
     private double base_y;
+
+    // Scale factor for viewing (4 = 4x magnification; cannot be less than 1)
     private double _zoom = 1;
+    // Used for tracking when zooming with a touchpad
     private double base_zoom;
+
     private int width = 0;
     private int height = 0;
     private Point base_point;
@@ -60,20 +66,20 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private double scroll_x {
         get {
-            return _scroll_x;
+            return (double) _scroll_x;
         }
         set {
-            _scroll_x = value;
+            _scroll_x = (int) value;
             horizontal.value = -double.min (scroll_x + width / 2, 0);
         }
     }
 
     private double scroll_y {
         get {
-            return _scroll_y;
+            return (double) _scroll_y;
         }
         set {
-            _scroll_y = value;
+            _scroll_y = (int) value;
             vertical.value = double.max (scroll_y + height / 2, 0);
         }
     }
