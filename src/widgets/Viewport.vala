@@ -24,7 +24,16 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     public Point cursor_pos { get; private set; }
 
     private Binding point_binding;
-    public Handle? current_handle { get; private set; }
+    private Handle? _current_handle;
+    public Handle? current_handle {
+        get {
+            return _current_handle;
+        }
+        private set {
+            grab_focus (); // This clears the status bar
+            _current_handle = value;
+        }
+    }
     
     private Undoable bound_obj;
     private string bound_prop;
@@ -169,6 +178,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     construct {
         background = {0.7f, 0.7f, 0.7f, 1.0f};
 
+        focusable = true;
         set_size_request (320, 320);
 
         set_draw_func ((d, cr, w, h) => {
