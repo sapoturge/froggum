@@ -69,8 +69,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             return (double) _scroll_x;
         }
         set {
-            _scroll_x = (int) value;
-            horizontal.value = -double.min (scroll_x + width / 2, 0);
+            // _scroll_x = (int) value; // This is set in the callback from setting horizontal.value
+            horizontal.lower = double.min (-value - width / 2, 0);
+            horizontal.upper = double.max (-value + width / 2, image.width * zoom);
+            horizontal.value = -value - width / 2;
         }
     }
 
@@ -79,8 +81,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             return (double) _scroll_y;
         }
         set {
-            _scroll_y = (int) value;
-            vertical.value = double.max (scroll_y + height / 2, 0);
+            // _scroll_y = (int) value; // This is set in the callback from setting vertical.value
+            vertical.lower = double.min (-value - height / 2, 0);
+            vertical.upper = double.max (-value + height / 2, image.height * zoom);
+            vertical.value = -value - height / 2;
         }
     }
 
@@ -90,8 +94,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _zoom = value;
-            hadjustment.upper = image.width * _zoom;
-            vertical.upper = image.height * _zoom;
         }
     }
 
@@ -115,6 +117,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Bind events
             horizontal.value_changed.connect (() => {
                 _scroll_x = -((int) horizontal.value + width / 2);
+                queue_draw ();
             });
         }
     }
@@ -131,7 +134,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Set values
             if (image != null) {
                 vertical.lower = 0;
-                vertical.upper = image.height;
+                vertical.upper = image.height * zoom;
                 vertical.page_size = height;
                 vertical.page_increment = 1;
                 vertical.step_increment = 1;
@@ -139,6 +142,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Bind events
             vertical.value_changed.connect (() => {
                 _scroll_y = -((int) vertical.value + height / 2);
+                queue_draw ();
             });
         }
     }
@@ -381,11 +385,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             tutorial.next_step ();
         }
 
-        scroll_x *= new_zoom;
-        scroll_x /= zoom;
-        scroll_y *= new_zoom;
-        scroll_y /= zoom;
+        var old_zoom = zoom;
         zoom = new_zoom;
+        scroll_x = scroll_x * new_zoom / old_zoom;
+        scroll_y = scroll_y * new_zoom / old_zoom;
 
         position_tutorial ();
         queue_draw ();
