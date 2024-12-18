@@ -327,4 +327,8 @@ public class EditorView : Gtk.Box {
         hexpand = true;
         vexpand = true;
     }
+
+    public void recenter () {
+        viewport.recenter ();
+    }
 }
