@@ -45,10 +45,20 @@ public class FroggumApplication : Gtk.Application {
                 image.redo ();
             }
         });
+
+        var recenter_action = new SimpleAction ("action_recenter", null);
+        recenter_action.activate.connect (() => {
+            var tab = notebook.get_selected_page ();
+            var editor = tab.child;
+            if (editor is EditorView) {
+                editor.recenter ();
+            }
+        });
         
         actions = new SimpleActionGroup ();
         actions.add_action (undo_action);
         actions.add_action (redo_action);
+        actions.add_action (recenter_action);
         
         set_accels_for_action ("froggum.action_undo", {"<Control>Z", null});
         set_accels_for_action ("froggum.action_redo", {"<Control>Y", null});
@@ -145,6 +155,12 @@ public class FroggumApplication : Gtk.Application {
 
         header.pack_start (undo_button);
         header.pack_start (redo_button);
+
+        var center_button = new Gtk.Button.from_icon_name ("zoom-fit-best");
+        center_button.action_name = "froggum.action_recenter";
+        center_button.tooltip_text = _("Recenter image");
+
+        header.pack_start (center_button);
 
         main_window.set_titlebar (header);
 

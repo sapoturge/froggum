@@ -634,4 +634,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         menu.popup ();
     }
+
+    public void recenter () {
+        scroll_x = -image.width * zoom / 2;
+        scroll_y = -image.height * zoom / 2;
+    }
 }
