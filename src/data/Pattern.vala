@@ -293,7 +293,7 @@ public class Pattern : Object, ListModel, Undoable {
         }
     }
 
-    public static Pattern get_from_text (string? text, Gee.HashMap<string, Pattern> patterns) {
+    public static Pattern get_from_text (string? text, Gee.HashMap<string, Pattern> patterns, string parent_name, string attribute, Gee.Queue<Error> errors) {
         if (text == null) {
             return new Pattern.none ();
         } else {
@@ -309,11 +309,17 @@ public class Pattern : Object, ListModel, Undoable {
                 parser.match ("(");
                 parser.match ("#");
                 var name = parser.get_string ();
-                return patterns.@get (name.substring (0, name.length - 1)) ?? new Pattern.none ();
+                var pattern = patterns.@get (name.substring (0, name.length - 1));
+                if (pattern == null) {
+                    errors.offer (new Error.invalid_property (parent_name, attribute, text, "none"));
+                    return new Pattern.none ();
+                }
+
+                return pattern;
             case Keyword.NONE:
                 return new Pattern.none ();
             default:
-                parser.error ("Unknown pattern: %d".printf (keyword));
+                errors.offer (new Error.invalid_property (parent_name, attribute, text, "none"));
                 return new Pattern.none ();
             }
         }

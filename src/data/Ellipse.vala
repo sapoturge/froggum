@@ -94,8 +94,8 @@ public class Ellipse : Element {
         setup_signals ();
     }
 
-    public Ellipse.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        base.from_xml (node, patterns);
+    public Ellipse.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        base.from_xml (node, patterns, errors);
         cx = double.parse (node->get_prop ("cx"));
         cy = double.parse (node->get_prop ("cy"));
         rx = double.parse (node->get_prop ("rx"));

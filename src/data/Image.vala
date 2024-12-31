@@ -169,7 +169,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
         var patterns = new Gee.HashMap<string, Pattern> ();
         find_patterns (root, patterns);
-        load_elements (root, patterns);
+        load_elements (root, patterns, errors);
     }
 
     private void find_patterns (Xml.Node* root, Gee.Map<string, Pattern> patterns) {

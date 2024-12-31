@@ -185,8 +185,8 @@ public class Rectangle : Element {
         this.ry = 0;
     }
 
-    public Rectangle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        base.from_xml (node, patterns);
+    public Rectangle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        base.from_xml (node, patterns, errors);
         x = double.parse (node->get_prop ("x"));
         y = double.parse (node->get_prop ("y"));
         width = double.parse (node->get_prop ("width"));

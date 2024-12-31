@@ -21,8 +21,8 @@ public class Polyline : Element {
         setup_signals ();
     }
 
-    public Polyline.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        base.from_xml (node, patterns);
+    public Polyline.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        base.from_xml (node, patterns, errors);
         var points = new Point[] {};
         var points_str = node->get_prop ("points");
         var parser = new Parser (points_str);

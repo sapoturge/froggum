@@ -50,8 +50,8 @@ public class Circle : Element {
         setup_signals ();
     }
 
-    public Circle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        base.from_xml (node, patterns);
+    public Circle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        base.from_xml (node, patterns, errors);
         x = double.parse (node->get_prop ("cx"));
         y = double.parse (node->get_prop ("cy"));
         r = double.parse (node->get_prop ("r"));

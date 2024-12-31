@@ -58,11 +58,11 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
         });
     }
 
-    protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
+    protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
         title = node->get_prop ("id");
         visible = true;
-        fill = Pattern.get_from_text (node->get_prop ("fill"), patterns);
-        stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
+        fill = Pattern.get_from_text (node->get_prop ("fill"), patterns, node->name, "fill", errors);
+        stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns, node->name, "stroke", errors);
         transform = new Transform.from_string (node->get_prop ("transform"));
 
         transform_enabled = !transform.is_identity ();

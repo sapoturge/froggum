@@ -32,8 +32,8 @@ public class Path : Element {
         visible = true;
     }
 
-    public Path.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        base.from_xml (node, patterns);
+    public Path.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        base.from_xml (node, patterns, errors);
         parse_string (node->get_prop ("d"));
     }
 

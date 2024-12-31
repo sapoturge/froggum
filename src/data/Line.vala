@@ -22,8 +22,8 @@ public class Line : Element {
         setup_signals ();
     }
 
-    public Line.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        base.from_xml (node, patterns);
+    public Line.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        base.from_xml (node, patterns, errors);
         var x1 = double.parse (node->get_prop ("x1"));
         var y1 = double.parse (node->get_prop ("y1"));
         var x2 = double.parse (node->get_prop ("x2"));
