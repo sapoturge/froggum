@@ -708,6 +708,14 @@ public class Pattern : Object, ListModel, Undoable {
         command.add_value (this, "stop_update", delete_update, replace_update);
         add_command (command);
     }
+
+    public static bool can_load (string xml_name) {
+        if (xml_name == "linearGradient" || xml_name == "radialGradient") {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 public class Stop : Object, Undoable {

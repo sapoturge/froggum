@@ -168,20 +168,22 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         set_size (this.width, this.height);
 
         var patterns = new Gee.HashMap<string, Pattern> ();
+        find_patterns (root, patterns);
+        load_elements (root, patterns);
+    }
 
+    private void find_patterns (Xml.Node* root, Gee.Map<string, Pattern> patterns) {
         for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
-            if (iter->name == "defs") {
-                for (Xml.Node* def = iter->children; def != null; def = def->next) {
-                    var pattern = Pattern.load_xml (def, errors);
-                    if (pattern != null) {
-                        var name = def->get_prop ("id");
-                        patterns.@set (name, pattern);
-                    }
+            if (Pattern.can_load (iter->name)) {
+                var pattern = Pattern.load_xml (iter, errors);
+                if (pattern != null) {
+                    var name = iter->get_prop ("id");
+                    patterns.@set (name, pattern);
                 }
             }
-        }
 
-        load_elements (root, patterns);
+            find_patterns (iter, patterns);
+        }
     }
 
     public File file {
