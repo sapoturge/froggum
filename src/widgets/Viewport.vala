@@ -10,6 +10,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double _zoom = 1;
     // Used for tracking when zooming with a touchpad
     private double base_zoom;
+    private bool zooming = false;
+    private uint zoom_stop_callback;
 
     private int width = 0;
     private int height = 0;
@@ -69,8 +71,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             return (double) _scroll_x;
         }
         set {
-            // _scroll_x = (int) value; // This is set in the callback from setting horizontal.value
-            horizontal.lower = double.min (-value - width / 2, 0);
+            _scroll_x = (int) value;
+            horizontal.lower = double.min (-value - width / 2, horizontal.lower);
             horizontal.upper = double.max (-value + width / 2, image.width * zoom);
             horizontal.value = -value - width / 2;
         }
@@ -81,8 +83,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             return (double) _scroll_y;
         }
         set {
-            // _scroll_y = (int) value; // This is set in the callback from setting vertical.value
-            vertical.lower = double.min (-value - height / 2, 0);
+            _scroll_y = (int) value;
+            vertical.lower = double.min (-value - height / 2, vertical.lower);
             vertical.upper = double.max (-value + height / 2, image.height * zoom);
             vertical.value = -value - height / 2;
         }
@@ -116,8 +118,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Bind events
             horizontal.value_changed.connect (() => {
-                _scroll_x = -((int) horizontal.value + width / 2);
-                queue_draw ();
+                if (!zooming) {
+                    _scroll_x = -((int) horizontal.value + width / 2);
+                    queue_draw ();
+                }
             });
         }
     }
@@ -141,8 +145,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Bind events
             vertical.value_changed.connect (() => {
-                _scroll_y = -((int) vertical.value + height / 2);
-                queue_draw ();
+                if (!zooming) {
+                    _scroll_y = -((int) vertical.value + height / 2);
+                    queue_draw ();
+                }
             });
         }
     }
@@ -348,10 +354,29 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var zoom_controller = new Gtk.GestureZoom ();
         add_controller (zoom_controller);
         zoom_controller.begin.connect (() => {
+            if (zoom_stop_callback != 0) {
+                Source.remove (zoom_stop_callback);
+            }
+
+            zooming = true;
             base_zoom = zoom;
         });
         zoom_controller.scale_changed.connect ((scale) => {
             update_zoom (scale * base_zoom);
+        });
+        zoom_controller.end.connect (() => {
+            // The delay needs to be long enough for the scrolled window's deceleration to finish
+            zoom_stop_callback = Timeout.add(1000, () => {
+                zooming = false;
+                zoom_stop_callback = 0;
+                horizontal.lower = double.min (-scroll_x - width / 2, 0);
+                horizontal.upper = double.max (-scroll_x + width / 2, image.width * zoom);
+                vertical.lower = double.min (-scroll_y - height / 2, 0);
+                vertical.upper = double.max (-scroll_y + height / 2, image.height * zoom);
+                // Update the adjustment values for the scrolled window
+                scroll_x = scroll_x;
+                scroll_y = scroll_y;
+            });
         });
 
         resize.connect ((width, height) => {
