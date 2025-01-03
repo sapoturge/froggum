@@ -1,4 +1,7 @@
 public abstract class Element : Object, Undoable, Updatable, Transformed {
+    [CCode (has_target = false)]
+    protected delegate void AttributeLoaderFunc<T> (string value, T data, Gee.Queue<Error> errors);
+
     private Pattern _fill;
     public Pattern fill {
         get {
@@ -56,6 +59,33 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
         select.connect (() => {
             update ();
         });
+    }
+
+    protected void load_from_xml_actions<T> (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors, Gee.HashMap<string, AttributeLoaderFunc<T>> actions, T data) {
+        fill = new Pattern.none ();
+        stroke = new Pattern.none ();
+        transform = new Transform.identity ();
+        title = "";
+        for (var property = node->properties; property != null; property = property->next) {
+            var content = ((Xml.Node*) property)->get_content ();
+            if (property->name == "id") {
+                title = content;
+            } else if (property->name == "fill") {
+                fill = Pattern.get_from_text (content, patterns, node->name, "fill", errors);
+            } else if (property->name == "stroke") {
+                stroke = Pattern.get_from_text (content, patterns, node->name, "stroke", errors);
+            } else if (property->name == "transform") {
+                transform = new Transform.from_string (content);
+            } else if (actions.has_key (property->name)) {
+                ((AttributeLoaderFunc<T>) actions.get (property->name)) (content, data, errors);
+            } else {
+                errors.offer (new Error.unknown_attribute (node->name, property->name, content));
+            }
+        }
+
+        visible = true;
+        transform_enabled = !transform.is_identity ();
+        setup_signals ();
     }
 
     protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
