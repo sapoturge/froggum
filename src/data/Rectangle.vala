@@ -185,26 +185,77 @@ public class Rectangle : Element {
         this.ry = 0;
     }
 
+    class LoadingData {
+        public double x;
+        public double y;
+        public double width;
+        public double height;
+        public string? rx_text;
+        public string? ry_text;
+        public double rx;
+        public double ry;
+    }
+
     public Rectangle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
-        base.from_xml (node, patterns, errors);
-        x = double.parse (node->get_prop ("x"));
-        y = double.parse (node->get_prop ("y"));
-        width = double.parse (node->get_prop ("width"));
-        height = double.parse (node->get_prop ("height"));
+        var actions = new Gee.HashMap<string, Element.AttributeLoaderFunc<LoadingData>> ();
+        actions.set ("x", (xtext, ref data, errors) => {
+            if (!double.try_parse (xtext, out data.x)) {
+                errors.offer (new Error.invalid_property ("rect", "x", xtext, "0"));
+                data.x = 0;
+            }
+        });
+        actions.set ("y", (ytext, ref data, errors) => {
+            if (!double.try_parse (ytext, out data.y)) {
+                errors.offer (new Error.invalid_property ("rect", "y", ytext, "0"));
+                data.y = 0;
+            }
+        });
+        actions.set ("width", (widthtext, ref data, errors) => {
+            if (!double.try_parse (widthtext, out data.width)) {
+                errors.offer (new Error.invalid_property ("rect", "width", widthtext, "0"));
+                data.width = 0;
+            }
+        });
+        actions.set ("height", (heighttext, ref data, errors) => {
+            if (!double.try_parse (heighttext, out data.height)) {
+                errors.offer (new Error.invalid_property ("rect", "height", heighttext, "0"));
+                data.height = 0;
+            }
+        });
+        actions.set ("rx", (rxtext, ref data, errors) => {
+            data.rx_text = rxtext;
+            if (!double.try_parse (rxtext, out data.rx)) {
+                // rx and ry depend on each other, so the real default can't be known yet.
+                errors.offer (new Error.invalid_property ("rect", "rx", rxtext, "auto"));
+                data.rx_text = null;
+            }
+        });
+        actions.set ("ry", (rytext, ref data, errors) => {
+            data.ry_text = rytext;
+            if (!double.try_parse (rytext, out data.ry)) {
+                // rx and ry depend on each other, so the real default can't be known yet.
+                errors.offer (new Error.invalid_property ("rect", "ry", rytext, "auto"));
+                data.ry_text = null;
+            }
+        });
+        var data = new LoadingData ();
+        load_from_xml_actions (node, patterns, errors, actions, ref data);
+        x = data.x;
+        y = data.y;
+        width = data.width;
+        height = data.height;
 
-        var rx = node->get_prop ("rx");
-        var ry = node->get_prop ("ry");
-        if (rx != null || ry != null) {
-            if (rx == null) {
-                rx = ry;
+        if (data.rx_text != null || data.ry_text != null) {
+            if (data.rx_text == null) {
+                data.rx = data.ry;
             }
 
-            if (ry == null) {
-                ry = rx;
+            if (data.ry_text == null) {
+                data.ry = data.rx;
             }
 
-            this.rx = double.parse (rx);
-            this.ry = double.parse (ry);
+            this.rx = data.rx;
+            this.ry = data.ry;
 
             rounded = this.rx > 0 && this.ry > 0;
         } else {

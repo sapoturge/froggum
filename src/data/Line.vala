@@ -29,32 +29,32 @@ public class Line : Element {
 
     public Line.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
         var actions = new Gee.HashMap<string, Element.AttributeLoaderFunc<LoadingData>> ();
-        actions.set ("x1", (x1text, data, errors) => {
+        actions.set ("x1", (x1text, ref data, errors) => {
             if (!double.try_parse (x1text, out data.start_point.x)) {
                 errors.offer (new Error.invalid_property ("line", "x1", x1text, "0"));
                 data.start_point.x = 0;
             }
         });
-        actions.set ("y1", (y1text, data, errors) => {
+        actions.set ("y1", (y1text, ref data, errors) => {
             if (!double.try_parse (y1text, out data.start_point.y)) {
                 errors.offer (new Error.invalid_property ("line", "y1", y1text, "0"));
                 data.start_point.y = 0;
             }
         });
-        actions.set ("x2", (x2text, data, errors) => {
+        actions.set ("x2", (x2text, ref data, errors) => {
             if (!double.try_parse (x2text, out data.end_point.x)) {
                 errors.offer (new Error.invalid_property ("line", "x2", x2text, "0"));
                 data.end_point.x = 0;
             }
         });
-        actions.set ("y2", (y2text, data, errors) => {
+        actions.set ("y2", (y2text, ref data, errors) => {
             if (!double.try_parse (y2text, out data.end_point.y)) {
                 errors.offer (new Error.invalid_property ("line", "y2", y2text, "0"));
                 data.end_point.y = 0;
             }
         });
         var data = new LoadingData ();
-        load_from_xml_actions (node, patterns, errors, actions, data);
+        load_from_xml_actions (node, patterns, errors, actions, ref data);
         start = data.start_point;
         end = data.end_point;
     }

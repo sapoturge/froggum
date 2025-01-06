@@ -50,11 +50,36 @@ public class Circle : Element {
         setup_signals ();
     }
 
+    class LoadingData {
+        public Point center;
+        public double radius;
+    }
+
     public Circle.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
-        base.from_xml (node, patterns, errors);
-        x = double.parse (node->get_prop ("cx"));
-        y = double.parse (node->get_prop ("cy"));
-        r = double.parse (node->get_prop ("r"));
+        var actions = new Gee.HashMap<string, Element.AttributeLoaderFunc<LoadingData>> ();
+        actions.set ("cx", (cxtext, ref data, errors) => {
+            if (!double.try_parse (cxtext, out data.center.x)) {
+                errors.offer (new Error.invalid_property ("circle", "cx", cxtext, "0"));
+                data.center.x = 0;
+            }
+        });
+        actions.set ("cy", (cytext, ref data, errors) => {
+            if (!double.try_parse (cytext, out data.center.y)) {
+                errors.offer (new Error.invalid_property ("circle", "cy", cytext, "0"));
+                data.center.y = 0;
+            }
+        });
+        actions.set ("r", (rtext, ref data, errors) => {
+            if (!double.try_parse (rtext, out data.radius)) {
+                errors.offer (new Error.invalid_property ("circle", "r", rtext, "0"));
+                data.radius = 0;
+            }
+        });
+        var data = new LoadingData ();
+        load_from_xml_actions (node, patterns, errors, actions, ref data);
+        x = data.center.x;
+        y = data.center.y;
+        r = data.radius;
         _radius = { x + r, y };
     }
 

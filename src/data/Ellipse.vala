@@ -94,12 +94,64 @@ public class Ellipse : Element {
         setup_signals ();
     }
 
+    class LoadingData {
+        public double cx;
+        public double cy;
+        public string? rx_text;
+        public string? ry_text;
+        public double rx;
+        public double ry;
+    }
+
     public Ellipse.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
-        base.from_xml (node, patterns, errors);
-        cx = double.parse (node->get_prop ("cx"));
-        cy = double.parse (node->get_prop ("cy"));
-        rx = double.parse (node->get_prop ("rx"));
-        ry = double.parse (node->get_prop ("ry"));
+        var actions = new Gee.HashMap<string, Element.AttributeLoaderFunc<LoadingData>> ();
+        actions.set ("cx", (cxtext, ref data, errors) => {
+            if (!double.try_parse (cxtext, out data.cx)) {
+                errors.offer (new Error.invalid_property ("ellipse", "cx", cxtext, "0"));
+                data.cx = 0;
+            }
+        });
+        actions.set ("cy", (cytext, ref data, errors) => {
+            if (!double.try_parse (cytext, out data.cy)) {
+                errors.offer (new Error.invalid_property ("ellipse", "cy", cytext, "0"));
+                data.cy = 0;
+            }
+        });
+        actions.set ("rx", (rxtext, ref data, errors) => {
+            data.rx_text = rxtext;
+            if (!double.try_parse (rxtext, out data.rx)) {
+                errors.offer (new Error.invalid_property ("ellipse", "rx", rxtext, "auto"));
+                data.rx_text = null;
+            }
+        });
+        actions.set ("ry", (rytext, ref data, errors) => {
+            data.ry_text = rytext;
+            if (!double.try_parse (rytext, out data.ry)) {
+                errors.offer (new Error.invalid_property ("ellipse", "ry", rytext, "auto"));
+                data.ry_text = null;
+            }
+        });
+        var data = new LoadingData ();
+        load_from_xml_actions (node, patterns, errors, actions, ref data);
+        cx = data.cx;
+        cy = data.cy;
+        if (data.rx_text != null || data.ry_text != null) {
+            if (data.rx_text == null) {
+                data.rx = data.ry;
+            }
+
+            if (data.ry_text == null) {
+                data.ry = data.rx;
+            }
+
+            this.rx = data.rx;
+            this.ry = data.ry;
+        } else {
+            // Officially, both of these should be 0.
+            // This makes it easier to edit.
+            this.rx = 1;
+            this.ry = 1;
+        }
     }
 
     public override void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false) {

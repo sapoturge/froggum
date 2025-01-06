@@ -1,6 +1,6 @@
 public abstract class Element : Object, Undoable, Updatable, Transformed {
     [CCode (has_target = false)]
-    protected delegate void AttributeLoaderFunc<T> (string value, T data, Gee.Queue<Error> errors);
+    protected delegate void AttributeLoaderFunc<T> (string value, ref T data, Gee.Queue<Error> errors);
 
     private Pattern _fill;
     public Pattern fill {
@@ -61,7 +61,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
         });
     }
 
-    protected void load_from_xml_actions<T> (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors, Gee.HashMap<string, AttributeLoaderFunc<T>> actions, T data) {
+    protected void load_from_xml_actions<T> (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors, Gee.HashMap<string, AttributeLoaderFunc<T>> actions, ref T data) {
         fill = new Pattern.none ();
         stroke = new Pattern.none ();
         transform = new Transform.identity ();
@@ -77,7 +77,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
             } else if (property->name == "transform") {
                 transform = new Transform.from_string (content);
             } else if (actions.has_key (property->name)) {
-                ((AttributeLoaderFunc<T>) actions.get (property->name)) (content, data, errors);
+                ((AttributeLoaderFunc<T>) actions.get (property->name)) (content, ref data, errors);
             } else {
                 errors.offer (new Error.unknown_attribute (node->name, property->name, content));
             }

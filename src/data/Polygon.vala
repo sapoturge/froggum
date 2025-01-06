@@ -21,24 +21,35 @@ public class Polygon : Element {
         setup_signals ();
     }
 
+    class LoadingData {
+        public Point[] points;
+    }
+
     public Polygon.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
-        base.from_xml (node, patterns, errors);
-        var points = new Point[] {};
-        var points_str = node->get_prop ("points");
-        var parser = new Parser (points_str);
-        while (!parser.empty ()) {
-            double x, y;
-            if (!parser.get_double (out x)) {
-                break; // TODO: Better error handling
-            }
-            if (!parser.get_double (out y)) {
-                break; // TODO: Better error handling
-            }
+        var actions = new Gee.HashMap<string, Element.AttributeLoaderFunc<LoadingData>> ();
+        actions.set ("points", (points_str, ref data, errors) => {
+            var parser = new Parser (points_str);
+            var parsed_str = new StringBuilder (); // This lets Froggum show the replacement value
+            while (!parser.empty ()) {
+                double x, y;
+                if (!parser.get_double (out x)) {
+                    errors.offer (new Error.invalid_property ("polygon", "points", points_str, parsed_str.str));
+                    break;
+                }
+                if (!parser.get_double (out y)) {
+                    // Officially, if there are an odd number of points, the last one is ignored.
+                    // I'm not going to do that.
+                    errors.offer (new Error.invalid_property ("polygon", "points", points_str, parsed_str.str));
+                    break;
+                }
 
-            points += Point(x, y);
-        }
-
-        set_points (points);
+                data.points += Point(x, y);
+                parsed_str.append_printf ("%f, %f ", x, y);
+            }
+        });
+        var data = new LoadingData ();
+        load_from_xml_actions (node, patterns, errors, actions, ref data);
+        set_points (data.points);
     }
 
     private void set_points (Point[] points) {

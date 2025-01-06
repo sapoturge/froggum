@@ -33,8 +33,11 @@ public class Path : Element {
     }
 
     public Path.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
-        base.from_xml (node, patterns, errors);
-        parse_string (node->get_prop ("d"));
+        var actions = new Gee.HashMap<string, Element.AttributeLoaderFunc<string?>> ();
+        actions.set ("d", (data_text, ref data, errors) => { data = data_text; });
+        string? data = null;
+        load_from_xml_actions (node, patterns, errors, actions, ref data);
+        parse_string (data ?? "");
     }
 
     private void parse_string (string description) {
