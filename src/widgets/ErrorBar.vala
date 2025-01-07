@@ -1,6 +1,7 @@
 private enum Responses {
     STOP_LOADING,
     ACCEPT_DEFAULT,
+    DELETE,
 }
 
 public class ErrorBar : Adw.Bin {
@@ -11,6 +12,8 @@ public class ErrorBar : Adw.Bin {
 
     private Gtk.Button stop_loading_button;
     private Gtk.Button accept_default_button;
+    private Gtk.Button delete_element_button;
+    private Gtk.Button delete_attribute_button;
 
     public signal void resolve_error ();
     public signal void stop_loading ();
@@ -61,6 +64,16 @@ public class ErrorBar : Adw.Bin {
             // ones.
             bar.remove_action_widget (stop_loading_button);
             bar.remove_action_widget (accept_default_button);
+            bar.remove_action_widget (delete_element_button);
+            bar.remove_action_widget (delete_attribute_button);
+
+            if (value.is_delete_element ()) {
+                bar.add_action_widget (delete_element_button, Responses.DELETE);
+            }
+
+            if (value.is_delete_attribute ()) {
+                bar.add_action_widget (delete_attribute_button, Responses.DELETE);
+            }
 
             if (value.has_default ()) {
                 bar.add_action_widget (accept_default_button, Responses.ACCEPT_DEFAULT);
@@ -122,6 +135,10 @@ public class ErrorBar : Adw.Bin {
         stop_loading_button = bar.add_button (_("Stop loading"), Responses.STOP_LOADING);
         accept_default_button = bar.add_button (_("Accept default"), Responses.ACCEPT_DEFAULT);
         accept_default_button.add_css_class ("destructive-action");
+        delete_attribute_button = bar.add_button (_("Delete attribute"), Responses.DELETE);
+        delete_attribute_button.add_css_class ("destructive-action");
+        delete_element_button = bar.add_button (_("Delete element"), Responses.DELETE);
+        delete_element_button.add_css_class ("destructive-action");
         container.append (header);
         container.append (message);
         container.append (expander);
@@ -133,6 +150,10 @@ public class ErrorBar : Adw.Bin {
                 stop_loading ();
                 break;
             case Responses.ACCEPT_DEFAULT:
+                resolve_error ();
+                break;
+            case Responses.DELETE:
+                // Currently, no even partialy loadable data has the option to delete
                 resolve_error ();
                 break;
             }

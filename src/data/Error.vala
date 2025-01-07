@@ -40,6 +40,14 @@ public class Error : GLib.Object {
             return false;
         }
     }
+
+    public bool is_delete_element () {
+        return kind == UNKNOWN_ELEMENT;
+    }
+
+    public bool is_delete_attribute () {
+        return kind == UNKNOWN_PROPERTY;
+    }
 }
 
 public enum ErrorKind {
