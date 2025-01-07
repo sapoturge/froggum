@@ -23,8 +23,8 @@ public class Path : Element {
         setup_signals ();
     }
 
-    public Path.from_string_with_pattern (string description, Pattern fill, Pattern stroke, string title) {
-        parse_string (description);
+    public Path.from_string_with_pattern (string description, Pattern fill, Pattern stroke, string title, Gee.Queue<Error> errors) {
+        parse_string (description, errors);
         this.fill = fill;
         this.stroke = stroke;
         this.title = title;
@@ -37,54 +37,97 @@ public class Path : Element {
         actions.set ("d", (data_text, ref data, errors) => { data = data_text; });
         string? data = null;
         load_from_xml_actions (node, patterns, errors, actions, ref data);
-        parse_string (data ?? "");
+        parse_string (data ?? "", errors);
     }
 
-    private void parse_string (string description) {
+    private void parse_string (string description, Gee.Queue<Error> errors) {
         var segments = new PathSegment[] {};
-        int i = skip_whitespace (description, 0);
+        var parser = new Parser (description);
+        var parsed = new StringBuilder ();
         double start_x = 0;
         double start_y = 0;
         double current_x = 0;
         double current_y = 0;
-        while (i < description.length) {
-            if (description[i] == 'M') {
-                i += 1;
-                i = skip_whitespace (description, i);
-                start_x = get_number (description, ref i);
-                start_y = get_number (description, ref i);
+        while (!parser.empty ()) {
+            if (parser.match("M")) {
+                if (!parser.get_double (out start_x)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out start_y)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                }
+
                 current_x = start_x;
                 current_y = start_y;
-            } else if (description[i] == 'L') {
-                i += 1;
-                i = skip_whitespace (description, i);
-                var x = get_number (description, ref i);
-                var y = get_number (description, ref i);
+                parsed.append_printf ("M %f, %f ", start_x, start_y);
+            } else if (parser.match ("L")) {
+                double x, y;
+                if (!parser.get_double (out x)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out y)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                }
+
                 segments += new PathSegment.line (x, y);
                 current_x = x;
                 current_y = y;
-            } else if (description[i] == 'C') {
-                i += 1;
-                i = skip_whitespace (description, i);
-                var x1 = get_number (description, ref i);
-                var y1 = get_number (description, ref i);
-                var x2 = get_number (description, ref i);
-                var y2 = get_number (description, ref i);
-                var x = get_number (description, ref i);
-                var y = get_number (description, ref i);
+                parsed.append_printf ("L %f, %f ", x, y);
+            } else if (parser.match ("C")) {
+                double x1, x2, y1, y2, x, y;
+                if (!parser.get_double (out x1)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out y1)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out x2)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out y2)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out x)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out y)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                }
+
                 segments += new PathSegment.curve (x1, y1, x2, y2, x, y);
                 current_x = x;
                 current_y = y;
-            } else if (description[i] == 'A') {
-                i += 1;
-                i = skip_whitespace (description, i);
-                var rx = get_number (description, ref i).abs ();
-                var ry = get_number (description, ref i).abs ();
-                var angle = get_number (description, ref i) * Math.PI / 180;
-                var large_arc = get_number (description, ref i);
-                var sweep = get_number (description, ref i);
-                var x = get_number (description, ref i);
-                var y = get_number (description, ref i);
+                parsed.append_printf ("C %f, %f, %f, %f, %f, %f ", x1, y1, x2, y2, x, y);
+            } else if (parser.match ("A")) {
+                double rx, ry, angle;
+                int large_arc, sweep;
+                double x, y;
+                if (!parser.get_double (out rx)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out ry)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out angle)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_int (out large_arc)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_int (out sweep)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out x)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                } else if (!parser.get_double (out y)) {
+                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    break;
+                }
+
                 var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
                 var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
                 var dt = (x1 * x1) / ( rx * rx) + (y1 * y1) / (ry * ry);
@@ -103,17 +146,20 @@ public class Path : Element {
                 segments += new PathSegment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
                 current_x = x;
                 current_y = y;
-            } else if (description[i] == 'Z') {
+                parsed.append_printf ("A %f, %f, %f, %d, %d, %f, %f ", rx, ry, angle, large_arc, sweep, x, y);
+            } else if (parser.match ("Z")) {
                 // Ends the path, back to the beginning.
                 if (start_x != current_x || start_y != current_y) {
                     segments += new PathSegment.line (start_x, start_y);
                 }
-                i += 1;
+
+                parsed.append_printf ("Z ");
             } else {
-                i += 1;
-                i = skip_whitespace (description, i);
+                errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                break;
             }
         }
+
         set_segments (segments);
     }
 
@@ -230,41 +276,6 @@ public class Path : Element {
             new ContextOption.deleter (_("Delete Path"), () => { request_delete(); }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
-    }
-
-    private static int skip_whitespace (string source, int start) {
-        while (start < source.length && source[start] == ' ' || source[start] == '\t' || source[start] == '\n') {
-            start += 1;
-        }
-        return start;
-    }
-
-    private static double get_number (string source, ref int start) {
-        double result = 0;
-        var negative = false;
-        if (source[start] == '-') {
-            negative = true;
-            start++;
-        }
-        while (start < source.length && source[start] >= '0' && source[start] <= '9') {
-            result *= 10;
-            result += source[start] - '0';
-            start += 1;
-        }
-        if (source[start] == '.') {
-            start += 1;
-            var power = -1;
-            while (start < source.length && '0' <= source[start] && source[start] <= '9') {
-                result += Math.pow (10, power) * (source[start] - '0');
-                power -= 1;
-                start += 1;
-            }
-        }
-        if (negative) {
-            result = -result;
-        }
-        start = skip_whitespace (source, start);
-        return result;
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {

@@ -14,42 +14,73 @@ public enum Keyword {
 
 public class Parser : Object {
     private string data;
+    private int index;
 
     public Parser (string data) {
         this.data = data;
+        this.index = 0;
+        skip_whitespace ();
+    }
+
+    public void skip_whitespace () {
+        unichar next_character;
+        int next_index = index;
+        while (data.get_next_char (ref next_index, out next_character)) {
+            if (next_character.isspace ()) {
+                index = next_index;
+            } else {
+                break;
+            }
+        }
+    }
+
+    public bool has_prefix (string prefix) {
+        var check_index = index;
+        unichar prefix_char, data_char;
+        for (int i = 0; prefix.get_next_char (ref i, out prefix_char);) {
+            if (!data.get_next_char (ref check_index, out data_char)) {
+                return false;
+            }
+
+            if (prefix_char != data_char) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public Keyword get_keyword () {
-        data = data.strip ();
-        if (data.has_prefix ("translate")) {
-            data = data.substring (9);
+        skip_whitespace ();
+        if (has_prefix ("translate")) {
+            index += 9;
             return Keyword.TRANSLATE;
-        } else if (data.has_prefix ("matrix")) {
-            data = data.substring (6);
+        } else if (has_prefix ("matrix")) {
+            index += 6;
             return Keyword.MATRIX;
-        } else if (data.has_prefix ("rotate")) {
-            data = data.substring (6);
+        } else if (has_prefix ("rotate")) {
+            index += 6;
             return Keyword.ROTATE;
-        } else if (data.has_prefix ("skewX")) {
-            data = data.substring (5);
+        } else if (has_prefix ("skewX")) {
+            index += 5;
             return Keyword.SKEW_X;
-        } else if (data.has_prefix ("skewY")) {
-            data = data.substring (5);
+        } else if (has_prefix ("skewY")) {
+            index += 5;
             return Keyword.SKEW_Y;
-        } else if (data.has_prefix ("scale")) {
-            data = data.substring (5);
+        } else if (has_prefix ("scale")) {
+            index += 5;
             return Keyword.SCALE;
-        } else if (data.has_prefix ("rgba")) {
-            data = data.substring (4);
+        } else if (has_prefix ("rgba")) {
+            index += 4;
             return Keyword.RGBA;
-        } else if (data.has_prefix ("none")) {
-            data = data.substring (4);
+        } else if (has_prefix ("none")) {
+            index += 4;
             return Keyword.NONE;
-        } else if (data.has_prefix ("url")) {
-            data = data.substring (3);
+        } else if (has_prefix ("url")) {
+            index += 3;
             return Keyword.URL;
-        } else if (data.has_prefix ("rgb")) {
-            data = data.substring (3);
+        } else if (has_prefix ("rgb")) {
+            index += 3;
             return Keyword.RGB;
         } else {
             return Keyword.NOT_FOUND;
@@ -58,12 +89,14 @@ public class Parser : Object {
 
     public bool match (string prefix, bool strip=true) {
         if (strip) {
-            data = data.strip ();
+            skip_whitespace ();
         }
-        if (data.has_prefix (prefix)) {
-            data = data.substring (prefix.length);
+
+        if (has_prefix (prefix)) {
+            index += prefix.length;
             return true;
         }
+
         return false;
     }
 
@@ -73,6 +106,7 @@ public class Parser : Object {
             value = 0;
             return false;
         }
+
         int next_digit = 0;
         while (data != "" && get_digit (out next_digit, 10, false)) {
             value *= 10;
@@ -105,6 +139,7 @@ public class Parser : Object {
             multiplier /= 10;
             value += multiplier * next_digit;
         }
+
         return true;
     }
 
@@ -127,12 +162,13 @@ public class Parser : Object {
             multiplier /= 10;
             value += multiplier * next_digit;
         }
+
         return true;
     }
 
     public bool get_digit (out int value, int num_base=10, bool strip = true) {
         if (strip) {
-            data = data.strip ();
+            skip_whitespace ();
         }
 
         string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -165,12 +201,12 @@ public class Parser : Object {
 
     public string get_string (int length=0) {
         if (length <= 0) {
-            var result = data;
-            data = "";
+            var result = data.substring (index);
+            index = data.length;
             return result;
         } else {
-            var result = data.substring (0, length);
-            data = data.substring (length);
+            var result = data.substring (index, length);
+            index += length;
             return result;
         }
     }
@@ -179,16 +215,15 @@ public class Parser : Object {
         var rgba = Gdk.RGBA ();
         if (rgba.parse (data)) {
             // Assume the color was the entire data
-            data = "";
+            index = data.length;
             return rgba;
         } else {
             return null;
         }
     }
 
-
     public bool empty () {
-        return data.length == 0;
+        return index >= data.length;
     }
 
     public void error (string message) {
