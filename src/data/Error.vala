@@ -13,6 +13,10 @@ public class Error : GLib.Object {
         Object (kind: kind, detail: detail, full_message: full, default_value: default);
     }
 
+    public Error.unknown_element (string element, string parent) {
+        this (ErrorKind.UNKNOWN_ELEMENT, element, "Unexpected element encountered.\nElement name: '%s'\nParent: '%s'\n".printf (element, parent), "");
+    }
+
     public Error.missing_property (string element, string property, string default) {
         this (ErrorKind.MISSING_PROPERTY, "%s.%s".printf (element, property), "Required attribute missing.\nElement: %s\nAttribute: %s\nApplied default: %s\n".printf (element, property, default), default);
     }

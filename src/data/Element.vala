@@ -83,6 +83,12 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
             }
         }
 
+        for (var child = node->children; child != null; child = child->next) {
+            // Assume no elements have children.
+            // This is inaccurate for Groups, which don't use this method.
+            errors.offer (new Error.unknown_element (child->name, node->name));
+        }
+
         visible = true;
         transform_enabled = !transform.is_identity ();
         setup_signals ();

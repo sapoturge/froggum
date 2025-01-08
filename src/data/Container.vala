@@ -84,7 +84,10 @@ public interface Container : Undoable, Updatable, Transformed {
 
     protected void load_elements (Xml.Node* parent, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
         for (Xml.Node* iter = parent->children; iter != null; iter = iter->next) {
-            if (iter->name == "path") {
+            if (iter->type == Xml.ElementType.TEXT_NODE) {
+                // This is usually whitespace and can safely be deleted.
+                // It will never be rendered (text is only rendered inside a text element).
+            } else if (iter->name == "path") {
                 var path = new Path.from_xml (iter, patterns, errors);
                 add_element (path);
             } else if (iter->name == "circle") {
@@ -108,6 +111,10 @@ public interface Container : Undoable, Updatable, Transformed {
             } else if (iter->name == "polygon") {
                 var polygon = new Polygon.from_xml (iter, patterns, errors);
                 add_element (polygon);
+            } else if (iter->name == "defs" || iter->name == "linearGradient" || iter->name == "radialGradient") {
+                // Known elements that don't need to be loaded, but shouldn't show errors.
+            } else {
+                errors.offer (new Error.unknown_element (iter->name, parent->name));
             }
         }
     }
