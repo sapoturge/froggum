@@ -128,6 +128,8 @@ public class Path : Element {
                     break;
                 }
 
+                angle = angle * Math.PI / 180;
+
                 var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
                 var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
                 var dt = (x1 * x1) / ( rx * rx) + (y1 * y1) / (ry * ry);
