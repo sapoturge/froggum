@@ -18,7 +18,7 @@ public class ErrorBar : Adw.Bin {
     public signal void resolve_error ();
     public signal void stop_loading ();
 
-    public Error error {
+    public Error? error {
         set {
             if (value == null) {
                 bar.revealed = false;

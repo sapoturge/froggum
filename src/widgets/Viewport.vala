@@ -207,7 +207,16 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 Point center = current_handle.point;
                 cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);
                 cr.set_line_width (2 / zoom);
-                cr.set_source_rgb (0.95, 0.85, 0.15);
+                if (image.error == null) {
+                    cr.set_source_rgb (0.95, 0.85, 0.15);
+                } else {
+                    cr.set_source_rgb (0.75, 0.75, 0.75);
+                    cr.move_to (center.x + 5/zoom, center.y + 5/zoom);
+                    cr.line_to (center.x - 5/zoom, center.y - 5/zoom);
+                    cr.move_to (center.x + 5/zoom, center.y - 5/zoom);
+                    cr.line_to (center.x - 5/zoom, center.y + 5/zoom);
+                }
+
                 cr.stroke ();
             }
 
@@ -378,15 +387,18 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     }
 
     private void bind_point (Undoable obj, string name) {
-        if (tutorial != null && tutorial.step == DRAG) {
-            tutorial.next_step ();
+        if (image.error == null) {
+            if (tutorial != null && tutorial.step == DRAG) {
+                tutorial.next_step ();
+            }
+
+            bound_obj = obj;
+            bound_prop = name;
+            obj.begin (name);
+            point_binding = bind_property ("control-point", obj, name);
+            base_point = control_point;
         }
 
-        bound_obj = obj;
-        bound_prop = name;
-        obj.begin (name);
-        point_binding = bind_property ("control-point", obj, name);
-        base_point = control_point;
         queue_draw ();
     }
 

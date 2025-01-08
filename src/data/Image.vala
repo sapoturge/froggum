@@ -19,7 +19,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public override Element? selected_child { get; set; }
     public Transform transform { get; set; }
 
-    public Error error {
+    public Error? error {
         owned get {
             return errors.peek ();
         }

@@ -84,4 +84,12 @@ public class PathRow : Gtk.Box {
         title.disconnect (title_handle);
         visibility.disconnect (visibility_handle);
     }
+
+    public bool allow_edits {
+        set {
+            title.sensitive = value;
+            fill.sensitive = value;
+            stroke.sensitive = value;
+        }
+    }
 }

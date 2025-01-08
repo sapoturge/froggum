@@ -7,9 +7,31 @@ public class EditorView : Gtk.Box {
     private StatusBar status_bar;
     private ulong new_button_handler;
     private Gtk.Button new_button;
+    private Gtk.MenuButton new_menu_button;
+    private Gtk.Button new_group;
+    private Gtk.Button duplicate_path;
+    private Gtk.Button path_up;
+    private Gtk.Button path_down;
+    private Gtk.Button delete_path;
     private ErrorBar error_bar;
 
     public signal void stop_loading ();
+
+    public bool allow_edits {
+        get {
+            return image.error == null;
+        }
+        set {
+            new_button.sensitive = value;
+            new_menu_button.sensitive = value;
+            new_group.sensitive = value;
+            duplicate_path.sensitive = value;
+            path_up.sensitive = value;
+            path_down.sensitive = value;
+            delete_path.sensitive = value;
+            status_bar.allow_edits = value;
+        }
+    }
 
     public EditorView (Image image) {
         this.image = image;
@@ -41,6 +63,7 @@ public class EditorView : Gtk.Box {
         });
         image.bind_property ("error", error_bar, "error");
         error_bar.error = image.error;
+        allow_edits = image.error == null;
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
             var e = row.item as Element;
@@ -72,6 +95,8 @@ public class EditorView : Gtk.Box {
         builder.setup.connect ((l) => {
             var li = (Gtk.ListItem) l;
             var row = new PathRow ();
+            bind_property ("allow_edits", row, "allow_edits");
+            row.allow_edits = allow_edits;
             li.child = row;
         });
         builder.bind.connect ((l) => {
@@ -201,18 +226,18 @@ public class EditorView : Gtk.Box {
         new_menu_layout.append (new_polygon);
         new_menu.child = new_menu_layout;
 
-        var new_menu_button = new Gtk.MenuButton();
+        new_menu_button = new Gtk.MenuButton();
         new_menu_button.hexpand = true;
         new_menu_button.popover = new_menu;
 
-        var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
+        new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
         new_group.tooltip_text = _("New group");
         new_group.hexpand = true;
         new_group.clicked.connect (() => {
             image.new_group ();
         });
 
-        var duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
+        duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
         duplicate_path.tooltip_text = _("Duplicate element");
         duplicate_path.hexpand = true;
         duplicate_path.clicked.connect (() => {
@@ -223,7 +248,7 @@ public class EditorView : Gtk.Box {
             }
         });
 
-        var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
+        path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
         path_up.tooltip_text = _("Move element up");
         path_up.hexpand = true;
         path_up.clicked.connect (() => {
@@ -242,7 +267,7 @@ public class EditorView : Gtk.Box {
             }
         });
 
-        var path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
+        path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
         path_down.tooltip_text = _("Move element down");
         path_down.hexpand = true;
         path_down.clicked.connect (() => {
@@ -260,7 +285,7 @@ public class EditorView : Gtk.Box {
             }
         });
 
-        var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
+        delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
         delete_path.tooltip_text = _("Delete element");
         delete_path.hexpand = true;
         delete_path.clicked.connect (() => {
@@ -295,6 +320,7 @@ public class EditorView : Gtk.Box {
         error_bar.resolve_error.connect (() => {
             image.resolve_error ();
             error_bar.error = image.error;
+            allow_edits = image.error == null;
         });
 
         viewport = new Viewport ();
