@@ -95,7 +95,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
     }
 
     protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
-        title = node->get_prop ("id");
+        title = node->get_prop ("id") ?? "";
         visible = true;
         fill = Pattern.get_from_text (node->get_prop ("fill"), patterns, node->name, "fill", errors);
         stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns, node->name, "stroke", errors);
