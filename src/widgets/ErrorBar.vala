@@ -62,11 +62,23 @@ public class ErrorBar : Adw.Bin {
 
             // Reset action buttons by removing all that are there and putting back the relevant
             // ones.
-            bar.remove_action_widget (stop_loading_button);
-            bar.remove_action_widget (accept_default_button);
-            bar.remove_action_widget (delete_element_button);
-            bar.remove_action_widget (delete_attribute_button);
+            if (stop_loading_button.parent != null) {
+                bar.remove_action_widget (stop_loading_button);
+            }
 
+            if (accept_default_button.parent != null) {
+                bar.remove_action_widget (accept_default_button);
+            }
+
+            if (delete_element_button.parent != null) {
+                bar.remove_action_widget (delete_element_button);
+            }
+
+            if (delete_attribute_button.parent != null) {
+                bar.remove_action_widget (delete_attribute_button);
+            }
+
+            // Now put back the appropriate buttons, in order
             if (value.is_delete_element ()) {
                 bar.add_action_widget (delete_element_button, Responses.DELETE);
             }
