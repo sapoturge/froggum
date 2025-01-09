@@ -4,6 +4,13 @@ private enum Responses {
     DELETE,
 }
 
+public enum BackupMethod {
+    CANCEL,
+    NO_BACKUP,
+    BACKUP,
+    NEW_FILE,
+}
+
 public class ErrorBar : Adw.Bin {
     private Gtk.InfoBar bar;
     private Gtk.Label header;
@@ -15,8 +22,11 @@ public class ErrorBar : Adw.Bin {
     private Gtk.Button delete_element_button;
     private Gtk.Button delete_attribute_button;
 
+    private bool requested_backup;
+
     public signal void resolve_error ();
     public signal void stop_loading ();
+    public signal void make_backup (BackupMethod method);
 
     public Error? error {
         set {
@@ -162,12 +172,23 @@ public class ErrorBar : Adw.Bin {
                 stop_loading ();
                 break;
             case Responses.ACCEPT_DEFAULT:
-                resolve_error ();
-                break;
             case Responses.DELETE:
-                // Currently, no even partialy loadable data has the option to delete
-                resolve_error ();
+                if (!requested_backup) {
+                    var dialog = new BackupDialog ();
+                    dialog.finish.connect ((response_kind) => make_backup (response_kind));
+                    dialog.show ();
+                } else {
+                    resolve_error ();
+                }
+
                 break;
+            }
+        });
+        requested_backup = false;
+
+        make_backup.connect ((method) => {
+            if (method != BackupMethod.CANCEL) {
+                requested_backup = true;
             }
         });
     }

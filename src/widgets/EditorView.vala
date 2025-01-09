@@ -317,10 +317,49 @@ public class EditorView : Gtk.Box {
 
         error_bar = new ErrorBar ();
         error_bar.stop_loading.connect (() => stop_loading ());
-        error_bar.resolve_error.connect (() => {
-            image.resolve_error ();
-            error_bar.error = image.error;
-            allow_edits = image.error == null;
+        error_bar.resolve_error.connect (() => resolve_error ());
+        error_bar.make_backup.connect ((method) => {
+            switch (method) {
+            case CANCEL:
+                break;
+            case NO_BACKUP:
+                resolve_error ();
+                break;
+            case BACKUP:
+                var dialog = new Gtk.FileDialog () {
+                    initial_file = image.file,
+                    title = _("Save backup"),
+                };
+                dialog.save.begin (root as Gtk.Window, null, (obj, res) => {
+                    try {
+                        var backup_file = dialog.save.end (res);
+                        if (backup_file != null) {
+                            image.file.copy (backup_file, 0, null, null);
+                        }
+                        resolve_error ();
+                    } catch (GLib.Error e) {
+                        // TODO: report saving error
+                    }
+                });
+                break;
+            case NEW_FILE:
+                var dialog = new Gtk.FileDialog () {
+                    initial_file = image.file,
+                    title = _("Save As"),
+                };
+                dialog.save.begin (root as Gtk.Window, null, (obj, res) => {
+                    try {
+                        var new_file = dialog.save.end (res);
+                        if (new_file != null) {
+                            image.file = new_file;
+                        }
+                        resolve_error ();
+                    } catch (GLib.Error e) {
+                        // TODO: report saving error
+                    }
+                });
+                break;
+            }
         });
 
         viewport = new Viewport ();
@@ -350,5 +389,11 @@ public class EditorView : Gtk.Box {
 
         hexpand = true;
         vexpand = true;
+    }
+
+    private void resolve_error () {
+        image.resolve_error ();
+        error_bar.error = image.error;
+        allow_edits = image.error == null;
     }
 }
