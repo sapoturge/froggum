@@ -48,13 +48,14 @@ public class Path : Element {
         double start_y = 0;
         double current_x = 0;
         double current_y = 0;
+        bool loaded_successfully = true;
         while (!parser.empty ()) {
             if (parser.match("M")) {
                 if (!parser.get_double (out start_x)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out start_y)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 }
 
@@ -64,10 +65,10 @@ public class Path : Element {
             } else if (parser.match ("L")) {
                 double x, y;
                 if (!parser.get_double (out x)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out y)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 }
 
@@ -78,22 +79,22 @@ public class Path : Element {
             } else if (parser.match ("C")) {
                 double x1, x2, y1, y2, x, y;
                 if (!parser.get_double (out x1)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out y1)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out x2)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out y2)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out x)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out y)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 }
 
@@ -106,25 +107,25 @@ public class Path : Element {
                 int large_arc, sweep;
                 double x, y;
                 if (!parser.get_double (out rx)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out ry)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out angle)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_int (out large_arc)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_int (out sweep)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out x)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 } else if (!parser.get_double (out y)) {
-                    errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                    loaded_successfully = false;
                     break;
                 }
 
@@ -157,9 +158,29 @@ public class Path : Element {
 
                 parsed.append_printf ("Z ");
             } else {
-                errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
+                loaded_successfully = false;
                 break;
             }
+        }
+
+        if (segments.length == 0) {
+            // Something went very wrong in loading.
+            // This seems like a reasonable default.
+            segments += new PathSegment.line (current_x, current_y);
+            segments += new PathSegment.line (start_x, start_y);
+            parsed.append_printf ("L %f, %f Z", current_x, current_y);
+            loaded_successfully = false;
+        }
+
+        if (current_x != start_x || current_y != start_y) {
+            // Open paths should be supported eventually, but aren't yet.
+            segments += new PathSegment.line (start_x, start_y);
+            parsed.append ("Z");
+            loaded_successfully = false;
+        }
+
+        if (!loaded_successfully) {
+            errors.offer (new Error.invalid_property ("path", "d", description, parsed.str));
         }
 
         set_segments (segments);
