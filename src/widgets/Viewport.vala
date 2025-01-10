@@ -17,7 +17,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Image _image;
     private Gtk.Adjustment horizontal;
     private Gtk.Adjustment vertical;
-    
+
     private Tutorial tutorial;
 
     public Point control_point { get; set; }
@@ -34,7 +34,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _current_handle = value;
         }
     }
-    
+
     private Undoable bound_obj;
     private string bound_prop;
 
@@ -162,7 +162,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double scale_x (double x) {
         return (x - width / 2 - scroll_x) / zoom;
     }
-    
+
     private double unscale_x (double x) {
         return x * zoom + scroll_x + width / 2;
     }
@@ -170,7 +170,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double scale_y (double y) {
         return (y - height / 2 - scroll_y) / zoom;
     }
-    
+
     private double unscale_y (double y) {
         return y * zoom + scroll_y + height / 2;
     }
@@ -353,16 +353,19 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Recalculate values.
             scroll_x = scroll_x;
             scroll_y = scroll_y;
+            position_tutorial ();
         });
 
-        if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
-            FroggumApplication.settings.set_boolean ("show-tutorial", false);
-            tutorial = new Tutorial ();
-            tutorial.finish.connect (() => { tutorial = null; });
-            tutorial.set_parent (this);
-            position_tutorial ();
-            tutorial.popup ();
-        }
+        realize.connect (() => {
+            if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
+                FroggumApplication.settings.set_boolean ("show-tutorial", false);
+                tutorial = new Tutorial ();
+                tutorial.finish.connect (() => { tutorial = null; });
+                tutorial.set_parent (this);
+                position_tutorial ();
+                tutorial.popup ();
+            }
+        });
     }
 
     private void update_zoom (double new_zoom) {
@@ -414,7 +417,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             queue_draw ();
         }
     }
-    
+
     private void position_tutorial () {
         if (tutorial != null) {
             var x = unscale_x (image.width / 2);
@@ -425,6 +428,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 tutorial.position = BOTTOM;
             } else if (y > height) {
                 y = height;
+                tutorial.position = TOP;
+            } else {
+                tutorial.position = TOP;
             }
 
             if (x < 0) {
