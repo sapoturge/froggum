@@ -42,31 +42,31 @@ public class ErrorBar : Adw.Bin {
             switch (value.kind) {
             case ErrorKind.CANT_READ:
                 header.label = _("<big><b>Unable to read file</b></big>");
-                message.label = _("The file %s could not be opened for reading").printf (value.detail);
+                message.label = _("The file '%s' could not be opened for reading").printf (value.detail);
                 break;
             case ErrorKind.CANT_WRITE:
                 header.label = _("<big><b>Failed to write file</b></big>");
-                message.label = _("Failed to write file %s.").printf (value.detail);
+                message.label = _("Failed to write file '%s'.").printf (value.detail);
                 break;
             case ErrorKind.INVALID_SVG:
                 header.label = _("<big><b>Failed to parse file</b></big>");
-                message.label = _("%s is not a valid SVG file.").printf (value.detail);
+                message.label = _("File '%s' is not a valid SVG file.").printf (value.detail);
                 break;
             case ErrorKind.INVALID_PROPERTY:
                 header.label = _("<big><b>Invalid attribute value</b></big>");
-                message.label = _("Invalid property value %s.").printf (value.detail);
+                message.label = _("Invalid property value '%s'. A default value was applied; see preview below.").printf (value.detail);
                 break;
             case ErrorKind.MISSING_PROPERTY:
                 header.label = _("<big><b>Required attribute missing</b></big>");
-                message.label = _("Missing property value %s.").printf (value.detail);
+                message.label = _("Missing property value '%s'.").printf (value.detail);
                 break;
             case ErrorKind.UNKNOWN_ELEMENT:
                 header.label = _("<big><b>Unknown element encountered</b></big>");
-                message.label = _("Unrecognized element %s encountered..").printf (value.detail);
+                message.label = _("Unrecognized element '%s' encountered.").printf (value.detail);
                 break;
             case ErrorKind.UNKNOWN_PROPERTY:
                 header.label = _("<big><b>Unknown attribute encountered</b></big>");
-                message.label = _("Unrecognized attribute %s encountered..").printf (value.detail);
+                message.label = _("Unrecognized attribute '%s' encountered.").printf (value.detail);
                 break;
             }
 
