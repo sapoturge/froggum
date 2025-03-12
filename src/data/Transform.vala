@@ -712,4 +712,16 @@ public class Transform : Object, Undoable {
         new_matrix.multiply(new_matrix, base_transform.matrix);
         return new Transform.from_matrix(new_matrix);
     }
+
+    public Transform copy () {
+        var new_transform = new Transform.identity ();
+        new_transform.translate_x = translate_x;
+        new_transform.translate_y = translate_y;
+        new_transform.scale_x = scale_x;
+        new_transform.scale_y = scale_y;
+        new_transform.angle = angle;
+        new_transform.skew = skew;
+        new_transform.update_matrix ();
+        return new_transform;
+    }
 }

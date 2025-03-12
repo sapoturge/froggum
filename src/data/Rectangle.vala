@@ -162,7 +162,7 @@ public class Rectangle : Element {
         }
     }
 
-    public Rectangle (double x, double y, double width, double height, Pattern fill, Pattern stroke, string? title = null) {
+    public Rectangle (double x, double y, double width, double height, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -176,7 +176,12 @@ public class Rectangle : Element {
             this.title = title;
         }
 
-        this.transform = new Transform.identity ();
+        if (transform == null) {
+            this.transform = new Transform.identity ();
+        } else {
+            this.transform = transform;
+            transform_enabled = transform.is_identity ();
+        }
 
         setup_signals ();
 
@@ -528,7 +533,7 @@ public class Rectangle : Element {
     }
 
     public override Element copy () {
-        return new Rectangle (x, y, width, height, fill.copy (), stroke.copy ());
+        return new Rectangle (x, y, width, height, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

@@ -89,6 +89,7 @@ public class Ellipse : Element {
             this.transform = new Transform.identity ();
         } else {
             this.transform = transform;
+            transform_enabled = transform.is_identity ();
         }
 
         setup_signals ();
@@ -253,7 +254,7 @@ public class Ellipse : Element {
     }
 
     public override Element copy () {
-        return new Ellipse (cx, cy, rx, ry, fill.copy (), stroke.copy ());
+        return new Ellipse (cx, cy, rx, ry, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {

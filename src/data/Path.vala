@@ -16,6 +16,7 @@ public class Path : Element {
             this.transform = new Transform.identity ();
         } else {
             this.transform = transform;
+            transform_enabled = transform.is_identity ();
         }
 
         visible = true;
@@ -147,7 +148,7 @@ public class Path : Element {
             current_segment = current_segment.next;
         }
 
-        return new Path.with_pattern (new_segments, fill.copy (), stroke.copy (), title);
+        return new Path.with_pattern (new_segments, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public void split_segment (PathSegment segment) {
