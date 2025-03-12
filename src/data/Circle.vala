@@ -31,7 +31,7 @@ public class Circle : Element {
         }
     }
 
-    public Circle (double x, double y, double r, Pattern fill, Pattern stroke, string? title = null) {
+    public Circle (double x, double y, double r, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
         this.x = x;
         this.y = y;
         this.r = r;
@@ -45,7 +45,12 @@ public class Circle : Element {
             this.title = title;
         }
 
-        this.transform = new Transform.identity ();
+        if (transform == null) {
+            this.transform = new Transform.identity ();
+        } else {
+            this.transform = transform;
+            transform_enabled = transform.is_identity ();
+        }
 
         setup_signals ();
     }
@@ -161,7 +166,7 @@ public class Circle : Element {
     }
 
     public override Element copy () {
-        return new Circle (x, y, r, fill.copy (), stroke.copy ());
+        return new Circle (x, y, r, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
