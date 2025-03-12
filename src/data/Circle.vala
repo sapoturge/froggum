@@ -49,7 +49,7 @@ public class Circle : Element {
             this.transform = new Transform.identity ();
         } else {
             this.transform = transform;
-            transform_enabled = transform.is_identity ();
+            transform_enabled = !transform.is_identity ();
         }
 
         setup_signals ();
