@@ -509,10 +509,10 @@ public class Transform : Object, Undoable {
     }
 
     public bool is_identity () {
-        return (translate_x == 0 && translate_y == 0
-             && scale_x == 1 && scale_y == 1
-             && angle == 0
-             && skew == 0);
+        return (double_is_zero(translate_x) && double_is_zero(translate_y)
+             && double_is_zero(scale_x-1) && double_is_zero(scale_y-1)
+             && double_is_zero(angle)
+             && double_is_zero(skew));
     }
 
     private void update_matrix () {
@@ -724,4 +724,9 @@ public class Transform : Object, Undoable {
         new_transform.update_matrix ();
         return new_transform;
     }
+}
+
+private bool double_is_zero (double val) {
+    const double EPSILON = 128*double.EPSILON;
+    return val.abs() <= EPSILON;
 }
