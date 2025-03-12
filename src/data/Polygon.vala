@@ -16,6 +16,7 @@ public class Polygon : Element {
             this.transform = new Transform.identity ();
         } else {
             this.transform = transform;
+            transform_enabled = transform.is_identity ();
         }
 
         setup_signals ();
@@ -206,7 +207,7 @@ public class Polygon : Element {
             first = false;
         }
 
-        return new Polygon (points, fill.copy (), stroke.copy (), "Copy of " + title, transform);
+        return new Polygon (points, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {

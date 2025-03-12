@@ -5,7 +5,7 @@ public class Line : Element {
     private Point last_start;
     private Point last_end;
 
-    public Line (double x1, double y1, double x2, double y2, Pattern stroke, string? title = null) {
+    public Line (double x1, double y1, double x2, double y2, Pattern stroke, string? title = null, Transform? transform = null) {
         this.start = { x1, y1 };
         this.end = { x2, y2 };
         this.fill = new Pattern.none ();
@@ -17,7 +17,12 @@ public class Line : Element {
             this.title = title;
         }
 
-        this.transform = new Transform.identity ();
+        if (transform == null) {
+            this.transform = new Transform.identity ();
+        } else {
+            this.transform = transform;
+            transform_enabled = transform.is_identity ();
+        }
 
         setup_signals ();
     }
@@ -126,7 +131,7 @@ public class Line : Element {
     }
 
     public override Element copy () {
-        return new Line (start.x, start.y, end.x, end.y, stroke.copy ());
+        return new Line (start.x, start.y, end.x, end.y, stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
