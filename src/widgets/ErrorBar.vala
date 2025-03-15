@@ -2,6 +2,7 @@ private enum Responses {
     STOP_LOADING,
     ACCEPT_DEFAULT,
     DELETE,
+    OK, // Used for internal errors to move on
 }
 
 public enum BackupMethod {
@@ -21,6 +22,7 @@ public class ErrorBar : Adw.Bin {
     private Gtk.Button accept_default_button;
     private Gtk.Button delete_element_button;
     private Gtk.Button delete_attribute_button;
+    private Gtk.Button ok_button;
 
     private bool requested_backup;
 
@@ -40,6 +42,10 @@ public class ErrorBar : Adw.Bin {
 
             // This is localized
             switch (value.kind) {
+            case ErrorKind.INTERNAL_ERROR:
+                header.label = _("<big><b>Internal error</b></big>");
+                message.label = _("Error %s encountered.").printf (value.detail);
+                break;
             case ErrorKind.CANT_READ:
                 header.label = _("<big><b>Unable to read file</b></big>");
                 message.label = _("The file '%s' could not be opened for reading").printf (value.detail);
@@ -88,20 +94,30 @@ public class ErrorBar : Adw.Bin {
                 bar.remove_action_widget (delete_attribute_button);
             }
 
+            if (ok_button.parent != null) {
+                bar.remove_action_widget (ok_button);
+            }
+
             // Now put back the appropriate buttons, in order
-            if (value.is_delete_element ()) {
-                bar.add_action_widget (delete_element_button, Responses.DELETE);
-            }
+            if (value.stop_loading()) {
+                if (value.is_delete_element ()) {
+                    bar.add_action_widget (delete_element_button, Responses.DELETE);
+                }
 
-            if (value.is_delete_attribute ()) {
-                bar.add_action_widget (delete_attribute_button, Responses.DELETE);
-            }
+                if (value.is_delete_attribute ()) {
+                    bar.add_action_widget (delete_attribute_button, Responses.DELETE);
+                }
 
-            if (value.has_default ()) {
-                bar.add_action_widget (accept_default_button, Responses.ACCEPT_DEFAULT);
-            }
+                if (value.has_default ()) {
+                    bar.add_action_widget (accept_default_button, Responses.ACCEPT_DEFAULT);
+                }
 
-            bar.add_action_widget (stop_loading_button, Responses.STOP_LOADING);
+                bar.add_action_widget (stop_loading_button, Responses.STOP_LOADING);
+            } else {
+                bar.add_action_widget (ok_button, Responses.OK);
+                bar.set_default_response (Responses.OK);
+                ok_button.grab_focus ();
+            }
 
             switch (value.severity) {
             case WARNING:
@@ -161,6 +177,7 @@ public class ErrorBar : Adw.Bin {
         delete_attribute_button.add_css_class ("destructive-action");
         delete_element_button = bar.add_button (_("Delete element"), Responses.DELETE);
         delete_element_button.add_css_class ("destructive-action");
+        ok_button = bar.add_button (_("OK"), Responses.OK);
         container.append (header);
         container.append (message);
         container.append (expander);
@@ -181,6 +198,9 @@ public class ErrorBar : Adw.Bin {
                     resolve_error ();
                 }
 
+                break;
+            case Responses.OK:
+                resolve_error ();
                 break;
             }
         });

@@ -13,6 +13,10 @@ public class Error : GLib.Object {
         Object (kind: kind, detail: detail, full_message: full, default_value: default);
     }
 
+    public Error.glib_error(GLib.Error error) {
+        this (ErrorKind.INTERNAL_ERROR, error.code.to_string (), "GLib Error encountered: %s\n".printf (error.message), "");
+    }
+
     public Error.unknown_element (string element, string parent) {
         this (ErrorKind.UNKNOWN_ELEMENT, element, "Unexpected element encountered.\nElement name: '%s'\nParent: '%s'\n".printf (element, parent), "");
     }
@@ -31,6 +35,7 @@ public class Error : GLib.Object {
 
     public bool has_default () {
         switch (kind) {
+        case INTERNAL_ERROR:
         case CANT_READ:
         case CANT_WRITE:
         case INVALID_SVG:
@@ -52,9 +57,14 @@ public class Error : GLib.Object {
     public bool is_delete_attribute () {
         return kind == UNKNOWN_PROPERTY;
     }
+
+    public bool stop_loading () {
+        return kind != INTERNAL_ERROR;
+    }
 }
 
 public enum ErrorKind {
+    INTERNAL_ERROR,
     CANT_READ,
     CANT_WRITE,
     INVALID_SVG,
@@ -71,6 +81,8 @@ public enum Severity {
 
 public Severity error_severity (ErrorKind kind) {
     switch (kind) {
+    case INTERNAL_ERROR:
+        return Severity.ERROR;
     case CANT_READ:
         return Severity.ERROR;
     case CANT_WRITE:

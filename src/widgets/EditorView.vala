@@ -1,4 +1,4 @@
-public class EditorView : Gtk.Box {
+public class EditorView : Gtk.Box, ErrorReporter {
     public Image image { get; private set; }
 
     private Gtk.ListView paths_list;
@@ -14,6 +14,7 @@ public class EditorView : Gtk.Box {
     private Gtk.Button path_down;
     private Gtk.Button delete_path;
     private ErrorBar error_bar;
+    private bool error_from_image;
 
     public signal void stop_loading ();
 
@@ -63,6 +64,7 @@ public class EditorView : Gtk.Box {
         });
         image.bind_property ("error", error_bar, "error");
         error_bar.error = image.error;
+        error_from_image = true;
         allow_edits = image.error == null;
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
@@ -392,8 +394,17 @@ public class EditorView : Gtk.Box {
     }
 
     private void resolve_error () {
-        image.resolve_error ();
+        if (error_from_image) {
+            image.resolve_error ();
+        }
+
         error_bar.error = image.error;
+        error_from_image = true;
         allow_edits = image.error == null;
+    }
+
+    public void add_error (Error err) {
+        error_from_image = false;
+        error_bar.error = err;
     }
 }
