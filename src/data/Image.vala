@@ -18,6 +18,8 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public override Gtk.TreeListModel tree { get; set; }
     public override Element? selected_child { get; set; }
     public Transform transform { get; set; }
+    private Transform applied_transform;
+    private Element? applied_element;
 
     public Error? error {
         owned get {
@@ -55,10 +57,19 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 return false;
             });
         });
+        apply_transform.connect ((atransform, element) => {
+            if (applied_element != null) {
+                applied_element.transform_applied = false;
+            }
+
+            applied_transform = atransform;
+            applied_element = element;
+        });
     }
 
     construct {
         transform = new Transform.identity ();
+        applied_transform = new Transform.identity ();
         stack = new CommandStack ();
         var model = new ListStore (typeof (Element));
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
@@ -202,7 +213,15 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     }
 
     public void draw (Cairo.Context cr) {
+        applied_transform.apply (cr);
         draw_children (cr);
+        cr.restore ();
+    }
+
+    public void draw_selection (Cairo.Context cr, double zoom) {
+        applied_transform.apply (cr);
+        draw_selected_child (cr, zoom);
+        cr.restore ();
     }
 
     public void undo () {
@@ -322,5 +341,38 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     }
 
     public void cancel (string prop) {
+    }
+
+    public bool clicked_element (double x, double y, double tolerance, out Element? element, out Segment? segment, out Handle? handle) {
+        double new_x, new_y, new_tolerance;
+        applied_transform.update_point (x, y, out new_x, out new_y);
+        applied_transform.update_distance (tolerance, out new_tolerance);
+        Handle inner_handle;
+        if (clicked_child (new_x, new_y, Math.sqrt ((tolerance * tolerance + new_tolerance * new_tolerance) / 2), out element, out segment, out inner_handle)) {
+            if (inner_handle != null) {
+                handle = new TransformedHandle ("Applied Transform", inner_handle, applied_transform);
+            } else {
+                handle = null;
+            }
+
+            return true;
+        }
+
+        handle = null;
+        return false;
+    }
+
+    public bool clicked_control (double x, double y, double tolerance, out Handle? handle) {
+        double new_x, new_y, new_tolerance;
+        applied_transform.update_point (x, y, out new_x, out new_y);
+        applied_transform.update_distance (tolerance, out new_tolerance);
+        Handle inner_handle;
+        if (clicked_handle (new_x, new_y, new_tolerance, out inner_handle)) {
+            handle = new TransformedHandle ("Applied Transform", inner_handle, applied_transform);
+            return true;
+        }
+
+        handle = null;
+        return false;
     }
 }

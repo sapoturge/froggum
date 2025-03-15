@@ -37,6 +37,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
     }
 
     public virtual bool transform_enabled { get; set; }
+    public virtual bool transform_applied { get; set; }
 
     public string title { get; set; }
 
@@ -163,7 +164,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment);
 
-    public bool check_standard_clicks (double x, double y, double tolerance, out Element? element, out Segment? segment) {
+    public bool clicked_anywhere (double x, double y, double tolerance, out Element? element, out Segment? segment) {
         if (fill.clicked (x, y, tolerance, out segment)) {
             element = this;
             return true;
@@ -174,8 +175,6 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
             return true;
         }
 
-        element = null;
-        segment = null;
-        return false;
+        return clicked (x, y, tolerance, out element, out segment);
     }
 }

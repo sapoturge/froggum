@@ -162,7 +162,7 @@ public class Rectangle : Element {
         }
     }
 
-    public Rectangle (double x, double y, double width, double height, Pattern fill, Pattern stroke, string? title = null) {
+    public Rectangle (double x, double y, double width, double height, Pattern fill, Pattern stroke, string? title = null, Transform? transform = null) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -176,7 +176,12 @@ public class Rectangle : Element {
             this.title = title;
         }
 
-        this.transform = new Transform.identity ();
+        if (transform == null) {
+            this.transform = new Transform.identity ();
+        } else {
+            this.transform = transform;
+            transform_enabled = !transform.is_identity ();
+        }
 
         setup_signals ();
 
@@ -544,6 +549,16 @@ public class Rectangle : Element {
                 replace (new Polygon ({Point(x, y), Point(x+width, y), Point(x + width, y + height), Point(x, y + height)}, fill, stroke, title, transform));
             }));
         }
+        if (transform_enabled && transform_applied) {
+            options.add (new ContextOption.action (_("Revert View"), () => {
+                apply_transform (new Transform.identity(), null);
+            }));
+        } else if (transform_enabled) {
+            options.add (new ContextOption.action (_("Apply Transformation"), () => {
+                apply_transform (transform.invert (), this);
+                transform_applied = true;
+            }));
+        }
 
         return options;
     }
@@ -569,14 +584,10 @@ public class Rectangle : Element {
     }
 
     public override Element copy () {
-        return new Rectangle (x, y, width, height, fill.copy (), stroke.copy ());
+        return new Rectangle (x, y, width, height, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
-        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
-            return true;
-        }
-
         segment = null;
         var in_x = this.x - tolerance < x && x < this.x + width + tolerance;
         var in_y = this.y - tolerance < y && y < this.y + height + tolerance;

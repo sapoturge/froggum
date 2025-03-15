@@ -1,13 +1,22 @@
 public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
-    private double _scroll_x;
-    private double _scroll_y;
+    // Pixel offset from center to start drawing icon
+    private int _scroll_x;
+    private int _scroll_y;
+
     private double base_x;
     private double base_y;
+
+    // Scale factor for viewing (4 = 4x magnification; cannot be less than 1)
     private double _zoom = 1;
+    // Used for tracking when zooming with a touchpad
     private double base_zoom;
+    private bool zooming = false;
+    private uint zoom_stop_callback;
+
     private int width = 0;
     private int height = 0;
     private Point base_point;
+    private uint cancel_drag_id;
 
     private bool scrolling = false;
 
@@ -16,15 +25,24 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Image _image;
     private Gtk.Adjustment horizontal;
     private Gtk.Adjustment vertical;
-    
+
     private Tutorial tutorial;
 
     public Point control_point { get; set; }
     public Point cursor_pos { get; private set; }
 
     private Binding point_binding;
-    public Handle? current_handle { get; private set; }
-    
+    private Handle? _current_handle;
+    public Handle? current_handle {
+        get {
+            return _current_handle;
+        }
+        private set {
+            grab_focus (); // This clears the status bar
+            _current_handle = value;
+        }
+    }
+
     private Undoable bound_obj;
     private string bound_prop;
 
@@ -40,6 +58,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             image.path_selected.connect (() => {
                 current_handle = null;
             });
+            image.apply_transform.connect ((t, e) => {
+                current_handle = null;
+            });
             scroll_x = -_image.width / 2;
             scroll_y = -_image.height / 2;
         }
@@ -47,21 +68,25 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private double scroll_x {
         get {
-            return _scroll_x;
+            return (double) _scroll_x;
         }
         set {
-            _scroll_x = value;
-            horizontal.value = -double.min (scroll_x + width / 2, 0);
+            _scroll_x = (int) value;
+            horizontal.lower = double.min (-value, 0) - width / 2;
+            horizontal.upper = double.max (-value, image.width * zoom) + width / 2;
+            horizontal.value = -value - width / 2;
         }
     }
 
     private double scroll_y {
         get {
-            return _scroll_y;
+            return (double) _scroll_y;
         }
         set {
-            _scroll_y = value;
-            vertical.value = double.max (scroll_y + height / 2, 0);
+            _scroll_y = (int) value;
+            vertical.lower = double.min (-value, 0) - height / 2;
+            vertical.upper = double.max (-value, image.height * zoom) + height / 2;
+            vertical.value = -value - height / 2;
         }
     }
 
@@ -71,8 +96,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _zoom = value;
-            hadjustment.upper = image.width * _zoom;
-            vertical.upper = image.height * _zoom;
         }
     }
 
@@ -95,7 +118,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Bind events
             horizontal.value_changed.connect (() => {
-                _scroll_x = -((int) horizontal.value + width / 2);
+                if (!zooming) {
+                    _scroll_x = -((int) horizontal.value + width / 2);
+                    queue_draw ();
+                }
             });
         }
     }
@@ -112,14 +138,17 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Set values
             if (image != null) {
                 vertical.lower = 0;
-                vertical.upper = image.height;
+                vertical.upper = image.height * zoom;
                 vertical.page_size = height;
                 vertical.page_increment = 1;
                 vertical.step_increment = 1;
             }
             // Bind events
             vertical.value_changed.connect (() => {
-                _scroll_y = -((int) vertical.value + height / 2);
+                if (!zooming) {
+                    _scroll_y = -((int) vertical.value + height / 2);
+                    queue_draw ();
+                }
             });
         }
     }
@@ -149,7 +178,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double scale_x (double x) {
         return (x - width / 2 - scroll_x) / zoom;
     }
-    
+
     private double unscale_x (double x) {
         return x * zoom + scroll_x + width / 2;
     }
@@ -157,7 +186,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double scale_y (double y) {
         return (y - height / 2 - scroll_y) / zoom;
     }
-    
+
     private double unscale_y (double y) {
         return y * zoom + scroll_y + height / 2;
     }
@@ -165,6 +194,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     construct {
         background = {0.7f, 0.7f, 0.7f, 1.0f};
 
+        focusable = true;
         set_size_request (320, 320);
 
         set_draw_func ((d, cr, w, h) => {
@@ -176,7 +206,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             cr.save ();
             cr.scale (zoom, zoom);
 
-            // Draw Image
             image.draw (cr);
 
             // Draw Grid
@@ -202,7 +231,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            image.draw_selected_child (cr, zoom);
+            image.draw_selection (cr, zoom);
             if (current_handle != null) {
                 Point center = current_handle.point;
                 cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);
@@ -230,7 +259,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 Element path;
                 Segment segment;
                 Handle handle;
-                if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+                if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
                     if (tutorial != null && tutorial.step == CLICK) {
                         tutorial.next_step ();
                     }
@@ -251,7 +280,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             Element path;
             Segment segment;
             Handle handle;
-            if (image.clicked_child (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
                 path.select (true);
                 current_handle = handle;
                 show_context_menu (path, segment, handle, x, y);
@@ -276,7 +305,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for clicking on a control handle
             if (image.has_selected ()) {
                 Handle obj;
-                if (image.clicked_handle (sx, sy, 6 / zoom, out obj)) {
+                if (image.clicked_control (sx, sy, 6 / zoom, out obj)) {
                     current_handle = obj;
                     bind_point (obj, "point");
                     return;
@@ -318,10 +347,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
         drag_controller.drag_end.connect ((event) => {
             // Stop scrolling, dragging, etc.
-            if (point_binding != null) {
-                unbind_point ();
-            }
-
+            unbind_point ();
             scrolling = false;
         });
 
@@ -337,10 +363,29 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var zoom_controller = new Gtk.GestureZoom ();
         add_controller (zoom_controller);
         zoom_controller.begin.connect (() => {
+            if (zoom_stop_callback != 0) {
+                Source.remove (zoom_stop_callback);
+            }
+
+            zooming = true;
             base_zoom = zoom;
         });
         zoom_controller.scale_changed.connect ((scale) => {
             update_zoom (scale * base_zoom);
+        });
+        zoom_controller.end.connect (() => {
+            // The delay needs to be long enough for the scrolled window's deceleration to finish
+            zoom_stop_callback = Timeout.add(1000, () => {
+                zooming = false;
+                zoom_stop_callback = 0;
+                horizontal.lower = double.min (-scroll_x - width / 2, 0);
+                horizontal.upper = double.max (-scroll_x + width / 2, image.width * zoom);
+                vertical.lower = double.min (-scroll_y - height / 2, 0);
+                vertical.upper = double.max (-scroll_y + height / 2, image.height * zoom);
+                // Update the adjustment values for the scrolled window
+                scroll_x = scroll_x;
+                scroll_y = scroll_y;
+            });
         });
 
         resize.connect ((width, height) => {
@@ -352,16 +397,19 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Recalculate values.
             scroll_x = scroll_x;
             scroll_y = scroll_y;
+            position_tutorial ();
         });
 
-        if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
-            FroggumApplication.settings.set_boolean ("show-tutorial", false);
-            tutorial = new Tutorial ();
-            tutorial.finish.connect (() => { tutorial = null; });
-            tutorial.set_parent (this);
-            position_tutorial ();
-            tutorial.popup ();
-        }
+        realize.connect (() => {
+            if (FroggumApplication.settings.get_boolean ("show-tutorial")) {
+                FroggumApplication.settings.set_boolean ("show-tutorial", false);
+                tutorial = new Tutorial ();
+                tutorial.finish.connect (() => { tutorial = null; });
+                tutorial.set_parent (this);
+                position_tutorial ();
+                tutorial.popup ();
+            }
+        });
     }
 
     private void update_zoom (double new_zoom) {
@@ -371,11 +419,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             tutorial.next_step ();
         }
 
-        scroll_x *= new_zoom;
-        scroll_x /= zoom;
-        scroll_y *= new_zoom;
-        scroll_y /= zoom;
+        var old_zoom = zoom;
         zoom = new_zoom;
+        scroll_x = scroll_x * new_zoom / old_zoom;
+        scroll_y = scroll_y * new_zoom / old_zoom;
 
         position_tutorial ();
         queue_draw ();
@@ -388,27 +435,36 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private void bind_point (Undoable obj, string name) {
         if (image.error == null) {
-            if (tutorial != null && tutorial.step == DRAG) {
-                tutorial.next_step ();
-            }
+            cancel_drag_id = Timeout.add (100, () => {
+                if (tutorial != null && tutorial.step == DRAG) {
+                    tutorial.next_step ();
+                }
 
-            bound_obj = obj;
-            bound_prop = name;
-            obj.begin (name);
-            point_binding = bind_property ("control-point", obj, name);
-            base_point = control_point;
+                bound_obj = obj;
+                bound_prop = name;
+                obj.begin (name);
+                point_binding = bind_property ("control-point", obj, name);
+                base_point = control_point;
+                queue_draw ();
+                cancel_drag_id = 0;
+                return false;
+            });
         }
 
         queue_draw ();
     }
 
     private void unbind_point () {
-        bound_obj.finish (bound_prop);
-        point_binding.unbind ();
-        point_binding = null;
-        queue_draw ();
+        if (cancel_drag_id != 0) {
+            Source.remove (cancel_drag_id);
+        } else if (point_binding != null) {
+            bound_obj.finish (bound_prop);
+            point_binding.unbind ();
+            point_binding = null;
+            queue_draw ();
+        }
     }
-    
+
     private void position_tutorial () {
         if (tutorial != null) {
             var x = unscale_x (image.width / 2);
@@ -419,6 +475,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 tutorial.position = BOTTOM;
             } else if (y > height) {
                 y = height;
+                tutorial.position = TOP;
+            } else {
+                tutorial.position = TOP;
             }
 
             if (x < 0) {
@@ -612,5 +671,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         menu.pointing_to = {(int) x - 5, (int) y - 5, 10, 10};
 
         menu.popup ();
+    }
+
+    public void recenter () {
+        scroll_x = -image.width * zoom / 2;
+        scroll_y = -image.height * zoom / 2;
     }
 }

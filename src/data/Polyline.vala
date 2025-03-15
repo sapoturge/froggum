@@ -16,6 +16,7 @@ public class Polyline : Element {
             this.transform = new Transform.identity ();
         } else {
             this.transform = transform;
+            transform_enabled = !transform.is_identity ();
         }
 
         setup_signals ();
@@ -166,7 +167,7 @@ public class Polyline : Element {
     }
 
     public override Gee.List<ContextOption> options () {
-        return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+        var opts = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Polyline"), () => { request_delete(); }),
             new ContextOption.action (_("Close Loop"), () => {
                 var points = new Point[] {root_segment.start};
@@ -178,6 +179,18 @@ public class Polyline : Element {
             }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
+        if (transform_enabled && transform_applied) {
+            opts.add (new ContextOption.action (_("Revert View"), () => {
+                apply_transform (new Transform.identity(), null);
+            }));
+        } else if (transform_enabled) {
+            opts.add (new ContextOption.action (_("Apply Transformation"), () => {
+                apply_transform (transform.invert (), this);
+                transform_applied = true;
+            }));
+        }
+
+        return opts;
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
@@ -202,7 +215,7 @@ public class Polyline : Element {
             points += segment.end;
         }
 
-        return new Polyline (points, fill.copy (), stroke.copy (), "Copy of " + title, transform);
+        return new Polyline (points, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {
@@ -221,10 +234,6 @@ public class Polyline : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
-        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
-            return true;
-        }
-
         for (var lsegment = root_segment; lsegment != null; lsegment = lsegment.next) {
             if (lsegment.clicked (x, y, tolerance)) {
                 element = this;

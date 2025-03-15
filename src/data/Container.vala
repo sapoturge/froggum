@@ -23,6 +23,7 @@ public interface Container : Undoable, Updatable, Transformed {
         public ulong request_duplicate;
         public ulong replace;
         public ulong add_command;
+        public ulong apply_transform;
     }
 
     public abstract Gtk.TreeListModel tree { get; set; }
@@ -333,6 +334,7 @@ public interface Container : Undoable, Updatable, Transformed {
         });
 
         signal_manager.add_command = element.add_command.connect ((c) => add_command (c));
+        signal_manager.apply_transform = element.apply_transform.connect ((t, e) => apply_transform (transform.invert_with (t), e));
 
         var cont = element as Container;
         if (cont != null) {
@@ -408,6 +410,7 @@ public interface Container : Undoable, Updatable, Transformed {
             element.disconnect (manager.swap_down);
             element.disconnect (manager.replace);
             element.disconnect (manager.add_command);
+            element.disconnect (manager.apply_transform);
             var cont = element as Container;
             if (cont != null) {
                 cont.disconnect (manager.path_selected);
@@ -465,14 +468,14 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    public void draw_selected_child (Cairo.Context cr, double zoom) {
+    protected void draw_selected_child (Cairo.Context cr, double zoom) {
         if (selected_child != null) {
             selected_child.transform.apply (cr);
             var new_zoom = zoom;
             selected_child.transform.update_distance (zoom, out new_zoom);
             selected_child.draw_controls (cr, new_zoom);
             cr.restore ();
-            if (selected_child.transform_enabled) {
+            if (selected_child.transform_enabled && !selected_child.transform_applied) {
                 selected_child.transform.draw_controls (cr, zoom);
             }
         }
@@ -480,7 +483,7 @@ public interface Container : Undoable, Updatable, Transformed {
 
     public bool clicked_child (double x, double y, double tolerance, out Element? element, out Segment? segment, out Handle? handle) {
         if (selected_child != null) {
-            if (selected_child.transform_enabled) {
+            if (selected_child.transform_enabled && !selected_child.transform_applied) {
                 if (selected_child.transform.check_controls (x, y, tolerance, out handle)) {
                     element = selected_child;
                     segment = null;
@@ -494,13 +497,16 @@ public interface Container : Undoable, Updatable, Transformed {
             selected_child.transform.update_point (x, y, out new_x, out new_y);
             selected_child.transform.update_distance (tolerance, out new_tolerance);
             selected_child.check_controls (new_x, new_y, new_tolerance, out inner_handle);
+            selected_child.clicked_anywhere (new_x, new_y, new_tolerance, out element, out segment);
             if (inner_handle != null) {
-                selected_child.clicked (new_x, new_y, new_tolerance, out element, out segment); // Just for if a segment was also clicked
                 if (element == null) {
                     element = selected_child;
                 }
 
                 handle = new TransformedHandle (element.title, inner_handle, element.transform);
+                return true;
+            } else if (element != null) {
+                handle = null;
                 return true;
             }
         }
@@ -538,9 +544,9 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    public virtual bool clicked_handle (double x, double y, double tolerance, out Handle? handle) {
+    public bool clicked_handle (double x, double y, double tolerance, out Handle? handle) {
         if (selected_child != null) {
-            if (selected_child.transform_enabled) {
+            if (selected_child.transform_enabled && !selected_child.transform_applied) {
                 if (selected_child.transform.check_controls (x, y, tolerance, out handle)) {
                     return true;
                 }

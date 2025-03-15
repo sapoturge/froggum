@@ -7,6 +7,8 @@ public class EditorView : Gtk.Box, ErrorReporter {
     private StatusBar status_bar;
     private ulong new_button_handler;
     private Gtk.Button new_button;
+    private Gtk.InfoBar transform_bar;
+    private Gtk.Label transform_label;
     private Gtk.MenuButton new_menu_button;
     private Gtk.Button new_group;
     private Gtk.Button duplicate_path;
@@ -87,6 +89,14 @@ public class EditorView : Gtk.Box, ErrorReporter {
                 }
 
                 e.select (true);
+            }
+        });
+        image.apply_transform.connect ((trans, elem) => {
+            if (elem == null) {
+                transform_bar.revealed = false;
+            } else {
+                transform_label.label = _("Viewing with the transform of '%s' applied.").printf (elem.title);
+                transform_bar.revealed = true;
             }
         });
         new_button_handler = new_button.clicked.connect (image.new_path);
@@ -364,6 +374,16 @@ public class EditorView : Gtk.Box, ErrorReporter {
             }
         });
 
+        transform_bar = new Gtk.InfoBar () {
+            message_type = QUESTION,
+            show_close_button = false,
+            revealed = false,
+        };
+        transform_label = new Gtk.Label (_("Viewing with no transform applied."));
+        transform_bar.add_child (transform_label);
+        transform_bar.add_button (_("Revert view"), 0);
+        transform_bar.response.connect ((response) => image.apply_transform (new Transform.identity(), null));
+
         viewport = new Viewport ();
         var scrolled = new Gtk.ScrolledWindow ();
         scrolled.child = viewport;
@@ -378,6 +398,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
 
         var main_space = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         main_space.append (error_bar);
+        main_space.append (transform_bar);
         main_space.append (scrolled);
         main_space.append (status_bar);
 
@@ -406,5 +427,9 @@ public class EditorView : Gtk.Box, ErrorReporter {
     public void add_error (Error err) {
         error_from_image = false;
         error_bar.error = err;
+    }
+
+    public void recenter () {
+        viewport.recenter ();
     }
 }

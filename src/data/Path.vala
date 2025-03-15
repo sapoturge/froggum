@@ -16,6 +16,7 @@ public class Path : Element {
             this.transform = new Transform.identity ();
         } else {
             this.transform = transform;
+            transform_enabled = !transform.is_identity ();
         }
 
         visible = true;
@@ -219,7 +220,7 @@ public class Path : Element {
             current_segment = current_segment.next;
         }
 
-        return new Path.with_pattern (new_segments, fill.copy (), stroke.copy (), title);
+        return new Path.with_pattern (new_segments, fill.copy (), stroke.copy (), "Copy of " + title, transform.copy ());
     }
 
     public void split_segment (PathSegment segment) {
@@ -295,10 +296,22 @@ public class Path : Element {
     }
 
     public override Gee.List<ContextOption> options () {
-        return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
+        var opts = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Path"), () => { request_delete(); }),
             new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
         });
+        if (transform_enabled && transform_applied) {
+            opts.add (new ContextOption.action (_("Revert View"), () => {
+                apply_transform (new Transform.identity(), null);
+            }));
+        } else if (transform_enabled) {
+            opts.add (new ContextOption.action (_("Apply Transformation"), () => {
+                apply_transform (transform.invert (), this);
+                transform_applied = true;
+            }));
+        }
+
+        return opts;
     }
 
     public override int add_svg (Xml.Node* root, Xml.Node* defs, int pattern_index) {
@@ -335,10 +348,6 @@ public class Path : Element {
     }
 
     public override bool clicked (double x, double y, double tolerance, out Element? element, out Segment? segment) {
-        if (check_standard_clicks (x, y, tolerance, out element, out segment)) {
-            return true;
-        }
-
         var current_segment = root_segment;
         var first = true;
         while (first || current_segment != root_segment) {
