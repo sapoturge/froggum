@@ -72,8 +72,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _scroll_x = (int) value;
-            horizontal.lower = double.min (-value - width / 2, horizontal.lower);
-            horizontal.upper = double.max (-value + width / 2, image.width * zoom);
+            horizontal.lower = double.min (-value, 0) - width / 2;
+            horizontal.upper = double.max (-value, image.width * zoom) + width / 2;
             horizontal.value = -value - width / 2;
         }
     }
@@ -84,8 +84,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _scroll_y = (int) value;
-            vertical.lower = double.min (-value - height / 2, vertical.lower);
-            vertical.upper = double.max (-value + height / 2, image.height * zoom);
+            vertical.lower = double.min (-value, 0) - height / 2;
+            vertical.upper = double.max (-value, image.height * zoom) + height / 2;
             vertical.value = -value - height / 2;
         }
     }
