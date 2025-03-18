@@ -64,7 +64,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
                 }
             }
         });
-        image.bind_property ("error", error_bar, "error");
+        image.error_available.connect (() => error_bar.error = image.error);
         error_bar.error = image.error;
         error_from_image = true;
         allow_edits = image.error == null;

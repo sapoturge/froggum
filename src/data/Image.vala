@@ -27,6 +27,8 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         }
     }
 
+    public signal void error_available ();
+
     public void resolve_error () {
         // All errors are designed to be handled when detected; this approves the handling that
         // was already done.
@@ -115,6 +117,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                 errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), xml_error->message, ""));
             }
 
+            error_available ();
             return;
         }
 
@@ -128,12 +131,14 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
 
             errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), message, ""));
             delete doc;
+            error_available ();
             return;
         }
 
         if (root->name != "svg") {
             errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), "Root element is not svg.\nActual element: '%s'".printf (root->name), ""));
             delete doc;
+            error_available ();
             return;
         }
 
@@ -181,6 +186,9 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         var patterns = new Gee.HashMap<string, Pattern> ();
         find_patterns (root, patterns);
         load_elements (root, patterns, errors);
+        if (error != null) {
+            error_available ();
+        }
     }
 
     private void find_patterns (Xml.Node* root, Gee.Map<string, Pattern> patterns) {
@@ -331,6 +339,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             }
 
             errors.offer (new Error (ErrorKind.CANT_WRITE, file.get_basename (), message, ""));
+            error_available ();
         }
     }
 

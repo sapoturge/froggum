@@ -139,7 +139,20 @@ public class FroggumApplication : Gtk.Application {
                         recalculate_open_files ();
                     }
                 } catch (GLib.Error e) {
-                    // TODO: Inform user that save failed
+                    if (e.code == Gtk.DialogError.DISMISSED) {
+                        // The user didn't pick a file
+                        // No "error handling" necessary
+                    } else if (e.code == Gtk.DialogError.CANCELLED) {
+                        // Froggum closed the dialog (this shouldn't ever happen)
+                        // Still no response required
+                    } else {
+                        // Something actually went wrong
+                        var tab = notebook.selected_page;
+                        var inner = tab.child as ErrorReporter;
+                        if (inner != null) {
+                            inner.add_error (new Error.glib_error (e));
+                        }
+                    }
                 }
             });
         });
