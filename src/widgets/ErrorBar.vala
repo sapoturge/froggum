@@ -1,5 +1,5 @@
 private enum Responses {
-    STOP_LOADING,
+    CREATE_NEW,
     SAVE_NEW,
     ACCEPT_DEFAULT,
     DELETE,
@@ -20,7 +20,7 @@ public class ErrorBar : Adw.Bin {
     private Gtk.Label message;
     private Gtk.TextBuffer full;
 
-    private Gtk.Button stop_loading_button;
+    private Gtk.Button create_new_button;
     private Gtk.Button save_new_button;
     private Gtk.Button try_again_button;
     private Gtk.Button accept_default_button;
@@ -31,7 +31,7 @@ public class ErrorBar : Adw.Bin {
     private bool requested_backup;
 
     public signal void resolve_error ();
-    public signal void stop_loading ();
+    public signal void create_new ();
     public signal void try_again ();
     public signal void make_backup (BackupMethod method);
 
@@ -83,8 +83,8 @@ public class ErrorBar : Adw.Bin {
 
             // Reset action buttons by removing all that are there and putting back the relevant
             // ones.
-            if (stop_loading_button.parent != null) {
-                bar.remove_action_widget (stop_loading_button);
+            if (create_new_button.parent != null) {
+                bar.remove_action_widget (create_new_button);
             }
 
             if (try_again_button.parent != null) {
@@ -125,10 +125,10 @@ public class ErrorBar : Adw.Bin {
             }
 
             switch (value.default_action ()) {
-            case DefaultAction.STOP_LOADING:
-                bar.add_action_widget (stop_loading_button, Responses.STOP_LOADING);
-                bar.set_default_response (Responses.STOP_LOADING);
-                stop_loading_button.grab_focus ();
+            case DefaultAction.CREATE_NEW:
+                bar.add_action_widget (create_new_button, Responses.CREATE_NEW);
+                bar.set_default_response (Responses.CREATE_NEW);
+                create_new_button.grab_focus ();
                 break;
             case DefaultAction.SAVE_NEW:
                 bar.add_action_widget (save_new_button, Responses.SAVE_NEW);
@@ -165,11 +165,11 @@ public class ErrorBar : Adw.Bin {
                 // to a window, which happens long after the bar is created and the error is
                 // assigned.
                 // Theoretically, this should be all that is needed.
-                bar.set_default_response (Responses.STOP_LOADING);
+                bar.set_default_response (Responses.CREATE_NEW);
                 // Unfortunately, (on Windows) it doesn't make the stop loading button actually
                 // "selected" for the purpose of activating on hitting enter, so this line is also
                 // needed.
-                stop_loading_button.grab_focus ();
+                create_new_button.grab_focus ();
             }
         });
         var container = new Gtk.Box (Gtk.Orientation.VERTICAL, 12) {
@@ -193,7 +193,7 @@ public class ErrorBar : Adw.Bin {
             child = full_message,
             hexpand = true,
         };
-        stop_loading_button = bar.add_button (_("Stop loading"), Responses.STOP_LOADING);
+        create_new_button = bar.add_button (_("Create new image"), Responses.CREATE_NEW);
         save_new_button = bar.add_button (_("Save to new file"), Responses.SAVE_NEW);
         try_again_button = bar.add_button (_("Try again"), Responses.TRY_AGAIN);
         accept_default_button = bar.add_button (_("Accept default"), Responses.ACCEPT_DEFAULT);
@@ -210,8 +210,8 @@ public class ErrorBar : Adw.Bin {
         child = bar;
         bar.response.connect ((response) => {
             switch (response) {
-            case Responses.STOP_LOADING:
-                stop_loading ();
+            case Responses.CREATE_NEW:
+                create_new ();
                 break;
             case Responses.SAVE_NEW:
                 make_backup (BackupMethod.NEW_FILE);

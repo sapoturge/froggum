@@ -18,7 +18,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
     private ErrorBar error_bar;
     private bool error_from_image;
 
-    public signal void stop_loading ();
+    public signal void create_new ();
 
     public bool allow_edits {
         get {
@@ -328,7 +328,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
         side_bar.append (task_bar);
 
         error_bar = new ErrorBar ();
-        error_bar.stop_loading.connect (() => stop_loading ());
+        error_bar.create_new.connect (() => create_new ());
         error_bar.resolve_error.connect (() => resolve_error ());
         error_bar.try_again.connect (() => try_again ());
         error_bar.make_backup.connect ((method) => {

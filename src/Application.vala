@@ -200,7 +200,7 @@ public class FroggumApplication : Gtk.Application {
                 editor.vexpand = true;
                 var tab = notebook.append (editor);
                 tab.title = real_file.get_basename ();
-                editor.stop_loading.connect (() => make_new_tab (tab));
+                editor.create_new.connect (() => make_new_tab (tab));
                 if (file == focused_file) {
                     focused = tab;
                 }
@@ -246,7 +246,7 @@ public class FroggumApplication : Gtk.Application {
             editor.hexpand = true;
             editor.vexpand = true;
             var tab = notebook.append (editor);
-            editor.stop_loading.connect (() => make_new_tab (tab));
+            editor.create_new.connect (() => make_new_tab (tab));
             tab.title = file.get_basename ();
         }
 
@@ -269,7 +269,7 @@ public class FroggumApplication : Gtk.Application {
             editor.vexpand = true;
             var tab = notebook.append (editor);
             tab.title = file.get_basename ();
-            editor.stop_loading.connect (() => make_new_tab (tab));
+            editor.create_new.connect (() => make_new_tab (tab));
         }
 
         recalculate_open_files ();
@@ -297,7 +297,7 @@ public class FroggumApplication : Gtk.Application {
         var new_tab = notebook.add_page (editor, tab);
         new_tab.title = _("New Image");
         notebook.close_page (tab);
-        editor.stop_loading.connect (() => make_new_tab (new_tab));
+        editor.create_new.connect (() => make_new_tab (new_tab));
     }
 
     private void open_image (Adw.TabPage tab) {
@@ -311,7 +311,7 @@ public class FroggumApplication : Gtk.Application {
                     editor.hexpand = true;
                     editor.vexpand = true;
                     var new_tab = notebook.add_page (editor, tab);
-                    editor.stop_loading.connect (() => make_new_tab (new_tab));
+                    editor.create_new.connect (() => make_new_tab (new_tab));
                     new_tab.title = file.get_basename ();
                     notebook.close_page (tab);
                     recalculate_open_files ();

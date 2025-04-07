@@ -74,15 +74,15 @@ public class Error : GLib.Object {
         case UNKNOWN_PROPERTY:
         case INVALID_PROPERTY:
         case MISSING_PROPERTY:
-            return DefaultAction.STOP_LOADING;
+            return DefaultAction.CREATE_NEW;
         default:
-            return DefaultAction.STOP_LOADING;
+            return DefaultAction.CREATE_NEW;
         }
     }
 }
 
 public enum DefaultAction {
-    STOP_LOADING,
+    CREATE_NEW,
     TRY_AGAIN,
     SAVE_NEW,
     OTHER,
