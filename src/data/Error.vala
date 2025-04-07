@@ -58,9 +58,34 @@ public class Error : GLib.Object {
         return kind == UNKNOWN_PROPERTY;
     }
 
-    public bool stop_loading () {
-        return kind != INTERNAL_ERROR;
+    public bool can_try_again () {
+        return kind == CANT_WRITE || kind == CANT_READ;
     }
+
+    public DefaultAction default_action () {
+        switch (kind) {
+        case INTERNAL_ERROR:
+            return DefaultAction.OTHER;
+        case CANT_WRITE:
+            return DefaultAction.TRY_AGAIN;
+        case CANT_READ:
+        case INVALID_SVG:
+        case UNKNOWN_ELEMENT:
+        case UNKNOWN_PROPERTY:
+        case INVALID_PROPERTY:
+        case MISSING_PROPERTY:
+            return DefaultAction.STOP_LOADING;
+        default:
+            return DefaultAction.STOP_LOADING;
+        }
+    }
+}
+
+public enum DefaultAction {
+    STOP_LOADING,
+    TRY_AGAIN,
+    SAVE_NEW,
+    OTHER,
 }
 
 public enum ErrorKind {

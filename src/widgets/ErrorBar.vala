@@ -1,7 +1,9 @@
 private enum Responses {
     STOP_LOADING,
+    SAVE_NEW,
     ACCEPT_DEFAULT,
     DELETE,
+    TRY_AGAIN,
     OK, // Used for internal errors to move on
 }
 
@@ -19,6 +21,8 @@ public class ErrorBar : Adw.Bin {
     private Gtk.TextBuffer full;
 
     private Gtk.Button stop_loading_button;
+    private Gtk.Button save_new_button;
+    private Gtk.Button try_again_button;
     private Gtk.Button accept_default_button;
     private Gtk.Button delete_element_button;
     private Gtk.Button delete_attribute_button;
@@ -28,6 +32,7 @@ public class ErrorBar : Adw.Bin {
 
     public signal void resolve_error ();
     public signal void stop_loading ();
+    public signal void try_again ();
     public signal void make_backup (BackupMethod method);
 
     public Error? error {
@@ -82,6 +87,10 @@ public class ErrorBar : Adw.Bin {
                 bar.remove_action_widget (stop_loading_button);
             }
 
+            if (try_again_button.parent != null) {
+                bar.remove_action_widget (try_again_button);
+            }
+
             if (accept_default_button.parent != null) {
                 bar.remove_action_widget (accept_default_button);
             }
@@ -99,24 +108,38 @@ public class ErrorBar : Adw.Bin {
             }
 
             // Now put back the appropriate buttons, in order
-            if (value.stop_loading()) {
-                if (value.is_delete_element ()) {
-                    bar.add_action_widget (delete_element_button, Responses.DELETE);
-                }
+            if (value.is_delete_element ()) {
+                bar.add_action_widget (delete_element_button, Responses.DELETE);
+            }
 
-                if (value.is_delete_attribute ()) {
-                    bar.add_action_widget (delete_attribute_button, Responses.DELETE);
-                }
+            if (value.is_delete_attribute ()) {
+                bar.add_action_widget (delete_attribute_button, Responses.DELETE);
+            }
 
-                if (value.has_default ()) {
-                    bar.add_action_widget (accept_default_button, Responses.ACCEPT_DEFAULT);
-                }
+            if (value.has_default ()) {
+                bar.add_action_widget (accept_default_button, Responses.ACCEPT_DEFAULT);
+            }
 
+            if (value.can_try_again ()) {
+                bar.add_action_widget (try_again_button, Responses.OK);
+            }
+
+            switch (value.default_action ()) {
+            case DefaultAction.STOP_LOADING:
                 bar.add_action_widget (stop_loading_button, Responses.STOP_LOADING);
-            } else {
+                bar.set_default_response (Responses.STOP_LOADING);
+                stop_loading_button.grab_focus ();
+                break;
+            case DefaultAction.SAVE_NEW:
+                bar.add_action_widget (save_new_button, Responses.SAVE_NEW);
+                bar.set_default_response (Responses.SAVE_NEW);
+                save_new_button.grab_focus ();
+                break;
+            case DefaultAction.OTHER:
                 bar.add_action_widget (ok_button, Responses.OK);
                 bar.set_default_response (Responses.OK);
                 ok_button.grab_focus ();
+                break;
             }
 
             switch (value.severity) {
@@ -171,6 +194,8 @@ public class ErrorBar : Adw.Bin {
             hexpand = true,
         };
         stop_loading_button = bar.add_button (_("Stop loading"), Responses.STOP_LOADING);
+        save_new_button = bar.add_button (_("Save to new file"), Responses.SAVE_NEW);
+        try_again_button = bar.add_button (_("Try again"), Responses.TRY_AGAIN);
         accept_default_button = bar.add_button (_("Accept default"), Responses.ACCEPT_DEFAULT);
         accept_default_button.add_css_class ("destructive-action");
         delete_attribute_button = bar.add_button (_("Delete attribute"), Responses.DELETE);
@@ -188,6 +213,10 @@ public class ErrorBar : Adw.Bin {
             case Responses.STOP_LOADING:
                 stop_loading ();
                 break;
+            case Responses.SAVE_NEW:
+                make_backup (BackupMethod.NEW_FILE);
+                resolve_error ();
+                break;
             case Responses.ACCEPT_DEFAULT:
             case Responses.DELETE:
                 if (!requested_backup) {
@@ -198,6 +227,9 @@ public class ErrorBar : Adw.Bin {
                     resolve_error ();
                 }
 
+                break;
+            case Responses.TRY_AGAIN:
+                try_again ();
                 break;
             case Responses.OK:
                 resolve_error ();

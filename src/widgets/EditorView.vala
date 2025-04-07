@@ -330,6 +330,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
         error_bar = new ErrorBar ();
         error_bar.stop_loading.connect (() => stop_loading ());
         error_bar.resolve_error.connect (() => resolve_error ());
+        error_bar.try_again.connect (() => try_again ());
         error_bar.make_backup.connect ((method) => {
             switch (method) {
             case CANCEL:
@@ -431,5 +432,19 @@ public class EditorView : Gtk.Box, ErrorReporter {
 
     public void recenter () {
         viewport.recenter ();
+    }
+
+    private void try_again () {
+        var err = image.error;
+        image.resolve_error ();
+
+        switch (err.kind) {
+        case ErrorKind.CANT_WRITE:
+            image.update (); // This triggers a save, after a short delay
+            break;
+        default:
+            image.reload ();
+            break;
+        }
     }
 }

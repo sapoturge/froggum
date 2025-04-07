@@ -105,8 +105,12 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this._height = 16;
 
         this._file = file;
+        reload ();
+    }
+
+    public void reload () {
         var parser = new Xml.ParserCtxt ();
-        var doc = parser.read_file (file.get_path ());
+        var doc = parser.read_file (_file.get_path ());
         if (doc == null) {
             var xml_error = parser.get_last_error ();
             if (xml_error == null) {

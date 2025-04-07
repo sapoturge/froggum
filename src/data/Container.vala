@@ -84,6 +84,7 @@ public interface Container : Undoable, Updatable, Transformed {
     }
 
     protected void load_elements (Xml.Node* parent, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        ((ListStore) model).remove_all ();
         for (Xml.Node* iter = parent->children; iter != null; iter = iter->next) {
             if (iter->type == Xml.ElementType.TEXT_NODE) {
                 // This is usually whitespace and can safely be deleted.
