@@ -23,6 +23,7 @@ public class ErrorBar : Adw.Bin {
     private Gtk.Button create_new_button;
     private Gtk.Button save_new_button;
     private Gtk.Button try_again_button;
+    private Gtk.Button reload_button;
     private Gtk.Button accept_default_button;
     private Gtk.Button delete_element_button;
     private Gtk.Button delete_attribute_button;
@@ -87,8 +88,16 @@ public class ErrorBar : Adw.Bin {
                 bar.remove_action_widget (create_new_button);
             }
 
+            if (save_new_button.parent != null) {
+                bar.remove_action_widget (save_new_button);
+            }
+
             if (try_again_button.parent != null) {
                 bar.remove_action_widget (try_again_button);
+            }
+
+            if (reload_button.parent != null) {
+                bar.remove_action_widget (reload_button);
             }
 
             if (accept_default_button.parent != null) {
@@ -121,7 +130,11 @@ public class ErrorBar : Adw.Bin {
             }
 
             if (value.can_try_again ()) {
-                bar.add_action_widget (try_again_button, Responses.OK);
+                bar.add_action_widget (try_again_button, Responses.TRY_AGAIN);
+            }
+
+            if (value.can_reload ()) {
+                bar.add_action_widget (reload_button, Responses.TRY_AGAIN);
             }
 
             switch (value.default_action ()) {
@@ -134,6 +147,11 @@ public class ErrorBar : Adw.Bin {
                 bar.add_action_widget (save_new_button, Responses.SAVE_NEW);
                 bar.set_default_response (Responses.SAVE_NEW);
                 save_new_button.grab_focus ();
+                break;
+            case DefaultAction.TRY_AGAIN:
+                bar.add_action_widget (try_again_button, Responses.TRY_AGAIN);
+                bar.set_default_response (Responses.TRY_AGAIN);
+                try_again_button.grab_focus ();
                 break;
             case DefaultAction.OTHER:
                 bar.add_action_widget (ok_button, Responses.OK);
@@ -196,6 +214,7 @@ public class ErrorBar : Adw.Bin {
         create_new_button = bar.add_button (_("Create new image"), Responses.CREATE_NEW);
         save_new_button = bar.add_button (_("Save to new file"), Responses.SAVE_NEW);
         try_again_button = bar.add_button (_("Try again"), Responses.TRY_AGAIN);
+        reload_button = bar.add_button (_("Reload"), Responses.TRY_AGAIN);
         accept_default_button = bar.add_button (_("Accept default"), Responses.ACCEPT_DEFAULT);
         accept_default_button.add_css_class ("destructive-action");
         delete_attribute_button = bar.add_button (_("Delete attribute"), Responses.DELETE);

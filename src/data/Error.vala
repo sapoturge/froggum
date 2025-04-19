@@ -62,6 +62,23 @@ public class Error : GLib.Object {
         return kind == CANT_WRITE || kind == CANT_READ;
     }
 
+    public bool can_reload () {
+        switch (kind) {
+        case INTERNAL_ERROR:
+        case CANT_WRITE:
+        case CANT_READ:
+            return false;
+        case INVALID_SVG:
+        case UNKNOWN_ELEMENT:
+        case UNKNOWN_PROPERTY:
+        case INVALID_PROPERTY:
+        case MISSING_PROPERTY:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     public DefaultAction default_action () {
         switch (kind) {
         case INTERNAL_ERROR:
