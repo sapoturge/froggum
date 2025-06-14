@@ -45,6 +45,7 @@ public class Path : Element {
         var segments = new PathSegment[] {};
         var parser = new Parser (description);
         var parsed = new StringBuilder ();
+        var loaded_first = false;
         double start_x = 0;
         double start_y = 0;
         double current_x = 0;
@@ -52,6 +53,14 @@ public class Path : Element {
         bool loaded_successfully = true;
         while (!parser.empty ()) {
             if (parser.match("M")) {
+                if (loaded_first) {
+                    // Paths with disconnected segments aren't supported yet.
+                    loaded_successfully = false;
+                    break;
+                }
+
+                loaded_first = true;
+
                 if (!parser.get_double (out start_x)) {
                     loaded_successfully = false;
                     break;
