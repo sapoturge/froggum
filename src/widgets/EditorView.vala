@@ -446,5 +446,9 @@ public class EditorView : Gtk.Box, ErrorReporter {
             image.reload ();
             break;
         }
+
+        error_bar.error = image.error;
+        error_from_image = true;
+        allow_edits = image.error == null;
     }
 }
