@@ -2,6 +2,7 @@ public enum SegmentType {
     NONE,
     LINE,
     CURVE,
+    QUADRATIC,
     ARC
 }
 
@@ -21,6 +22,8 @@ public class PathSegment : Segment {
             if (_segment_type == CURVE) {
                 command.add_value (this, "p1", p1, p1);
                 command.add_value (this, "p2", p2, p2);
+            } else if (_segment_type == QUADRATIC) {
+                command.add_value (this, "p1", p1, p1);
             } else if (_segment_type == ARC) {
                 command.add_value (this, "center", center, center);
                 command.add_value (this, "angle", angle, angle);
@@ -37,6 +40,11 @@ public class PathSegment : Segment {
                 p2 = {end.x - dx / 4, end.y - dy / 4};
                 command.add_value (this, "p1", p1, p1);
                 command.add_value (this, "p2", p2, p2);
+            } else if (_segment_type == QUADRATIC) {
+                var dx = end.x - start.x;
+                var dy = end.y - start.y;
+                p1 = {start.x + dx / 2, start.y + dy / 2};
+                command.add_value (this, "p1", p1, p1);
             } else if (_segment_type == ARC) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
@@ -140,7 +148,7 @@ public class PathSegment : Segment {
         }
     }
 
-    // Control points, used for CURVE segments
+    // Control points, used for CURVE and QUADRATIC segments
     public Point p1 { get; set; }
     public Point p2 { get; set; }
 
@@ -280,6 +288,12 @@ public class PathSegment : Segment {
         this.p2 = {x2, y2};
     }
 
+    public PathSegment.quadratic (double x1, double y1, double x, double y) {
+        segment_type = QUADRATIC;
+        this.end = {x, y};
+        this.p1 = {x1, y1};
+    }
+
     public PathSegment.arc (double x, double y, double xc, double yc, double rx, double ry, double angle, bool reverse) {
         segment_type = ARC;
         this.center = {xc, yc};
@@ -411,6 +425,8 @@ public class PathSegment : Segment {
                 return "L %f %f".printf (end.x, end.y);
             case CURVE:
                 return "C %f %f %f %f %f %f".printf (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+            case QUADRATIC:
+                return "Q %f %f %f %f".printf (p1.x, p1.y, end.x, end.y);
             case ARC:
                 var start = start_angle;
                 var end = end_angle;
@@ -441,6 +457,8 @@ public class PathSegment : Segment {
                 return new PathSegment.line (end.x, end.y);
             case CURVE:
                 return new PathSegment.curve (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+            case QUADRATIC:
+                return new PathSegment.quadratic (p1.x, p1.y, end.x, end.y);
             case ARC:
                 return new PathSegment.arc (end.x, end.y, center.x, center.y, rx, ry, angle, reverse);
             default:
@@ -466,6 +484,13 @@ public class PathSegment : Segment {
                 Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
                 first = new PathSegment.curve (q1.x, q1.y, r1.x, r1.y, s.x, s.y);
                 last = new PathSegment.curve (r2.x, r2.y, q3.x, q3.y, end.x, end.y);
+                break;
+            case QUADRATIC:
+                Point r1 = {(start.x + p1.x) / 2, (start.y + p1.y) / 2};
+                Point r2 = {(p1.x + end.x) / 2, (p1.y + end.y) / 2};
+                Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
+                first = new PathSegment.quadratic (r1.x, r1.y, s.x, s.y);
+                last = new PathSegment.quadratic (r2.x, r2.y, end.x, end.y);
                 break;
             case ARC:
                 // ARC segments don't work very well together.
@@ -496,6 +521,9 @@ public class PathSegment : Segment {
                 break;
             case CURVE:
                 cr.curve_to (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+                break;
+            case QUADRATIC:
+                cr.curve_to ((start.x + 2*p1.x)/3, (start.y + 2*p1.y)/3, (2*p1.x + end.x) / 3, (2*p1.y + end.y) / 3, end.x, end.y);
                 break;
             case ARC:
                 cr.save ();
@@ -595,6 +623,15 @@ public class PathSegment : Segment {
                 cr.arc (p2.x, p2.y, 6 / zoom, 0, Math.PI * 2);
                 cr.new_sub_path ();
                 break;
+            case SegmentType.QUADRATIC:
+                cr.move_to (start.x, start.y);
+                cr.line_to (p1.x, p1.y);
+                cr.line_to (end.x, end.y);
+                cr.set_source_rgba (0, 0.5, 1, 0.8);
+                cr.stroke ();
+                cr.arc (p1.x, p1.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                break;
             case SegmentType.ARC:
                 cr.move_to (topleft.x, topleft.y);
                 cr.line_to (topright.x, topright.y);
@@ -651,6 +688,13 @@ public class PathSegment : Segment {
                     return true;
                 }
                 break;
+            case QUADRATIC:
+                if ((x - p1.x).abs () <= tolerance &&
+                    (y - p1.y).abs () <= tolerance) {
+                    handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> ());
+                    return true;
+                }
+                break;
             case ARC:
                 if ((x - controller.x).abs () <= tolerance &&
                     (y - controller.y).abs () <= tolerance) {
@@ -704,6 +748,7 @@ public class PathSegment : Segment {
         var segment_type_options = new Gee.HashMap<string, int> ();
         segment_type_options.set (_("Line"), SegmentType.LINE);
         segment_type_options.set (_("Curve"), SegmentType.CURVE);
+        segment_type_options.set (_("Quadratic Curve"), SegmentType.QUADRATIC);
         segment_type_options.set (_("Arc"), SegmentType.ARC);
         options.add (new ContextOption.options (_("Change segment to:"), this, "segment_type", segment_type_options));
         return options;

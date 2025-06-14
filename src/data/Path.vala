@@ -103,6 +103,26 @@ public class Path : Element {
                 current_x = x;
                 current_y = y;
                 parsed.append_printf ("C %f, %f, %f, %f, %f, %f ", x1, y1, x2, y2, x, y);
+            } else if (parser.match ("Q")) {
+                double x1, y1, x, y;
+                if (!parser.get_double (out x1)) {
+                    loaded_successfully = false;
+                    break;
+                } else if (!parser.get_double (out y1)) {
+                    loaded_successfully = false;
+                    break;
+                } else if (!parser.get_double (out x)) {
+                    loaded_successfully = false;
+                    break;
+                } else if (!parser.get_double (out y)) {
+                    loaded_successfully = false;
+                    break;
+                }
+
+                segments += new PathSegment.quadratic (x1, y1, x, y);
+                current_x = x;
+                current_y = y;
+                parsed.append_printf ("Q %f, %f, %f, %f ", x1, y1, x, y);
             } else if (parser.match ("A")) {
                 double rx, ry, angle;
                 int large_arc, sweep;
