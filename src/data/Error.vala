@@ -79,6 +79,31 @@ public class Error : GLib.Object {
         }
     }
 
+    public bool can_create_new () {
+        switch (kind) {
+        case INTERNAL_ERROR:
+        case CANT_WRITE:
+            return false;
+        case CANT_READ:
+        case INVALID_SVG:
+        case UNKNOWN_ELEMENT:
+        case UNKNOWN_PROPERTY:
+        case INVALID_PROPERTY:
+        case MISSING_PROPERTY:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    public bool can_save_new () {
+        return kind == CANT_WRITE;
+    }
+
+    public bool is_other () {
+        return kind == INTERNAL_ERROR;
+    }
+
     public DefaultAction default_action () {
         switch (kind) {
         case INTERNAL_ERROR:
