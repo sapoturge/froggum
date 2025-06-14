@@ -77,6 +77,26 @@ public class Path : Element {
                 current_x = x;
                 current_y = y;
                 parsed.append_printf ("L %f, %f ", x, y);
+            } else if (parser.match ("H")) {
+                double x;
+                if (!parser.get_double (out x)) {
+                    loaded_successfully = false;
+                    break;
+                }
+
+                segments += new PathSegment.line (x, current_y);
+                current_x = x;
+                parsed.append_printf ("H %f ", x);
+            } else if (parser.match ("V")) {
+                double y;
+                if (!parser.get_double (out y)) {
+                    loaded_successfully = false;
+                    break;
+                }
+
+                segments += new PathSegment.line (current_x, y);
+                current_y = y;
+                parsed.append_printf ("V %f ", y);
             } else if (parser.match ("C")) {
                 double x1, x2, y1, y2, x, y;
                 if (!parser.get_double (out x1)) {
