@@ -10,6 +10,7 @@ public class StatusBar : Gtk.Box {
     private Gtk.Box? focused_container;
     private Gtk.Widget? focused_element;
     private Gtk.Widget? focused_sibling;
+    private bool _active;
 
     [Signal (action = true)]
     public signal void cancel ();
@@ -18,6 +19,26 @@ public class StatusBar : Gtk.Box {
         set {
             cursor_x.label = "%.2f".printf (value.x);
             cursor_y.label = "%.2f".printf (value.y);
+        }
+    }
+
+    public bool allow_edits {
+        get {
+            return _active;
+        }
+        set {
+            _active = value;
+            if (handle != null) {
+                var child = get_last_child ();
+                while (child != null && child as Gtk.Separator == null) {
+                    var label = child as Gtk.Text;
+                    if (label != null) {
+                        label.sensitive = value;
+                    }
+
+                    child = child.get_prev_sibling ();
+                }
+            }
         }
     }
 
@@ -113,12 +134,14 @@ public class StatusBar : Gtk.Box {
             width_chars = 5,
             max_width_chars = 5,
             xalign = 1,
+            sensitive = allow_edits,
         };
         var y_delegate = new Gtk.Text () {
             text = "%.2f".printf (new_point.y),
             width_chars = 5,
             max_width_chars = 5,
             xalign = 1,
+            sensitive = allow_edits,
         };
         var x_focus = new Gtk.EventControllerFocus ();
         x_delegate.add_controller (x_focus);

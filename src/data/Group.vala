@@ -37,10 +37,10 @@ public class Group : Element, Container {
         });
     }
 
-    public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        base.from_xml (node, patterns);
+    public Group.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        base.from_xml (node, patterns, errors);
 
-        load_elements (node, patterns);
+        load_elements (node, patterns, errors);
 
         select.connect ((selected) => {
             deselect ();

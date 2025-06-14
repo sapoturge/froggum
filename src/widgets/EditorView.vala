@@ -1,4 +1,4 @@
-public class EditorView : Gtk.Box {
+public class EditorView : Gtk.Box, ErrorReporter {
     public Image image { get; private set; }
 
     private Gtk.ListView paths_list;
@@ -9,6 +9,32 @@ public class EditorView : Gtk.Box {
     private Gtk.Button new_button;
     private Gtk.InfoBar transform_bar;
     private Gtk.Label transform_label;
+    private Gtk.MenuButton new_menu_button;
+    private Gtk.Button new_group;
+    private Gtk.Button duplicate_path;
+    private Gtk.Button path_up;
+    private Gtk.Button path_down;
+    private Gtk.Button delete_path;
+    private ErrorBar error_bar;
+    private bool error_from_image;
+
+    public signal void create_new ();
+
+    public bool allow_edits {
+        get {
+            return image.error == null;
+        }
+        set {
+            new_button.sensitive = value;
+            new_menu_button.sensitive = value;
+            new_group.sensitive = value;
+            duplicate_path.sensitive = value;
+            path_up.sensitive = value;
+            path_down.sensitive = value;
+            delete_path.sensitive = value;
+            status_bar.allow_edits = value;
+        }
+    }
 
     public EditorView (Image image) {
         this.image = image;
@@ -38,6 +64,10 @@ public class EditorView : Gtk.Box {
                 }
             }
         });
+        image.error_available.connect (() => error_bar.error = image.error);
+        error_bar.error = image.error;
+        error_from_image = true;
+        allow_edits = image.error == null;
         selection.selection_changed.connect (() => {
             var row = (Gtk.TreeListRow) selection.selected_item;
             var e = row.item as Element;
@@ -71,12 +101,14 @@ public class EditorView : Gtk.Box {
         });
         new_button_handler = new_button.clicked.connect (image.new_path);
     }
-    
+
     construct {
         var builder = new Gtk.SignalListItemFactory ();
         builder.setup.connect ((l) => {
             var li = (Gtk.ListItem) l;
             var row = new PathRow ();
+            bind_property ("allow_edits", row, "allow_edits");
+            row.allow_edits = allow_edits;
             li.child = row;
         });
         builder.bind.connect ((l) => {
@@ -99,12 +131,15 @@ public class EditorView : Gtk.Box {
 
         paths_list = new Gtk.ListView (selection, builder);
 
-        var list_box_scroll = new Gtk.ScrolledWindow ();
+        var list_box_scroll = new Gtk.ScrolledWindow () {
+            hscrollbar_policy = Gtk.PolicyType.NEVER,
+        };
         list_box_scroll.propagate_natural_width = true;
         list_box_scroll.child = paths_list;
         list_box_scroll.vexpand = true;
 
         new_button = new Gtk.Button.from_icon_name("list-add-symbolic");
+        new_button.hexpand = true;
         new_button.tooltip_text = _("New path");
 
         var new_path = new Gtk.Button () {
@@ -193,6 +228,7 @@ public class EditorView : Gtk.Box {
 
         var new_menu = new Gtk.Popover ();
         var new_menu_layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        new_menu_layout.add_css_class ("linked");
         new_menu_layout.append (new_path);
         new_menu_layout.append (new_circle);
         new_menu_layout.append (new_rectangle);
@@ -201,20 +237,21 @@ public class EditorView : Gtk.Box {
         new_menu_layout.append (new_polyline);
         new_menu_layout.append (new_polygon);
         new_menu.child = new_menu_layout;
- 
-        var new_menu_button = new Gtk.MenuButton();
+
+        new_menu_button = new Gtk.MenuButton();
+        new_menu_button.hexpand = true;
         new_menu_button.popover = new_menu;
-        
-        var new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
+
+        new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
         new_group.tooltip_text = _("New group");
-        new_group.has_frame = false;
+        new_group.hexpand = true;
         new_group.clicked.connect (() => {
             image.new_group ();
         });
 
-        var duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
+        duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
         duplicate_path.tooltip_text = _("Duplicate element");
-        duplicate_path.has_frame = false;
+        duplicate_path.hexpand = true;
         duplicate_path.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             var elem = row.item as Element;
@@ -223,9 +260,9 @@ public class EditorView : Gtk.Box {
             }
         });
 
-        var path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
+        path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
         path_up.tooltip_text = _("Move element up");
-        path_up.has_frame = false;
+        path_up.hexpand = true;
         path_up.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             var prev_row = image.tree.get_row (selection.selected - 1);
@@ -242,9 +279,9 @@ public class EditorView : Gtk.Box {
             }
         });
 
-        var path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
+        path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
         path_down.tooltip_text = _("Move element down");
-        path_down.has_frame = false;
+        path_down.hexpand = true;
         path_down.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             if (row != null) {
@@ -260,9 +297,9 @@ public class EditorView : Gtk.Box {
             }
         });
 
-        var delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
+        delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
         delete_path.tooltip_text = _("Delete element");
-        delete_path.has_frame = false;
+        delete_path.hexpand = true;
         delete_path.clicked.connect (() => {
             var row = image.tree.get_row (selection.selected);
             if (row != null) {
@@ -274,6 +311,7 @@ public class EditorView : Gtk.Box {
         });
 
         var task_bar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        task_bar.add_css_class ("linked");
         task_bar.append (new_button);
         task_bar.append (new_menu_button);
         task_bar.append (new_group);
@@ -282,12 +320,60 @@ public class EditorView : Gtk.Box {
         task_bar.append (path_down);
         task_bar.append (delete_path);
         task_bar.vexpand = false;
-        
+
         var side_bar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         side_bar.hexpand = false;
         side_bar.vexpand = true;
         side_bar.prepend (list_box_scroll);
         side_bar.append (task_bar);
+
+        error_bar = new ErrorBar ();
+        error_bar.create_new.connect (() => create_new ());
+        error_bar.resolve_error.connect (() => resolve_error ());
+        error_bar.try_again.connect (() => try_again ());
+        error_bar.make_backup.connect ((method) => {
+            switch (method) {
+            case CANCEL:
+                break;
+            case NO_BACKUP:
+                resolve_error ();
+                break;
+            case BACKUP:
+                var dialog = new Gtk.FileDialog () {
+                    initial_file = image.file,
+                    title = _("Save backup"),
+                };
+                dialog.save.begin (root as Gtk.Window, null, (obj, res) => {
+                    try {
+                        var backup_file = dialog.save.end (res);
+                        if (backup_file != null) {
+                            image.file.copy (backup_file, 0, null, null);
+                        }
+                        resolve_error ();
+                    } catch (GLib.Error e) {
+                        // TODO: report saving error
+                    }
+                });
+                break;
+            case NEW_FILE:
+                var dialog = new Gtk.FileDialog () {
+                    initial_file = image.file,
+                    title = _("Save As"),
+                };
+                dialog.save.begin (root as Gtk.Window, null, (obj, res) => {
+                    try {
+                        var new_file = dialog.save.end (res);
+                        if (new_file != null) {
+                            image.file = new_file;
+                        }
+                        resolve_error ();
+                    } catch (GLib.Error e) {
+                        // TODO: report saving error
+                    }
+                });
+                break;
+            }
+        });
 
         transform_bar = new Gtk.InfoBar () {
             message_type = QUESTION,
@@ -310,8 +396,9 @@ public class EditorView : Gtk.Box {
         status_bar = new StatusBar ();
         viewport.bind_property ("current_handle", status_bar, "handle");
         viewport.bind_property ("cursor_pos", status_bar, "cursor_pos");
-  
+
         var main_space = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        main_space.append (error_bar);
         main_space.append (transform_bar);
         main_space.append (scrolled);
         main_space.append (status_bar);
@@ -328,7 +415,36 @@ public class EditorView : Gtk.Box {
         vexpand = true;
     }
 
+    private void resolve_error () {
+        if (error_from_image) {
+            image.resolve_error ();
+        }
+
+        error_bar.error = image.error;
+        error_from_image = true;
+        allow_edits = image.error == null;
+    }
+
+    public void add_error (Error err) {
+        error_from_image = false;
+        error_bar.error = err;
+    }
+
     public void recenter () {
         viewport.recenter ();
+    }
+
+    private void try_again () {
+        var err = image.error;
+        image.resolve_error ();
+
+        switch (err.kind) {
+        case ErrorKind.CANT_WRITE:
+            image.update (); // This triggers a save, after a short delay
+            break;
+        default:
+            image.reload ();
+            break;
+        }
     }
 }

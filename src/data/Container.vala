@@ -83,32 +83,40 @@ public interface Container : Undoable, Updatable, Transformed {
         return pattern_index;
     }
 
-    protected void load_elements (Xml.Node* parent, Gee.HashMap<string, Pattern> patterns) {
+    protected void load_elements (Xml.Node* parent, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        ((ListStore) model).remove_all ();
         for (Xml.Node* iter = parent->children; iter != null; iter = iter->next) {
-            if (iter->name == "path") {
-                var path = new Path.from_xml (iter, patterns);
+            if (iter->type == Xml.ElementType.TEXT_NODE) {
+                // This is usually whitespace and can safely be deleted.
+                // It will never be rendered (text is only rendered inside a text element).
+            } else if (iter->name == "path") {
+                var path = new Path.from_xml (iter, patterns, errors);
                 add_element (path);
             } else if (iter->name == "circle") {
-                var circle = new Circle.from_xml (iter, patterns);
+                var circle = new Circle.from_xml (iter, patterns, errors);
                 add_element (circle);
             } else if (iter->name == "g") {
-                var g = new Group.from_xml (iter, patterns);
+                var g = new Group.from_xml (iter, patterns, errors);
                 add_element (g);
             } else if (iter->name == "rect") {
-                var rect = new Rectangle.from_xml (iter, patterns);
+                var rect = new Rectangle.from_xml (iter, patterns, errors);
                 add_element (rect);
             } else if (iter->name == "ellipse") {
-                var ellipse = new Ellipse.from_xml (iter, patterns);
+                var ellipse = new Ellipse.from_xml (iter, patterns, errors);
                 add_element (ellipse);
             } else if (iter->name == "line") {
-                var line = new Line.from_xml (iter, patterns);
+                var line = new Line.from_xml (iter, patterns, errors);
                 add_element (line);
             } else if (iter->name == "polyline") {
-                var line = new Polyline.from_xml (iter, patterns);
+                var line = new Polyline.from_xml (iter, patterns, errors);
                 add_element (line);
             } else if (iter->name == "polygon") {
-                var polygon = new Polygon.from_xml (iter, patterns);
+                var polygon = new Polygon.from_xml (iter, patterns, errors);
                 add_element (polygon);
+            } else if (iter->name == "defs" || iter->name == "linearGradient" || iter->name == "radialGradient") {
+                // Known elements that don't need to be loaded, but shouldn't show errors.
+            } else {
+                errors.offer (new Error.unknown_element (iter->name, parent->name));
             }
         }
     }

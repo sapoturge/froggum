@@ -24,6 +24,10 @@ executable(
     'src/widgets/Tutorial.vala',
     'src/widgets/PathRow.vala',
     'src/widgets/StatusBar.vala',
+    'src/widgets/ErrorBar.vala',
+    'src/widgets/BackupDialog.vala',
+    'src/widgets/ErrorReporter.vala',
+    'src/widgets/NewTab.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',
@@ -52,6 +56,7 @@ executable(
     'src/data/BaseHandle.vala',
     'src/data/TransformedHandle.vala',
     'src/data/PatternSegment.vala',
+    'src/data/Error.vala',
     gresource_froggum,
     dependencies: [
         dependency('gtk4'),

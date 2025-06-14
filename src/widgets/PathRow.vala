@@ -21,6 +21,7 @@ public class PathRow : Gtk.Box {
 
     construct {
         orientation = Gtk.Orientation.HORIZONTAL;
+        spacing = 6;
 
         expander = new Gtk.TreeExpander ();
         view = new Gtk.DrawingArea ();
@@ -82,5 +83,13 @@ public class PathRow : Gtk.Box {
         elem = null;
         title.disconnect (title_handle);
         visibility.disconnect (visibility_handle);
+    }
+
+    public bool allow_edits {
+        set {
+            title.sensitive = value;
+            fill.sensitive = value;
+            stroke.sensitive = value;
+        }
     }
 }

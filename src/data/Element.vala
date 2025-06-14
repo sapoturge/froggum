@@ -1,4 +1,7 @@
 public abstract class Element : Object, Undoable, Updatable, Transformed {
+    [CCode (has_target = false)]
+    protected delegate void AttributeLoaderFunc<T> (string value, ref T data, Gee.Queue<Error> errors);
+
     private Pattern _fill;
     public Pattern fill {
         get {
@@ -59,11 +62,44 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
         });
     }
 
-    protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns) {
-        title = node->get_prop ("id");
+    protected void load_from_xml_actions<T> (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors, Gee.HashMap<string, AttributeLoaderFunc<T>> actions, ref T data) {
+        fill = new Pattern.none ();
+        stroke = new Pattern.none ();
+        transform = new Transform.identity ();
+        title = "";
+        for (var property = node->properties; property != null; property = property->next) {
+            var content = ((Xml.Node*) property)->get_content ();
+            if (property->name == "id") {
+                title = content;
+            } else if (property->name == "fill") {
+                fill = Pattern.get_from_text (content, patterns, node->name, "fill", errors);
+            } else if (property->name == "stroke") {
+                stroke = Pattern.get_from_text (content, patterns, node->name, "stroke", errors);
+            } else if (property->name == "transform") {
+                transform = new Transform.from_string (content);
+            } else if (actions.has_key (property->name)) {
+                ((AttributeLoaderFunc<T>) actions.get (property->name)) (content, ref data, errors);
+            } else {
+                errors.offer (new Error.unknown_attribute (node->name, property->name, content));
+            }
+        }
+
+        for (var child = node->children; child != null; child = child->next) {
+            // Assume no elements have children.
+            // This is inaccurate for Groups, which don't use this method.
+            errors.offer (new Error.unknown_element (child->name, node->name));
+        }
+
         visible = true;
-        fill = Pattern.get_from_text (node->get_prop ("fill"), patterns);
-        stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns);
+        transform_enabled = !transform.is_identity ();
+        setup_signals ();
+    }
+
+    protected Element.from_xml (Xml.Node* node, Gee.HashMap<string, Pattern> patterns, Gee.Queue<Error> errors) {
+        title = node->get_prop ("id") ?? "";
+        visible = true;
+        fill = Pattern.get_from_text (node->get_prop ("fill"), patterns, node->name, "fill", errors);
+        stroke = Pattern.get_from_text (node->get_prop ("stroke"), patterns, node->name, "stroke", errors);
         transform = new Transform.from_string (node->get_prop ("transform"));
 
         transform_enabled = !transform.is_identity ();

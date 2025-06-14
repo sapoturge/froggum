@@ -1,9 +1,12 @@
 public class Image : Object, Undoable, Updatable, Transformed, Container {
     private File _file;
     private CommandStack stack;
+    private Gee.Queue<Error> errors;
 
-    public int width { get; private set; }
-    public int height { get; private set; }
+    private int _width;
+    public int width { get { return _width; } }
+    private int _height;
+    public int height { get { return _height; } }
 
     private string? _name;
     public string name {
@@ -18,10 +21,23 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     private Transform applied_transform;
     private Element? applied_element;
 
+    public Error? error {
+        owned get {
+            return errors.peek ();
+        }
+    }
+
+    public signal void error_available ();
+
+    public void resolve_error () {
+        // All errors are designed to be handled when detected; this approves the handling that
+        // was already done.
+        errors.poll ();
+    }
+
     protected Gee.Map<Element, Container.ElementSignalManager> signal_managers { get; set; }
 
     private uint save_id;
-    private bool already_loaded = false;
 
     public ModelUpdate updator {
         set {
@@ -34,10 +50,12 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             if (save_id != 0) {
                 Source.remove (save_id);
             }
-            
+
             save_id = Timeout.add (100, () => {
                 save_id = 0;
-                save_xml ();
+                if (errors.size == 0) {
+                    save_xml ();
+                }
                 return false;
             });
         });
@@ -50,7 +68,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             applied_element = element;
         });
     }
-    
+
     construct {
         transform = new Transform.identity ();
         applied_transform = new Transform.identity ();
@@ -59,61 +77,136 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         this.tree = new Gtk.TreeListModel (model, false, false, get_children);
         signal_managers = new Gee.HashMap<Element, Container.ElementSignalManager> ();
         add_command.connect ((c) => stack.add_command (c));
+        errors = new Gee.PriorityQueue<Error> ((a, b) => {
+            if (a.severity == b.severity) {
+                return 0;
+            } else if (a.severity == Severity.ERROR) {
+                return -1;
+            } else { // b.severity == Severity.ERROR
+                return 1;
+            }
+        });
     }
 
     public Image (int width, int height, Element[] paths = {}) {
         setup_signals ();
-        this.width = width;
-        this.height = height;
+        this._width = width;
+        this._height = height;
         set_size (width, height);
         foreach (Element element in paths) {
             add_element (element);
         }
-        already_loaded = true;
     }
 
     public Image.load (File file) {
         setup_signals ();
+        // Set defaults for if an error occurs
+        this._width = 16;
+        this._height = 16;
+
         this._file = file;
-        var doc = Xml.Parser.parse_file (file.get_path ());
+        reload ();
+    }
+
+    public void reload () {
+        var parser = new Xml.ParserCtxt ();
+        var doc = parser.read_file (_file.get_path ());
         if (doc == null) {
-            // Mark for error somehow: Could not open file
-            this.width = 16;
-            this.height = 16;
-            setup_signals ();
+            var xml_error = parser.get_last_error ();
+            if (xml_error == null) {
+                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), "Reading failed.", ""));
+            } else if (xml_error->domain == 8) {
+                errors.offer (new Error (ErrorKind.CANT_READ, file.get_basename (), xml_error->message, ""));
+            } else {
+                errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), xml_error->message, ""));
+            }
+
+            error_available ();
             return;
         }
+
         Xml.Node* root = doc->get_root_element ();
         if (root == null) {
-            // Mark for error again: Empty file
+            var xml_error = parser.get_last_error ();
+            var message = "No root element found.";
+            if (xml_error != null) {
+                message = xml_error->message;
+            }
+
+            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), message, ""));
             delete doc;
-            this.width = 16;
-            this.height = 16;
-            setup_signals ();
+            error_available ();
             return;
         }
-        if (root->name == "svg") {
-            this.width = int.parse (root->get_prop ("width"));
-            this.height = int.parse (root->get_prop ("height"));
-            set_size (this.width, this.height);
-            
-            var patterns = new Gee.HashMap<string, Pattern> ();
 
-            for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
-                if (iter->name == "defs") {
-                    for (Xml.Node* def = iter->children; def != null; def = def->next) {
-                        var pattern = Pattern.load_xml (def);
-                        if (pattern != null) {
-                            var name = def->get_prop ("id");
-                            patterns.@set (name, pattern);
-                        }
-                    }
+        if (root->name != "svg") {
+            errors.offer (new Error (ErrorKind.INVALID_SVG, file.get_basename (), "Root element is not svg.\nActual element: '%s'".printf (root->name), ""));
+            delete doc;
+            error_available ();
+            return;
+        }
+
+        string? width = null;
+        string? height = null;
+
+        for (var property = root->properties; property != null; property = property->next) {
+            var content = ((Xml.Node*) property)->get_content ();
+            switch (property->name) {
+            case "width":
+                width = content;
+                break;
+            case "height":
+                height = content;
+                break;
+            case "version":
+                // This should probably by checked eventually
+                break;
+            default:
+                errors.offer (new Error.unknown_attribute ("svg", property->name, content));
+                break;
+            }
+        }
+
+        if (width == null) {
+            // The real default is auto (= 100%), which is not supported
+            errors.offer (new Error.missing_property ("svg", "width", "16"));
+            this._width = 16;
+        } else if (!int.try_parse (width, out this._width)) {
+            errors.offer (new Error.invalid_property ("svg", "width", width, "16"));
+            this._width = 16;
+        }
+
+        if (height == null) {
+            // The real default is auto (= 100%), which is not supported
+            errors.offer (new Error.missing_property ("svg", "height", "16"));
+            this._height = 16;
+        } else if (!int.try_parse (height, out this._height)) {
+            errors.offer (new Error.invalid_property ("svg", "height", height, "16"));
+            this._height = 16;
+        }
+
+        set_size (this.width, this.height);
+
+        var patterns = new Gee.HashMap<string, Pattern> ();
+        find_patterns (root, patterns);
+        load_elements (root, patterns, errors);
+        if (error != null) {
+            error_available ();
+        }
+    }
+
+    private void find_patterns (Xml.Node* root, Gee.Map<string, Pattern> patterns) {
+        for (Xml.Node* iter = root->children; iter != null; iter = iter->next) {
+            if (Pattern.can_load (iter->name)) {
+                var pattern = Pattern.load_xml (iter, errors);
+                if (pattern != null) {
+                    var name = iter->get_prop ("id");
+                    patterns.@set (name, pattern);
                 }
             }
 
-            load_elements (root, patterns);
+            find_patterns (iter, patterns);
         }
-        already_loaded = true;
     }
 
     public File file {
@@ -146,7 +239,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
     public void undo () {
         stack.undo ();
     }
-    
+
     public void redo () {
         stack.redo ();
     }
@@ -232,10 +325,10 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         svg->new_prop ("width", width.to_string ());
         svg->new_prop ("height", height.to_string ());
         svg->new_prop ("xmlns", "http://www.w3.org/2000/svg");
-        
+
         Xml.Node* defs = new Xml.Node (null, "defs");
         svg->add_child (defs);
-        
+
         save_children (svg, defs, 0);
 
         var res = doc->save_file (file.get_path ());
@@ -243,9 +336,14 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
             // TODO: communicate error
             print ("Error saving file: %d\n", res);
             var err = Xml.get_last_error ();
+            var message = "Saving failed.";
             if (err != null) {
                 print ("Error: %d, %d: %s\n", err->domain, err->code, err->message);
+                message = err->message;
             }
+
+            errors.offer (new Error (ErrorKind.CANT_WRITE, file.get_basename (), message, ""));
+            error_available ();
         }
     }
 

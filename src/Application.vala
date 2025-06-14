@@ -2,29 +2,29 @@ public class FroggumApplication : Gtk.Application {
     private uint configure_id;
     private bool activated = false;
     private bool will_open = false;
-    
+
     public static Settings settings;
-    
+
     private Gtk.ApplicationWindow main_window;
     private Adw.TabView notebook;
     private Gtk.FileDialog dialog;
-    
+
     public FroggumApplication () {
         Object (
             application_id: "io.github.sapoturge.froggum",
             flags: ApplicationFlags.HANDLES_OPEN
         );
     }
-    
+
     public SimpleActionGroup actions { get; construct; }
-    
+
     public const string ACTION_UNDO = "action_undo";
     public const string ACTION_REDO = "action_redo";
-    
+
     static construct {
         settings = new Settings ("io.github.sapoturge.froggum");
     }
-    
+
     construct {
         var undo_action = new SimpleAction ("action_undo", null);
         undo_action.activate.connect (() => {
@@ -69,7 +69,7 @@ public class FroggumApplication : Gtk.Application {
     protected override void activate () {
         Gtk.IconTheme default_theme = new Gtk.IconTheme ();
         default_theme.add_resource_path ("/io/github/sapoturge/froggum");
-        
+
         main_window = new Gtk.ApplicationWindow (this);
         main_window.insert_action_group ("froggum", actions);
         main_window.title = _("Froggum - Untitled");
@@ -98,9 +98,9 @@ public class FroggumApplication : Gtk.Application {
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "close:maximize";
         header.show_title_buttons = true;
-        
+
         notebook = new Adw.TabView ();
-        
+
         notebook.notify["selected-page"].connect((param) => {
             var page = notebook.selected_page;
             var child = page.child;
@@ -138,8 +138,21 @@ public class FroggumApplication : Gtk.Application {
 
                         recalculate_open_files ();
                     }
-                } catch (Error e) {
-                    // TODO: Inform user that save failed
+                } catch (GLib.Error e) {
+                    if (e.code == Gtk.DialogError.DISMISSED) {
+                        // The user didn't pick a file
+                        // No "error handling" necessary
+                    } else if (e.code == Gtk.DialogError.CANCELLED) {
+                        // Froggum closed the dialog (this shouldn't ever happen)
+                        // Still no response required
+                    } else {
+                        // Something actually went wrong
+                        var tab = notebook.selected_page;
+                        var inner = tab.child as ErrorReporter;
+                        if (inner != null) {
+                            inner.add_error (new Error.glib_error (e));
+                        }
+                    }
                 }
             });
         });
@@ -166,7 +179,7 @@ public class FroggumApplication : Gtk.Application {
 
         var new_button = new Gtk.Button.from_icon_name ("list-add-symbolic");
         new_button.clicked.connect (() => {
-            new_tab ();
+            make_new_tab (null);
         });
         new_button.tooltip_text = _("New icon");
 
@@ -175,9 +188,9 @@ public class FroggumApplication : Gtk.Application {
 
         var last_files = settings.get_strv ("open-files");
         var focused_file = settings.get_string ("focused-file");
-        
+
         Adw.TabPage focused = null;
-        
+
         foreach (string file in last_files) {
             if (file != "") {
                 var real_file = File.new_for_uri (file);
@@ -187,14 +200,15 @@ public class FroggumApplication : Gtk.Application {
                 editor.vexpand = true;
                 var tab = notebook.append (editor);
                 tab.title = real_file.get_basename ();
+                editor.create_new.connect (() => make_new_tab (tab));
                 if (file == focused_file) {
                     focused = tab;
                 }
             }
         }
-        
+
         if (notebook.n_pages == 0 && !will_open) {
-            new_tab ();
+            make_new_tab (null);
         } else if (focused != null) {
             notebook.selected_page = focused;
         }
@@ -232,6 +246,7 @@ public class FroggumApplication : Gtk.Application {
             editor.hexpand = true;
             editor.vexpand = true;
             var tab = notebook.append (editor);
+            editor.create_new.connect (() => make_new_tab (tab));
             tab.title = file.get_basename ();
         }
 
@@ -254,11 +269,12 @@ public class FroggumApplication : Gtk.Application {
             editor.vexpand = true;
             var tab = notebook.append (editor);
             tab.title = file.get_basename ();
+            editor.create_new.connect (() => make_new_tab (tab));
         }
 
         recalculate_open_files ();
     }
-    
+
     private void new_image (int width, int height, Adw.TabPage tab) {
         var radius = int.min (int.min (width, height) / 8, 16) + 0.5;
         var segments = new PathSegment[] {
@@ -281,6 +297,7 @@ public class FroggumApplication : Gtk.Application {
         var new_tab = notebook.add_page (editor, tab);
         new_tab.title = _("New Image");
         notebook.close_page (tab);
+        editor.create_new.connect (() => make_new_tab (new_tab));
     }
 
     private void open_image (Adw.TabPage tab) {
@@ -294,112 +311,45 @@ public class FroggumApplication : Gtk.Application {
                     editor.hexpand = true;
                     editor.vexpand = true;
                     var new_tab = notebook.add_page (editor, tab);
+                    editor.create_new.connect (() => make_new_tab (new_tab));
                     new_tab.title = file.get_basename ();
                     notebook.close_page (tab);
                     recalculate_open_files ();
                 }
-            } catch (Error e) {
-                // TODO: Inform user of failed open
+            } catch (GLib.Error e) {
+                if (e.code == Gtk.DialogError.DISMISSED) {
+                    // The user didn't pick a file
+                    // No "error handling" necessary
+                } else if (e.code == Gtk.DialogError.CANCELLED) {
+                    // Froggum closed the dialog (this shouldn't ever happen)
+                    // Still no response required
+                } else {
+                    // Something actually went wrong
+                    var inner = tab.child as ErrorReporter;
+                    if (inner != null) {
+                        inner.add_error (new Error.glib_error (e));
+                    }
+                }
             }
         });
     }
 
-    private void new_tab () {
-         var inner_layout = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
-         var tab = notebook.append (inner_layout);
+    private void make_new_tab (Adw.TabPage? old_tab) {
+         var new_page = new NewTab ();
+         Adw.TabPage tab;
+         if (old_tab == null) {
+             tab = notebook.append (new_page);
+         } else {
+             tab = notebook.add_page (new_page, old_tab);
+             notebook.close_page (old_tab);
+         }
          tab.title = _("New Image");
-
-         var title = new Gtk.Label (_("Create a new icon:"));
-
-         var n16 = new Gtk.Button ();
-         n16.label = _("16 \u00D7 16");
-         n16.clicked.connect (() => {
-             new_image (16, 16, tab);
-         });
-
-         var n24 = new Gtk.Button ();
-         n24.label = _("24 \u00D7 24");
-         n24.clicked.connect (() => {
-             new_image (24, 24, tab);
-         });
-
-         var n32 = new Gtk.Button ();
-         n32.label = _("32 \u00D7 32");
-         n32.clicked.connect (() => {
-             new_image (32, 32, tab);
-         });
-
-         var n48 = new Gtk.Button ();
-         n48.label = _("48 \u00D7 48");
-         n48.clicked.connect (() => {
-             new_image (48, 48, tab);
-         });
-
-         var n64 = new Gtk.Button ();
-         n64.label = _("64 \u00D7 64");
-         n64.clicked.connect (() => {
-             new_image (64, 64, tab);
-         });
-
-         var n128 = new Gtk.Button ();
-         n128.label = _("128 \u00D7 128");
-         n128.clicked.connect (() => {
-             new_image (128, 128, tab);
-         });
-
-         var standard_grid = new Gtk.Grid ();
-         standard_grid.row_spacing = 4;
-         standard_grid.column_spacing = 4;
-         standard_grid.attach (n16, 0, 0, 1, 1);
-         standard_grid.attach (n24, 1, 0, 1, 1);
-         standard_grid.attach (n32, 2, 0, 1, 1);
-         standard_grid.attach (n48, 0, 1, 1, 1);
-         standard_grid.attach (n64, 1, 1, 1, 1);
-         standard_grid.attach (n128, 2, 1, 1, 1);
-         standard_grid.column_homogeneous = true;
-
-         var custom_width = new Gtk.SpinButton.with_range (1, 2048, 1);
-         var custom_height = new Gtk.SpinButton.with_range (1, 2018, 1);
-
-         var ncustom = new Gtk.Button ();
-         ncustom.label = _("Custom:");
-         ncustom.clicked.connect (() => {
-             new_image ((int) custom_width.value, (int) custom_height.value, tab);
-         });
-
-         var custom_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
-         custom_box.append (ncustom);
-         custom_box.append (new Gtk.Label("Width:"));
-         custom_box.append (custom_width);
-         custom_box.append (new Gtk.Label ("Height:"));
-         custom_box.append (custom_height);
-
-         var new_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
-         new_side.append (title);
-         new_side.append (standard_grid);
-         new_side.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-         new_side.append (custom_box);
-
-         var open_button = new Gtk.Button ();
-         open_button.label = _("Open");
-         open_button.clicked.connect (() => {
-             open_image (tab);
-         });
-
-         var open_side = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
-         open_side.append (open_button);
-         open_side.valign = Gtk.Align.CENTER;
-
-         inner_layout.append (new_side);
-         inner_layout.append (new Gtk.Separator (Gtk.Orientation.VERTICAL));
-         inner_layout.append (open_side);
-
-         inner_layout.halign = Gtk.Align.CENTER;
-         inner_layout.valign = Gtk.Align.CENTER;
+         new_page.new_image.connect ((width, height) => new_image (width, height, tab));
+         new_page.open_image.connect (() => open_image (tab));
 
          notebook.selected_page = tab;
     }
-    
+
     private void recalculate_open_files () {
         var filenames = new string[] {};
         for (int i = 0; i < notebook.n_pages; i++) {
