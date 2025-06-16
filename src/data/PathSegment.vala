@@ -1,5 +1,4 @@
 public enum SegmentType {
-    NONE,
     LINE,
     CURVE,
     QUADRATIC,
@@ -7,13 +6,13 @@ public enum SegmentType {
 }
 
 public class PathSegment : Segment {
-    private SegmentType _segment_type = NONE;
+    private SegmentType _segment_type;
     public SegmentType segment_type {
         get {
             return _segment_type;
         }
         set {
-            if (_segment_type == NONE || _segment_type == value) {
+            if (_segment_type == value) {
                 _segment_type = value;
                 return;
             }
@@ -303,8 +302,6 @@ public class PathSegment : Segment {
         this.reverse = reverse;
         this.end = {x, y};
     }
-
-    private PathSegment.none () {}
     
     public override void begin (string property) {
         switch (property) {
