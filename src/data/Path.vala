@@ -72,184 +72,246 @@ public class Path : Element {
                 current_x = start_x;
                 current_y = start_y;
                 parsed.append_printf ("M %f, %f ", start_x, start_y);
+
+                // Additional coordinates after an 'M' command are lines.
+                double x, y;
+                while (parser.get_double (out x)) {
+                    if (!parser.get_double (out y)) {
+                        loaded_successfully = false;
+                        break;
+                    }
+
+                    segments += new PathSegment.line (x, y);
+                    current_x = x;
+                    current_y = y;
+                    parsed.append_printf ("L %f, %f ", x, y);
+                }
+                    
+                if (!loaded_successfully) {
+                    break;
+                }
             } else if (parser.match ("L")) {
                 double x, y;
-                if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
+                bool loaded_once = false;
+                while (parser.get_double (out x)) {
+                    if (!parser.get_double (out y)) {
+                        loaded_successfully = false;
+                        break;
+                    }
+
+                    segments += new PathSegment.line (x, y);
+                    current_x = x;
+                    current_y = y;
+                    parsed.append_printf ("L %f, %f ", x, y);
+                    loaded_once = true;
+                }
+
+                if (!loaded_once || !loaded_successfully) {
                     loaded_successfully = false;
                     break;
                 }
-
-                segments += new PathSegment.line (x, y);
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("L %f, %f ", x, y);
             } else if (parser.match ("H")) {
                 double x;
-                if (!parser.get_double (out x)) {
+                bool loaded_once = false;
+                while (parser.get_double (out x)) {
+                    segments += new PathSegment.line (x, current_y);
+                    current_x = x;
+                    parsed.append_printf ("H %f ", x);
+                    loaded_once = true;
+                }
+
+                if (!loaded_once) {
                     loaded_successfully = false;
                     break;
                 }
-
-                segments += new PathSegment.line (x, current_y);
-                current_x = x;
-                parsed.append_printf ("H %f ", x);
             } else if (parser.match ("V")) {
                 double y;
-                if (!parser.get_double (out y)) {
+                bool loaded_once = false;
+                while (parser.get_double (out y)) {
+                    segments += new PathSegment.line (current_x, y);
+                    current_y = y;
+                    parsed.append_printf ("V %f ", y);
+                    loaded_once = true;
+                }
+
+                if (!loaded_once) {
                     loaded_successfully = false;
                     break;
                 }
-
-                segments += new PathSegment.line (current_x, y);
-                current_y = y;
-                parsed.append_printf ("V %f ", y);
             } else if (parser.match ("C")) {
                 double x1, x2, y1, y2, x, y;
-                if (!parser.get_double (out x1)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y1)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x2)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y2)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
+                bool loaded_once = false;
+                while (parser.get_double (out x1)) {
+                    if (!parser.get_double (out y1)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out x2)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out y2)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out x)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out y)) {
+                        loaded_successfully = false;
+                        break;
+                    }
+
+                    segments += new PathSegment.curve (x1, y1, x2, y2, x, y);
+                    current_x = x;
+                    current_y = y;
+                    parsed.append_printf ("C %f, %f, %f, %f, %f, %f ", x1, y1, x2, y2, x, y);
+                    loaded_once = true;
+                }
+
+                if (!loaded_once || !loaded_successfully) {
                     loaded_successfully = false;
                     break;
                 }
-
-                segments += new PathSegment.curve (x1, y1, x2, y2, x, y);
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("C %f, %f, %f, %f, %f, %f ", x1, y1, x2, y2, x, y);
             } else if (parser.match ("S")) {
                 double x1, y1, x2, y2, x, y;
-                if (!parser.get_double (out x2)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y2)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
+                bool loaded_once = false;
+                while (parser.get_double (out x2)) {
+                    if (!parser.get_double (out y2)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out x)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out y)) {
+                        loaded_successfully = false;
+                        break;
+                    }
+
+                    x1 = current_x;
+                    y1 = current_y;
+
+                    if (segments.length > 0 && segments[segments.length-1].segment_type == CURVE) {
+                        x1 = 2 * current_x - segments[segments.length-1].p2.x;
+                        y1 = 2 * current_y - segments[segments.length-1].p2.y;
+                    }
+
+                    segments += new PathSegment.curve (x1, y1, x2, y2, x, y);
+                    current_x = x;
+                    current_y = y;
+                    parsed.append_printf ("S %f %f %f %f ", x2, y2, x, y);
+                    loaded_once = true;
+                }
+
+                if (!loaded_once || !loaded_successfully) {
                     loaded_successfully = false;
                     break;
                 }
-
-                x1 = current_x;
-                y1 = current_y;
-
-                if (segments.length > 0 && segments[segments.length-1].segment_type == CURVE) {
-                    x1 = 2 * current_x - segments[segments.length-1].p2.x;
-                    y1 = 2 * current_y - segments[segments.length-1].p2.y;
-                }
-
-                segments += new PathSegment.curve (x1, y1, x2, y2, x, y);
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("S %f %f %f %f ", x2, y2, x, y);
             } else if (parser.match ("Q")) {
                 double x1, y1, x, y;
-                if (!parser.get_double (out x1)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y1)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
+                bool loaded_once = false;
+                while (parser.get_double (out x1)) {
+                    if (!parser.get_double (out y1)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out x)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out y)) {
+                        loaded_successfully = false;
+                        break;
+                    }
+
+                    segments += new PathSegment.quadratic (x1, y1, x, y);
+                    current_x = x;
+                    current_y = y;
+                    parsed.append_printf ("Q %f, %f, %f, %f ", x1, y1, x, y);
+                    loaded_once = true;
+                }
+
+                if (!loaded_once || !loaded_successfully) {
                     loaded_successfully = false;
                     break;
                 }
-
-                segments += new PathSegment.quadratic (x1, y1, x, y);
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("Q %f, %f, %f, %f ", x1, y1, x, y);
             } else if (parser.match ("T")) {
                 double x1, y1, x, y;
-                if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
+                bool loaded_once = false;
+                while (parser.get_double (out x)) {
+                    if (!parser.get_double (out y)) {
+                        loaded_successfully = false;
+                        break;
+                    }
+
+                    x1 = current_x;
+                    y1 = current_y;
+
+                    if (segments.length > 0 && segments[segments.length-1].segment_type == QUADRATIC) {
+                        x1 = 2 * current_x - segments[segments.length - 1].p1.x;
+                        y1 = 2 * current_y - segments[segments.length - 1].p1.y;
+                    }
+
+                    segments += new PathSegment.quadratic (x1, y1, x, y);
+                    current_x = x;
+                    current_y = y;
+                    parsed.append_printf ("T %f, %f ", x, y);
+                    loaded_once = true;
+                }
+
+                if (!loaded_once || !loaded_successfully) {
                     loaded_successfully = false;
                     break;
                 }
-
-                x1 = current_x;
-                y1 = current_y;
-
-                if (segments.length > 0 && segments[segments.length-1].segment_type == QUADRATIC) {
-                    x1 = 2 * current_x - segments[segments.length - 1].p1.x;
-                    y1 = 2 * current_y - segments[segments.length - 1].p1.y;
-                }
-
-                segments += new PathSegment.quadratic (x1, y1, x, y);
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("T %f, %f ", x, y);
             } else if (parser.match ("A")) {
                 double rx, ry, angle;
                 int large_arc, sweep;
                 double x, y;
-                if (!parser.get_double (out rx)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out ry)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out angle)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_int (out large_arc)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_int (out sweep)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
-                    loaded_successfully = false;
-                    break;
+                bool loaded_once = false;
+                while (parser.get_double (out rx)) {
+                    if (!parser.get_double (out ry)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out angle)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_int (out large_arc)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_int (out sweep)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out x)) {
+                        loaded_successfully = false;
+                        break;
+                    } else if (!parser.get_double (out y)) {
+                        loaded_successfully = false;
+                        break;
+                    }
+
+                    angle = angle * Math.PI / 180;
+
+                    var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
+                    var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
+                    var dt = (x1 * x1) / ( rx * rx) + (y1 * y1) / (ry * ry);
+                    if (dt > 1) {
+                        rx = rx * Math.sqrt (dt);
+                        ry = ry * Math.sqrt (dt);
+                    }
+                    var coefficient = Math.sqrt ((rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1) / (rx * rx * y1 * y1 + ry * ry * x1 * x1));
+                    if (large_arc == sweep) {
+                        coefficient = -coefficient;
+                    }
+                    var cx1 = coefficient * rx * y1 / ry;
+                    var cy1 = -coefficient * ry * x1 / rx;
+                    var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
+                    var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
+                    segments += new PathSegment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
+                    current_x = x;
+                    current_y = y;
+                    parsed.append_printf ("A %f, %f, %f, %d, %d, %f, %f ", rx, ry, angle, large_arc, sweep, x, y);
+                    loaded_once = true;
                 }
 
-                angle = angle * Math.PI / 180;
-
-                var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
-                var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
-                var dt = (x1 * x1) / ( rx * rx) + (y1 * y1) / (ry * ry);
-                if (dt > 1) {
-                    rx = rx * Math.sqrt (dt);
-                    ry = ry * Math.sqrt (dt);
+                if (!loaded_once || !loaded_successfully) {
+                    loaded_successfully = false;
+                    break;
                 }
-                var coefficient = Math.sqrt ((rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1) / (rx * rx * y1 * y1 + ry * ry * x1 * x1));
-                if (large_arc == sweep) {
-                    coefficient = -coefficient;
-                }
-                var cx1 = coefficient * rx * y1 / ry;
-                var cy1 = -coefficient * ry * x1 / rx;
-                var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
-                var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
-                segments += new PathSegment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("A %f, %f, %f, %d, %d, %f, %f ", rx, ry, angle, large_arc, sweep, x, y);
             } else if (parser.match ("Z")) {
                 // Ends the path, back to the beginning.
                 if (start_x != current_x || start_y != current_y) {
