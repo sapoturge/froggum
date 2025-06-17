@@ -16,51 +16,27 @@ public class PathSegment : Segment {
                 _segment_type = value;
                 return;
             }
-            var command = new Command ();
-            command.add_value (this, "segment_type", _segment_type, value);
-            if (_segment_type == CURVE) {
-                command.add_value (this, "p1", p1, p1);
-                command.add_value (this, "p2", p2, p2);
-            } else if (_segment_type == QUADRATIC) {
-                command.add_value (this, "p1", p1, p1);
-            } else if (_segment_type == ARC) {
-                command.add_value (this, "center", center, center);
-                command.add_value (this, "angle", angle, angle);
-                command.add_value (this, "rx", rx, rx);
-                command.add_value (this, "ry", ry, ry);
-                command.add_value (this, "start", start, end);
-                command.add_value (this, "end", end, end);
-            }
             _segment_type = value;
             if (_segment_type == CURVE) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
                 p1 = {start.x + dx / 4, start.y + dy / 4};
                 p2 = {end.x - dx / 4, end.y - dy / 4};
-                command.add_value (this, "p1", p1, p1);
-                command.add_value (this, "p2", p2, p2);
             } else if (_segment_type == QUADRATIC) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
                 p1 = {start.x + dx / 2, start.y + dy / 2};
-                command.add_value (this, "p1", p1, p1);
             } else if (_segment_type == ARC) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
-                center = {start.x + dx / 2, start.y + dy / 2};
                 angle = Math.PI + Math.atan2 (dy, dx);
                 start_angle = 0;
                 end_angle = Math.PI;
                 rx = Math.hypot (dy, dx) / 2;
                 ry = rx / 2;
-                command.add_value (this, "center", center, center);
-                command.add_value (this, "angle", angle, angle);
-                command.add_value (this, "rx", rx, rx);
-                command.add_value (this, "ry", ry, ry);
-                command.add_value (this, "start", start, end);
-                command.add_value (this, "end", end, end);
+                // Center has triggers to update start and end, so it goes last
+                center = {start.x + dx / 2, start.y + dy / 2};
             }
-            add_command (command);
         }
     }
 
@@ -263,6 +239,7 @@ public class PathSegment : Segment {
     }
     
     // Backups for undo history
+    private SegmentType previous_segment_type;
     private Point previous_start;
     private Point previous_end;
     private Point previous_p1;
@@ -337,6 +314,11 @@ public class PathSegment : Segment {
                 previous_end = end;
                 previous_angle = angle;
                 break;
+            case "segment_type":
+                previous_segment_type = segment_type;
+                previous_p1 = p1;
+                previous_p2 = p2;
+                break;
         }
     }
     
@@ -374,6 +356,14 @@ public class PathSegment : Segment {
                 command.add_value (this, "angle", angle, previous_angle);
                 command.add_value (this, "start", start, previous_start);
                 command.add_value (this, "end", end, previous_end);
+                break;
+            case "segment_type":
+                command.add_value (this, "segment_type", segment_type, previous_segment_type);
+                command.add_value (this, "p1", p1, previous_p1);
+                command.add_value (this, "p2", p2, previous_p2);
+                break;
+            default:
+                warning ("Unimplemented command property '%s'", property);
                 break;
         }
         add_command (command);
