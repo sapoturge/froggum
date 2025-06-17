@@ -13,20 +13,28 @@ public class PathSegment : Segment {
         }
         set {
             if (_segment_type == value) {
-                _segment_type = value;
                 return;
             }
-            _segment_type = value;
-            if (_segment_type == CURVE) {
-                var dx = end.x - start.x;
-                var dy = end.y - start.y;
-                p1 = {start.x + dx / 4, start.y + dy / 4};
-                p2 = {end.x - dx / 4, end.y - dy / 4};
-            } else if (_segment_type == QUADRATIC) {
-                var dx = end.x - start.x;
-                var dy = end.y - start.y;
-                p1 = {start.x + dx / 2, start.y + dy / 2};
-            } else if (_segment_type == ARC) {
+            if (value == CURVE) {
+                if (_segment_type == QUADRATIC) {
+                    p2 = {(2*p1.x + end.x) / 3, (2*p1.y + end.y) / 3};
+                    p1 = {(2*p1.x + start.x) / 3, (2*p1.y + start.y) / 3};
+                } else {
+                    var dx = end.x - start.x;
+                    var dy = end.y - start.y;
+                    p1 = {start.x + dx / 4, start.y + dy / 4};
+                    p2 = {end.x - dx / 4, end.y - dy / 4};
+                }
+            } else if (value == QUADRATIC) {
+                if (_segment_type == CURVE) {
+                    // Approximate the same curve
+                    p1 = {(3*p1.x + 3*p2.x - start.x - end.x) / 4, (3*p1.y + 3*p2.y - start.y - end.y) / 4};
+                } else {
+                    var dx = end.x - start.x;
+                    var dy = end.y - start.y;
+                    p1 = {start.x + dx / 2, start.y + dy / 2};
+                }
+            } else if (value == ARC) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
                 angle = Math.PI + Math.atan2 (dy, dx);
@@ -37,6 +45,7 @@ public class PathSegment : Segment {
                 // Center has triggers to update start and end, so it goes last
                 center = {start.x + dx / 2, start.y + dy / 2};
             }
+            _segment_type = value;
         }
     }
 
