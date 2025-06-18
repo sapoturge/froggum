@@ -289,12 +289,17 @@ public class PathSegment : Segment {
         this.end = {x, y};
     }
 
-    public static bool load_moves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, out double start_x, out double start_y, ref double current_x, ref double current_y) {
+    public static bool load_moves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, out double start_x, out double start_y, ref double current_x, ref double current_y, bool relative) {
         if (!parser.get_double (out start_x)) {
             start_y = 0;
             return false;
         } else if (!parser.get_double (out start_y)) {
             return false;
+        }
+
+        if (relative) {
+            start_x += current_x;
+            start_y += current_y;
         }
 
         current_x = start_x;
@@ -308,6 +313,11 @@ public class PathSegment : Segment {
                 return false;
             }
 
+            if (relative) {
+                x += current_x;
+                y += current_y;
+            }
+
             segments.add (new PathSegment.line (x, y));
             current_x = x;
             current_y = y;
@@ -317,12 +327,17 @@ public class PathSegment : Segment {
         return true;
     }
 
-    public static bool load_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double x, y;
         bool loaded_once = false;
         while (parser.get_double (out x)) {
             if (!parser.get_double (out y)) {
                 return false;
+            }
+
+            if (relative) {
+                x += current_x;
+                y += current_y;
             }
 
             segments.add (new PathSegment.line (x, y));
@@ -335,10 +350,14 @@ public class PathSegment : Segment {
         return loaded_once;
     }
 
-    public static bool load_horizontal_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_horizontal_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double x;
         bool loaded_once = false;
         while (parser.get_double (out x)) {
+            if (relative) {
+                x += current_x;
+            }
+
             segments.add (new PathSegment.line (x, current_y));
             current_x = x;
             parsed.append_printf ("H %f ", x);
@@ -348,10 +367,14 @@ public class PathSegment : Segment {
         return loaded_once;
     }
 
-    public static bool load_vertical_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_vertical_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double y;
         bool loaded_once = false;
         while (parser.get_double (out y)) {
+            if (relative) {
+                y += current_y;
+            }
+
             segments.add (new PathSegment.line (current_x, y));
             current_y = y;
             parsed.append_printf ("V %f ", y);
@@ -361,7 +384,7 @@ public class PathSegment : Segment {
         return loaded_once;
     }
 
-    public static bool load_curves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_curves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double x1, x2, y1, y2, x, y;
         bool loaded_once = false;
         while (parser.get_double (out x1)) {
@@ -377,6 +400,15 @@ public class PathSegment : Segment {
                 return false;
             }
 
+            if (relative) {
+                x1 += current_x;
+                y1 += current_y;
+                x2 += current_x;
+                y2 += current_y;
+                x += current_x;
+                y += current_y;
+            }
+
             segments.add (new PathSegment.curve (x1, y1, x2, y2, x, y));
             current_x = x;
             current_y = y;
@@ -387,7 +419,7 @@ public class PathSegment : Segment {
         return loaded_once;
     }
 
-    public static bool load_smooth_curves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_smooth_curves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double x1, y1, x2, y2, x, y;
         bool loaded_once = false;
         while (parser.get_double (out x2)) {
@@ -397,6 +429,13 @@ public class PathSegment : Segment {
                 return false;
             } else if (!parser.get_double (out y)) {
                 return false;
+            }
+
+            if (relative) {
+                x2 += current_x;
+                y2 += current_y;
+                x += current_x;
+                y += current_y;
             }
 
             x1 = current_x;
@@ -417,7 +456,7 @@ public class PathSegment : Segment {
         return loaded_once;
     }
 
-    public static bool load_quadratics (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_quadratics (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double x1, y1, x, y;
         bool loaded_once = false;
         while (parser.get_double (out x1)) {
@@ -427,6 +466,13 @@ public class PathSegment : Segment {
                 return false;
             } else if (!parser.get_double (out y)) {
                 return false;
+            }
+
+            if (relative) {
+                x1 += current_x;
+                y1 += current_y;
+                x += current_x;
+                y += current_y;
             }
 
             segments.add (new PathSegment.quadratic (x1, y1, x, y));
@@ -439,12 +485,17 @@ public class PathSegment : Segment {
         return loaded_once;
     }
 
-    public static bool load_smooth_quadratics (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_smooth_quadratics (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double x1, y1, x, y;
         bool loaded_once = false;
         while (parser.get_double (out x)) {
             if (!parser.get_double (out y)) {
                 return false;
+            }
+
+            if (relative) {
+                x += current_x;
+                y += current_y;
             }
 
             x1 = current_x;
@@ -465,7 +516,7 @@ public class PathSegment : Segment {
         return loaded_once;
     }
 
-    public static bool load_arcs (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y) {
+    public static bool load_arcs (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
         double rx, ry, angle;
         int large_arc, sweep;
         double x, y;
@@ -483,6 +534,11 @@ public class PathSegment : Segment {
                 return false;
             } else if (!parser.get_double (out y)) {
                 return false;
+            }
+
+            if (relative) {
+                x += current_x;
+                y += current_y;
             }
 
             angle = angle * Math.PI / 180;

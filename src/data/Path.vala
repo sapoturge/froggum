@@ -61,36 +61,73 @@ public class Path : Element {
                 }
 
                 loaded_first = true;
-                loaded_successfully = PathSegment.load_moves (parser, parsed, segments, out start_x, out start_y, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_moves (parser, parsed, segments, out start_x, out start_y, ref current_x, ref current_y, false);
                 break;
             case "L":
-                loaded_successfully = PathSegment.load_lines (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_lines (parser, parsed, segments, ref current_x, ref current_y, false);
                 break;
             case "H":
-                loaded_successfully = PathSegment.load_horizontal_lines (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_horizontal_lines (parser, parsed, segments, ref current_x, ref current_y, false);
                 break;
             case "V":
-                loaded_successfully = PathSegment.load_vertical_lines (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_vertical_lines (parser, parsed, segments, ref current_x, ref current_y, false);
                 break;
             case "C":
-                loaded_successfully = PathSegment.load_curves (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_curves (parser, parsed, segments, ref current_x, ref current_y, false);
                 break;
             case "S":
-                loaded_successfully = PathSegment.load_smooth_curves (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_smooth_curves (parser, parsed, segments, ref current_x, ref current_y, false);
                 break;
             case "Q":
-                loaded_successfully = PathSegment.load_quadratics (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_quadratics (parser, parsed, segments, ref current_x, ref current_y, false);
                 break;
             case "T":
-                loaded_successfully = PathSegment.load_smooth_quadratics (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_smooth_quadratics (parser, parsed, segments, ref current_x, ref current_y, false);
                 break;
             case "A":
-                loaded_successfully = PathSegment.load_arcs (parser, parsed, segments, ref current_x, ref current_y);
+                loaded_successfully = PathSegment.load_arcs (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "m":
+                if (loaded_first) {
+                    // Paths with disconnected segments aren't supported yet.
+                    loaded_successfully = false;
+                    break;
+                }
+
+                loaded_first = true;
+                loaded_successfully = PathSegment.load_moves (parser, parsed, segments, out start_x, out start_y, ref current_x, ref current_y, true);
+                break;
+            case "l":
+                loaded_successfully = PathSegment.load_lines (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "h":
+                loaded_successfully = PathSegment.load_horizontal_lines (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "v":
+                loaded_successfully = PathSegment.load_vertical_lines (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "c":
+                loaded_successfully = PathSegment.load_curves (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "s":
+                loaded_successfully = PathSegment.load_smooth_curves (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "q":
+                loaded_successfully = PathSegment.load_quadratics (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "t":
+                loaded_successfully = PathSegment.load_smooth_quadratics (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "a":
+                loaded_successfully = PathSegment.load_arcs (parser, parsed, segments, ref current_x, ref current_y, true);
                 break;
             case "Z":
+            case "z":
                 // Ends the path, back to the beginning.
                 if (start_x != current_x || start_y != current_y) {
                     segments.add (new PathSegment.line (start_x, start_y));
+                    current_x = start_x;
+                    current_y = start_y;
                 }
 
                 parsed.append_printf ("Z ");
