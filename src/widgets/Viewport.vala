@@ -215,17 +215,56 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 cr.line_to (image.width, image.height);
                 cr.line_to (0, image.height);
                 cr.close_path ();
+
+                cr.move_to (-1, 0);
+                cr.line_to (-1, -1);
+                cr.line_to (0, -1);
+                cr.move_to (image.width, -1);
+                cr.line_to (image.width + 1, -1);
+                cr.line_to (image.width + 1, 0);
+                cr.move_to (image.width + 1, image.height);
+                cr.line_to (image.width + 1, image.height + 1);
+                cr.line_to (image.width, image.height + 1);
+                cr.move_to (0, image.height + 1);
+                cr.line_to (-1, image.height + 1);
+                cr.line_to (-1, image.height);
+
                 cr.set_source_rgba (0.2, 0.2, 0.2, 0.5);
                 cr.set_line_width (4 / zoom);
                 cr.stroke ();
+
                 for (int i = 1; i < image.width; i++) {
                     cr.move_to (i, 0);
                     cr.line_to (i, image.height);
                 }
+
                 for (int i = 1; i < image.height; i++) {
                     cr.move_to (0, i);
                     cr.line_to (image.width, i);
                 }
+
+                for (int i = 1; i < image.width / 2; i += 2) {
+                    cr.move_to (i, -1);
+                    cr.line_to (i + 1, -1);
+                    cr.move_to (image.width - i, -1);
+                    cr.line_to (image.width - i - 1, -1);
+                    cr.move_to (i, image.height + 1);
+                    cr.line_to (i + 1, image.height + 1);
+                    cr.move_to (image.width - i, image.height + 1);
+                    cr.line_to (image.width - i - 1, image.height + 1);
+                }
+
+                for (int i = 1; i < image.height / 2; i += 2) {
+                    cr.move_to (-1, i);
+                    cr.line_to (-1, i + 1);
+                    cr.move_to (-1, image.height - i);
+                    cr.line_to (-1, image.height - i - 1);
+                    cr.move_to (image.width + 1, i);
+                    cr.line_to (image.width + 1, i + 1);
+                    cr.move_to (image.width + 1, image.height - i);
+                    cr.line_to (image.width + 1, image.height - i - 1);
+                }
+
                 cr.set_line_width (2 / zoom);
                 cr.stroke ();
             }
