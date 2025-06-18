@@ -387,7 +387,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         drag_controller.drag_end.connect ((event) => {
             // Stop scrolling, dragging, etc.
             unbind_point ();
-            scrolling = false;
+            if (scrolling) {
+                scrolling = false;
+                horizontal.lower = double.min (horizontal.value, -width);
+                horizontal.upper = double.max (horizontal.value + width, image.width * zoom + width);
+                vertical.lower = double.min (vertical.value, -height);
+                vertical.upper = double.max (vertical.value + height, image.height * zoom + height);
+            }
         });
 
         var scroll_controller = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.BOTH_AXES);
