@@ -72,8 +72,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _scroll_x = (int) value;
-            horizontal.lower = double.min (-value, 0) - width / 2;
-            horizontal.upper = double.max (-value, image.width * zoom) + width / 2;
+            horizontal.lower = double.min (-value - width / 2, -width);
+            horizontal.upper = double.max (-value + width / 2, image.width * zoom + width);
             horizontal.value = -value - width / 2;
         }
     }
@@ -84,8 +84,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _scroll_y = (int) value;
-            vertical.lower = double.min (-value, 0) - height / 2;
-            vertical.upper = double.max (-value, image.height * zoom) + height / 2;
+            vertical.lower = double.min (-value - height / 2, -height);
+            vertical.upper = double.max (-value + height / 2, image.height * zoom + height);
             vertical.value = -value - height / 2;
         }
     }
@@ -110,8 +110,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Set values
             if (image != null) {
-                horizontal.lower = 0;
-                horizontal.upper = image.width * zoom;
+                horizontal.lower = -width;
+                horizontal.upper = image.width * zoom + width;
                 horizontal.page_size = width;
                 horizontal.page_increment = 1;
                 horizontal.step_increment = 1;
@@ -137,8 +137,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Set values
             if (image != null) {
-                vertical.lower = 0;
-                vertical.upper = image.height * zoom;
+                vertical.lower = -height;
+                vertical.upper = image.height * zoom + height;
                 vertical.page_size = height;
                 vertical.page_increment = 1;
                 vertical.step_increment = 1;
