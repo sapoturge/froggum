@@ -402,7 +402,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Differentiates between mice and touchpads: mice zoom by scrolling, touchpads don't
             if (dx == 0) {
                 update_zoom (Math.pow (2, -dy) * zoom);
+                return true;
             }
+
+            return false;
         });
 
         var zoom_controller = new Gtk.GestureZoom ();
