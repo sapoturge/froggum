@@ -1,59 +1,51 @@
 public enum SegmentType {
-    NONE,
     LINE,
     CURVE,
+    QUADRATIC,
     ARC
 }
 
 public class PathSegment : Segment {
-    private SegmentType _segment_type = NONE;
+    private SegmentType _segment_type;
     public SegmentType segment_type {
         get {
             return _segment_type;
         }
         set {
-            if (_segment_type == NONE || _segment_type == value) {
-                _segment_type = value;
+            if (_segment_type == value) {
                 return;
             }
-            var command = new Command ();
-            command.add_value (this, "segment_type", _segment_type, value);
-            if (_segment_type == CURVE) {
-                command.add_value (this, "p1", p1, p1);
-                command.add_value (this, "p2", p2, p2);
-            } else if (_segment_type == ARC) {
-                command.add_value (this, "center", center, center);
-                command.add_value (this, "angle", angle, angle);
-                command.add_value (this, "rx", rx, rx);
-                command.add_value (this, "ry", ry, ry);
-                command.add_value (this, "start", start, end);
-                command.add_value (this, "end", end, end);
-            }
-            _segment_type = value;
-            if (_segment_type == CURVE) {
+            if (value == CURVE) {
+                if (_segment_type == QUADRATIC) {
+                    p2 = {(2*p1.x + end.x) / 3, (2*p1.y + end.y) / 3};
+                    p1 = {(2*p1.x + start.x) / 3, (2*p1.y + start.y) / 3};
+                } else {
+                    var dx = end.x - start.x;
+                    var dy = end.y - start.y;
+                    p1 = {start.x + dx / 4, start.y + dy / 4};
+                    p2 = {end.x - dx / 4, end.y - dy / 4};
+                }
+            } else if (value == QUADRATIC) {
+                if (_segment_type == CURVE) {
+                    // Approximate the same curve
+                    p1 = {(3*p1.x + 3*p2.x - start.x - end.x) / 4, (3*p1.y + 3*p2.y - start.y - end.y) / 4};
+                } else {
+                    var dx = end.x - start.x;
+                    var dy = end.y - start.y;
+                    p1 = {start.x + dx / 2, start.y + dy / 2};
+                }
+            } else if (value == ARC) {
                 var dx = end.x - start.x;
                 var dy = end.y - start.y;
-                p1 = {start.x + dx / 4, start.y + dy / 4};
-                p2 = {end.x - dx / 4, end.y - dy / 4};
-                command.add_value (this, "p1", p1, p1);
-                command.add_value (this, "p2", p2, p2);
-            } else if (_segment_type == ARC) {
-                var dx = end.x - start.x;
-                var dy = end.y - start.y;
-                center = {start.x + dx / 2, start.y + dy / 2};
                 angle = Math.PI + Math.atan2 (dy, dx);
                 start_angle = 0;
                 end_angle = Math.PI;
                 rx = Math.hypot (dy, dx) / 2;
                 ry = rx / 2;
-                command.add_value (this, "center", center, center);
-                command.add_value (this, "angle", angle, angle);
-                command.add_value (this, "rx", rx, rx);
-                command.add_value (this, "ry", ry, ry);
-                command.add_value (this, "start", start, end);
-                command.add_value (this, "end", end, end);
+                // Center has triggers to update start and end, so it goes last
+                center = {start.x + dx / 2, start.y + dy / 2};
             }
-            add_command (command);
+            _segment_type = value;
         }
     }
 
@@ -68,7 +60,7 @@ public class PathSegment : Segment {
             if (next_binding != null) {
                 next_binding.unbind ();
             }
-            
+
             _next = value;
             _next.prev = this;
             next_binding = bind_property ("end", _next, "start", BindingFlags.BIDIRECTIONAL | BindingFlags.SYNC_CREATE);
@@ -140,7 +132,7 @@ public class PathSegment : Segment {
         }
     }
 
-    // Control points, used for CURVE segments
+    // Control points, used for CURVE and QUADRATIC segments
     public Point p1 { get; set; }
     public Point p2 { get; set; }
 
@@ -159,7 +151,7 @@ public class PathSegment : Segment {
     public double rx { get; set; default = 16; }
     public double ry { get; set; default = 16; }
     public double angle { get; set; }
-    
+
     private bool _reverse;
     public bool reverse {
         get {
@@ -226,7 +218,7 @@ public class PathSegment : Segment {
             end = point_from_angle(end_angle);
         }
     }
-    
+
     public Point bottomright {
         get {
             return {center.x + Math.cos (angle) * rx - Math.sin (angle) * ry,
@@ -254,8 +246,9 @@ public class PathSegment : Segment {
             end = point_from_angle(end_angle);
         }
     }
-    
+
     // Backups for undo history
+    private SegmentType previous_segment_type;
     private Point previous_start;
     private Point previous_end;
     private Point previous_p1;
@@ -266,7 +259,7 @@ public class PathSegment : Segment {
     private double previous_angle;
 
     public signal void request_split (PathSegment s);
-            
+
     // Constructors
     public PathSegment.line (double x, double y) {
         segment_type = LINE;
@@ -280,9 +273,15 @@ public class PathSegment : Segment {
         this.p2 = {x2, y2};
     }
 
+    public PathSegment.quadratic (double x1, double y1, double x, double y) {
+        segment_type = QUADRATIC;
+        this.end = {x, y};
+        this.p1 = {x1, y1};
+    }
+
     public PathSegment.arc (double x, double y, double xc, double yc, double rx, double ry, double angle, bool reverse) {
-        segment_type = ARC;
-        this.center = {xc, yc};
+        _segment_type = ARC;
+        this._center = {xc, yc};
         this.rx = rx;
         this.ry = ry;
         this.angle = angle;
@@ -290,8 +289,290 @@ public class PathSegment : Segment {
         this.end = {x, y};
     }
 
-    private PathSegment.none () {}
-    
+    public static bool load_moves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, out double start_x, out double start_y, ref double current_x, ref double current_y, bool relative) {
+        if (!parser.get_double (out start_x)) {
+            start_y = 0;
+            return false;
+        } else if (!parser.get_double (out start_y)) {
+            return false;
+        }
+
+        if (relative) {
+            start_x += current_x;
+            start_y += current_y;
+        }
+
+        current_x = start_x;
+        current_y = start_y;
+        parsed.append_printf ("M %f, %f ", start_x, start_y);
+
+        // Additional coordinates after an 'M' command are lines.
+        double x, y;
+        while (parser.get_double (out x)) {
+            if (!parser.get_double (out y)) {
+                return false;
+            }
+
+            if (relative) {
+                x += current_x;
+                y += current_y;
+            }
+
+            segments.add (new PathSegment.line (x, y));
+            current_x = x;
+            current_y = y;
+            parsed.append_printf ("L %f, %f ", x, y);
+        }
+
+        return true;
+    }
+
+    public static bool load_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double x, y;
+        bool loaded_once = false;
+        while (parser.get_double (out x)) {
+            if (!parser.get_double (out y)) {
+                return false;
+            }
+
+            if (relative) {
+                x += current_x;
+                y += current_y;
+            }
+
+            segments.add (new PathSegment.line (x, y));
+            current_x = x;
+            current_y = y;
+            parsed.append_printf ("L %f, %f ", x, y);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
+    public static bool load_horizontal_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double x;
+        bool loaded_once = false;
+        while (parser.get_double (out x)) {
+            if (relative) {
+                x += current_x;
+            }
+
+            segments.add (new PathSegment.line (x, current_y));
+            current_x = x;
+            parsed.append_printf ("H %f ", x);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
+    public static bool load_vertical_lines (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double y;
+        bool loaded_once = false;
+        while (parser.get_double (out y)) {
+            if (relative) {
+                y += current_y;
+            }
+
+            segments.add (new PathSegment.line (current_x, y));
+            current_y = y;
+            parsed.append_printf ("V %f ", y);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
+    public static bool load_curves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double x1, x2, y1, y2, x, y;
+        bool loaded_once = false;
+        while (parser.get_double (out x1)) {
+            if (!parser.get_double (out y1)) {
+                return false;
+            } else if (!parser.get_double (out x2)) {
+                return false;
+            } else if (!parser.get_double (out y2)) {
+                return false;
+            } else if (!parser.get_double (out x)) {
+                return false;
+            } else if (!parser.get_double (out y)) {
+                return false;
+            }
+
+            if (relative) {
+                x1 += current_x;
+                y1 += current_y;
+                x2 += current_x;
+                y2 += current_y;
+                x += current_x;
+                y += current_y;
+            }
+
+            segments.add (new PathSegment.curve (x1, y1, x2, y2, x, y));
+            current_x = x;
+            current_y = y;
+            parsed.append_printf ("C %f, %f, %f, %f, %f, %f ", x1, y1, x2, y2, x, y);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
+    public static bool load_smooth_curves (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double x1, y1, x2, y2, x, y;
+        bool loaded_once = false;
+        while (parser.get_double (out x2)) {
+            if (!parser.get_double (out y2)) {
+                return false;
+            } else if (!parser.get_double (out x)) {
+                return false;
+            } else if (!parser.get_double (out y)) {
+                return false;
+            }
+
+            if (relative) {
+                x2 += current_x;
+                y2 += current_y;
+                x += current_x;
+                y += current_y;
+            }
+
+            x1 = current_x;
+            y1 = current_y;
+
+            if (!segments.is_empty && segments.last ().segment_type == CURVE) {
+                x1 = 2 * current_x - segments.last ().p2.x;
+                y1 = 2 * current_y - segments.last ().p2.y;
+            }
+
+            segments.add (new PathSegment.curve (x1, y1, x2, y2, x, y));
+            current_x = x;
+            current_y = y;
+            parsed.append_printf ("S %f %f %f %f ", x2, y2, x, y);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
+    public static bool load_quadratics (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double x1, y1, x, y;
+        bool loaded_once = false;
+        while (parser.get_double (out x1)) {
+            if (!parser.get_double (out y1)) {
+                return false;
+            } else if (!parser.get_double (out x)) {
+                return false;
+            } else if (!parser.get_double (out y)) {
+                return false;
+            }
+
+            if (relative) {
+                x1 += current_x;
+                y1 += current_y;
+                x += current_x;
+                y += current_y;
+            }
+
+            segments.add (new PathSegment.quadratic (x1, y1, x, y));
+            current_x = x;
+            current_y = y;
+            parsed.append_printf ("Q %f, %f, %f, %f ", x1, y1, x, y);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
+    public static bool load_smooth_quadratics (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double x1, y1, x, y;
+        bool loaded_once = false;
+        while (parser.get_double (out x)) {
+            if (!parser.get_double (out y)) {
+                return false;
+            }
+
+            if (relative) {
+                x += current_x;
+                y += current_y;
+            }
+
+            x1 = current_x;
+            y1 = current_y;
+
+            if (!segments.is_empty && segments.last().segment_type == QUADRATIC) {
+                x1 = 2 * current_x - segments.last().p1.x;
+                y1 = 2 * current_y - segments.last().p1.y;
+            }
+
+            segments.add (new PathSegment.quadratic (x1, y1, x, y));
+            current_x = x;
+            current_y = y;
+            parsed.append_printf ("T %f, %f ", x, y);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
+    public static bool load_arcs (Parser parser, StringBuilder parsed, Gee.List<PathSegment> segments, ref double current_x, ref double current_y, bool relative) {
+        double rx, ry, angle;
+        int large_arc, sweep;
+        double x, y;
+        bool loaded_once = false;
+        while (parser.get_double (out rx)) {
+            if (!parser.get_double (out ry)) {
+                return false;
+            } else if (!parser.get_double (out angle)) {
+                return false;
+            } else if (!parser.get_int (out large_arc)) {
+                return false;
+            } else if (!parser.get_int (out sweep)) {
+                return false;
+            } else if (!parser.get_double (out x)) {
+                return false;
+            } else if (!parser.get_double (out y)) {
+                return false;
+            }
+
+            if (relative) {
+                x += current_x;
+                y += current_y;
+            }
+
+            angle = angle * Math.PI / 180;
+
+            var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
+            var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
+            var dt = (x1 * x1) / (rx * rx) + (y1 * y1) / (ry * ry);
+
+            if (dt > 1) {
+                rx = rx * Math.sqrt (dt);
+                ry = ry * Math.sqrt (dt);
+            }
+
+            var coefficient = Math.sqrt ((rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1) / (rx * rx * y1 * y1 + ry * ry * x1 * x1));
+
+            if (large_arc == sweep) {
+                coefficient = -coefficient;
+            }
+
+            var cx1 = coefficient * rx * y1 / ry;
+            var cy1 = -coefficient * ry * x1 / rx;
+            var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
+            var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
+
+            segments.add (new PathSegment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0)));
+            current_x = x;
+            current_y = y;
+            parsed.append_printf ("A %f, %f, %f, %d, %d, %f, %f ", rx, ry, angle, large_arc, sweep, x, y);
+            loaded_once = true;
+        }
+
+        return loaded_once;
+    }
+
     public override void begin (string property) {
         switch (property) {
             case "start":
@@ -326,9 +607,14 @@ public class PathSegment : Segment {
                 previous_end = end;
                 previous_angle = angle;
                 break;
+            case "segment_type":
+                previous_segment_type = segment_type;
+                previous_p1 = p1;
+                previous_p2 = p2;
+                break;
         }
     }
-    
+
     public override void finish (string property) {
         var command = new Command ();
         switch (property) {
@@ -363,6 +649,14 @@ public class PathSegment : Segment {
                 command.add_value (this, "angle", angle, previous_angle);
                 command.add_value (this, "start", start, previous_start);
                 command.add_value (this, "end", end, previous_end);
+                break;
+            case "segment_type":
+                command.add_value (this, "segment_type", segment_type, previous_segment_type);
+                command.add_value (this, "p1", p1, previous_p1);
+                command.add_value (this, "p2", p2, previous_p2);
+                break;
+            default:
+                warning ("Unimplemented command property '%s'", property);
                 break;
         }
         add_command (command);
@@ -411,6 +705,8 @@ public class PathSegment : Segment {
                 return "L %f %f".printf (end.x, end.y);
             case CURVE:
                 return "C %f %f %f %f %f %f".printf (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+            case QUADRATIC:
+                return "Q %f %f %f %f".printf (p1.x, p1.y, end.x, end.y);
             case ARC:
                 var start = start_angle;
                 var end = end_angle;
@@ -441,6 +737,8 @@ public class PathSegment : Segment {
                 return new PathSegment.line (end.x, end.y);
             case CURVE:
                 return new PathSegment.curve (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+            case QUADRATIC:
+                return new PathSegment.quadratic (p1.x, p1.y, end.x, end.y);
             case ARC:
                 return new PathSegment.arc (end.x, end.y, center.x, center.y, rx, ry, angle, reverse);
             default:
@@ -467,6 +765,13 @@ public class PathSegment : Segment {
                 first = new PathSegment.curve (q1.x, q1.y, r1.x, r1.y, s.x, s.y);
                 last = new PathSegment.curve (r2.x, r2.y, q3.x, q3.y, end.x, end.y);
                 break;
+            case QUADRATIC:
+                Point r1 = {(start.x + p1.x) / 2, (start.y + p1.y) / 2};
+                Point r2 = {(p1.x + end.x) / 2, (p1.y + end.y) / 2};
+                Point s = {(r1.x + r2.x) / 2, (r1.y + r2.y) / 2};
+                first = new PathSegment.quadratic (r1.x, r1.y, s.x, s.y);
+                last = new PathSegment.quadratic (r2.x, r2.y, end.x, end.y);
+                break;
             case ARC:
                 // ARC segments don't work very well together.
                 first = this;
@@ -478,6 +783,7 @@ public class PathSegment : Segment {
                 last = null;
                 return;
         }
+
         prev.next = first;
         last.prev = first;
         last.next = next;
@@ -496,6 +802,9 @@ public class PathSegment : Segment {
                 break;
             case CURVE:
                 cr.curve_to (p1.x, p1.y, p2.x, p2.y, end.x, end.y);
+                break;
+            case QUADRATIC:
+                cr.curve_to ((start.x + 2*p1.x)/3, (start.y + 2*p1.y)/3, (2*p1.x + end.x) / 3, (2*p1.y + end.y) / 3, end.x, end.y);
                 break;
             case ARC:
                 cr.save ();
@@ -540,7 +849,7 @@ public class PathSegment : Segment {
 
             var qx = px - ex;
             var qy = py - ey;
-            
+
             if (qx.is_nan ()) {
                 error ("Didn't find closest point.");
             }
@@ -595,6 +904,15 @@ public class PathSegment : Segment {
                 cr.arc (p2.x, p2.y, 6 / zoom, 0, Math.PI * 2);
                 cr.new_sub_path ();
                 break;
+            case SegmentType.QUADRATIC:
+                cr.move_to (start.x, start.y);
+                cr.line_to (p1.x, p1.y);
+                cr.line_to (end.x, end.y);
+                cr.set_source_rgba (0, 0.5, 1, 0.8);
+                cr.stroke ();
+                cr.arc (p1.x, p1.y, 6 / zoom, 0, Math.PI * 2);
+                cr.new_sub_path ();
+                break;
             case SegmentType.ARC:
                 cr.move_to (topleft.x, topleft.y);
                 cr.line_to (topright.x, topright.y);
@@ -645,9 +963,16 @@ public class PathSegment : Segment {
                     handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
-                if ((x - p2.x).abs () <= tolerance && 
+                if ((x - p2.x).abs () <= tolerance &&
                     (y - p2.y).abs () <= tolerance) {
                     handle = new BaseHandle(this, "p2", new Gee.ArrayList<ContextOption> ());
+                    return true;
+                }
+                break;
+            case QUADRATIC:
+                if ((x - p1.x).abs () <= tolerance &&
+                    (y - p1.y).abs () <= tolerance) {
+                    handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> ());
                     return true;
                 }
                 break;
@@ -704,6 +1029,7 @@ public class PathSegment : Segment {
         var segment_type_options = new Gee.HashMap<string, int> ();
         segment_type_options.set (_("Line"), SegmentType.LINE);
         segment_type_options.set (_("Curve"), SegmentType.CURVE);
+        segment_type_options.set (_("Quadratic Curve"), SegmentType.QUADRATIC);
         segment_type_options.set (_("Arc"), SegmentType.ARC);
         options.add (new ContextOption.options (_("Change segment to:"), this, "segment_type", segment_type_options));
         return options;

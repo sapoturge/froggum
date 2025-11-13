@@ -101,9 +101,11 @@ public class Parser : Object {
     }
 
     public bool get_int (out int value) {
+        var backup_index = index;
         bool negative = match ("-");
         if (!get_digit (out value, 10, false)) {
             value = 0;
+            index = backup_index;
             return false;
         }
 
@@ -121,6 +123,7 @@ public class Parser : Object {
     }
 
     public bool get_float (out float value) {
+        var backup_index = index;
         float multiplier = 1;
         if (match ("-")) {
             multiplier = -1;
@@ -131,6 +134,7 @@ public class Parser : Object {
         value = base_val * multiplier;
         var has_decimal_part = match (".", false);
         if (!(has_int_part || has_decimal_part)) {
+            index = backup_index;
             return false;
         }
 
@@ -144,6 +148,7 @@ public class Parser : Object {
     }
 
     public bool get_double (out double value) {
+        var backup_index = index;
         double multiplier = 1;
         if (match ("-")) {
             multiplier = -1;
@@ -154,6 +159,7 @@ public class Parser : Object {
         value = base_val * multiplier;
         var has_decimal_part = match (".", false);
         if (!(has_int_part || has_decimal_part)) {
+            index = backup_index;
             return false;
         }
 

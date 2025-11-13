@@ -20,7 +20,7 @@ public class Path : Element {
         }
 
         visible = true;
-        set_segments (segments);
+        set_segments (new Gee.ArrayList<PathSegment>.wrap (segments));
         setup_signals ();
     }
 
@@ -42,140 +42,116 @@ public class Path : Element {
     }
 
     private void parse_string (string description, Gee.Queue<Error> errors) {
-        var segments = new PathSegment[] {};
+        var segments = new Gee.ArrayList<PathSegment> ();
         var parser = new Parser (description);
         var parsed = new StringBuilder ();
+        var loaded_first = false;
         double start_x = 0;
         double start_y = 0;
         double current_x = 0;
         double current_y = 0;
         bool loaded_successfully = true;
-        while (!parser.empty ()) {
-            if (parser.match("M")) {
-                if (!parser.get_double (out start_x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out start_y)) {
-                    loaded_successfully = false;
-                    break;
-                }
-
-                current_x = start_x;
-                current_y = start_y;
-                parsed.append_printf ("M %f, %f ", start_x, start_y);
-            } else if (parser.match ("L")) {
-                double x, y;
-                if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
+        while (loaded_successfully && !parser.empty ()) {
+            switch (parser.get_string (1)) {
+            case "M":
+                if (loaded_first) {
+                    // Paths with disconnected segments aren't supported yet.
                     loaded_successfully = false;
                     break;
                 }
 
-                segments += new PathSegment.line (x, y);
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("L %f, %f ", x, y);
-            } else if (parser.match ("C")) {
-                double x1, x2, y1, y2, x, y;
-                if (!parser.get_double (out x1)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y1)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x2)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y2)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
-                    loaded_successfully = false;
-                    break;
-                }
-
-                segments += new PathSegment.curve (x1, y1, x2, y2, x, y);
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("C %f, %f, %f, %f, %f, %f ", x1, y1, x2, y2, x, y);
-            } else if (parser.match ("A")) {
-                double rx, ry, angle;
-                int large_arc, sweep;
-                double x, y;
-                if (!parser.get_double (out rx)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out ry)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out angle)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_int (out large_arc)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_int (out sweep)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out x)) {
-                    loaded_successfully = false;
-                    break;
-                } else if (!parser.get_double (out y)) {
+                loaded_first = true;
+                loaded_successfully = PathSegment.load_moves (parser, parsed, segments, out start_x, out start_y, ref current_x, ref current_y, false);
+                break;
+            case "L":
+                loaded_successfully = PathSegment.load_lines (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "H":
+                loaded_successfully = PathSegment.load_horizontal_lines (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "V":
+                loaded_successfully = PathSegment.load_vertical_lines (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "C":
+                loaded_successfully = PathSegment.load_curves (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "S":
+                loaded_successfully = PathSegment.load_smooth_curves (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "Q":
+                loaded_successfully = PathSegment.load_quadratics (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "T":
+                loaded_successfully = PathSegment.load_smooth_quadratics (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "A":
+                loaded_successfully = PathSegment.load_arcs (parser, parsed, segments, ref current_x, ref current_y, false);
+                break;
+            case "m":
+                if (loaded_first) {
+                    // Paths with disconnected segments aren't supported yet.
                     loaded_successfully = false;
                     break;
                 }
 
-                angle = angle * Math.PI / 180;
-
-                var x1 = (current_x - x) / 2 * Math.cos (angle) + Math.sin (angle) * (current_y - y) / 2;
-                var y1 = -Math.sin (angle) * (current_x - x) / 2 + Math.cos (angle) * (current_y - y) / 2;
-                var dt = (x1 * x1) / ( rx * rx) + (y1 * y1) / (ry * ry);
-                if (dt > 1) {
-                    rx = rx * Math.sqrt (dt);
-                    ry = ry * Math.sqrt (dt);
-                }
-                var coefficient = Math.sqrt ((rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1) / (rx * rx * y1 * y1 + ry * ry * x1 * x1));
-                if (large_arc == sweep) {
-                    coefficient = -coefficient;
-                }
-                var cx1 = coefficient * rx * y1 / ry;
-                var cy1 = -coefficient * ry * x1 / rx;
-                var cx = cx1 * Math.cos (angle) - cy1 * Math.sin (angle) + (current_x + x) / 2;
-                var cy = cx1 * Math.sin (angle) + cy1 * Math.cos (angle) + (current_y + y) / 2;
-                segments += new PathSegment.arc (x, y, cx, cy, rx, ry, angle, (sweep == 0));
-                current_x = x;
-                current_y = y;
-                parsed.append_printf ("A %f, %f, %f, %d, %d, %f, %f ", rx, ry, angle, large_arc, sweep, x, y);
-            } else if (parser.match ("Z")) {
+                loaded_first = true;
+                loaded_successfully = PathSegment.load_moves (parser, parsed, segments, out start_x, out start_y, ref current_x, ref current_y, true);
+                break;
+            case "l":
+                loaded_successfully = PathSegment.load_lines (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "h":
+                loaded_successfully = PathSegment.load_horizontal_lines (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "v":
+                loaded_successfully = PathSegment.load_vertical_lines (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "c":
+                loaded_successfully = PathSegment.load_curves (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "s":
+                loaded_successfully = PathSegment.load_smooth_curves (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "q":
+                loaded_successfully = PathSegment.load_quadratics (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "t":
+                loaded_successfully = PathSegment.load_smooth_quadratics (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "a":
+                loaded_successfully = PathSegment.load_arcs (parser, parsed, segments, ref current_x, ref current_y, true);
+                break;
+            case "Z":
+            case "z":
                 // Ends the path, back to the beginning.
                 if (start_x != current_x || start_y != current_y) {
-                    segments += new PathSegment.line (start_x, start_y);
+                    segments.add (new PathSegment.line (start_x, start_y));
+                    current_x = start_x;
+                    current_y = start_y;
                 }
 
                 parsed.append_printf ("Z ");
-            } else {
+                break;
+            default:
                 loaded_successfully = false;
                 break;
             }
+
+            parser.skip_whitespace ();
         }
 
-        if (segments.length == 0) {
+        if (segments.is_empty) {
             // Something went very wrong in loading.
             // This seems like a reasonable default.
-            segments += new PathSegment.line (current_x, current_y);
-            segments += new PathSegment.line (start_x, start_y);
+            segments.add (new PathSegment.line (current_x, current_y));
+            segments.add (new PathSegment.line (start_x, start_y));
             parsed.append_printf ("L %f, %f Z", current_x, current_y);
             loaded_successfully = false;
         }
 
         if (current_x != start_x || current_y != start_y) {
             // Open paths should be supported eventually, but aren't yet.
-            segments += new PathSegment.line (start_x, start_y);
+            segments.add (new PathSegment.line (start_x, start_y));
             parsed.append ("Z");
             loaded_successfully = false;
         }
@@ -187,12 +163,12 @@ public class Path : Element {
         set_segments (segments);
     }
 
-    private void set_segments (PathSegment[] segments) {
+    private void set_segments (Gee.List<PathSegment> segments) {
         root_segment = segments[0];
-        for (int i = 0; i < segments.length; i++) {
+        for (int i = 0; i < segments.size; i++) {
             segments[i].notify.connect (() => { update (); });
             segments[i].add_command.connect ((c) => { add_command (c); });
-            segments[i].next = segments[(i + 1) % segments.length];
+            segments[i].next = segments[(i + 1) % segments.size];
             segments[i].request_split.connect ((s) => {
                     split_segment((PathSegment) s);
             });
