@@ -72,8 +72,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _scroll_x = (int) value;
-            horizontal.lower = double.min (-value, 0) - width / 2;
-            horizontal.upper = double.max (-value, image.width * zoom) + width / 2;
+            horizontal.lower = double.min (-value - width / 2, -width);
+            horizontal.upper = double.max (-value + width / 2, image.width * zoom + width);
             horizontal.value = -value - width / 2;
         }
     }
@@ -84,8 +84,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         }
         set {
             _scroll_y = (int) value;
-            vertical.lower = double.min (-value, 0) - height / 2;
-            vertical.upper = double.max (-value, image.height * zoom) + height / 2;
+            vertical.lower = double.min (-value - height / 2, -height);
+            vertical.upper = double.max (-value + height / 2, image.height * zoom + height);
             vertical.value = -value - height / 2;
         }
     }
@@ -110,8 +110,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Set values
             if (image != null) {
-                horizontal.lower = 0;
-                horizontal.upper = image.width * zoom;
+                horizontal.lower = -width;
+                horizontal.upper = image.width * zoom + width;
                 horizontal.page_size = width;
                 horizontal.page_increment = 1;
                 horizontal.step_increment = 1;
@@ -137,8 +137,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
             // Set values
             if (image != null) {
-                vertical.lower = 0;
-                vertical.upper = image.height * zoom;
+                vertical.lower = -height;
+                vertical.upper = image.height * zoom + height;
                 vertical.page_size = height;
                 vertical.page_increment = 1;
                 vertical.step_increment = 1;
@@ -215,17 +215,56 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 cr.line_to (image.width, image.height);
                 cr.line_to (0, image.height);
                 cr.close_path ();
+
+                cr.move_to (-1, 0);
+                cr.line_to (-1, -1);
+                cr.line_to (0, -1);
+                cr.move_to (image.width, -1);
+                cr.line_to (image.width + 1, -1);
+                cr.line_to (image.width + 1, 0);
+                cr.move_to (image.width + 1, image.height);
+                cr.line_to (image.width + 1, image.height + 1);
+                cr.line_to (image.width, image.height + 1);
+                cr.move_to (0, image.height + 1);
+                cr.line_to (-1, image.height + 1);
+                cr.line_to (-1, image.height);
+
                 cr.set_source_rgba (0.2, 0.2, 0.2, 0.5);
                 cr.set_line_width (4 / zoom);
                 cr.stroke ();
+
                 for (int i = 1; i < image.width; i++) {
                     cr.move_to (i, 0);
                     cr.line_to (i, image.height);
                 }
+
                 for (int i = 1; i < image.height; i++) {
                     cr.move_to (0, i);
                     cr.line_to (image.width, i);
                 }
+
+                for (int i = 1; i < image.width / 2; i += 2) {
+                    cr.move_to (i, -1);
+                    cr.line_to (i + 1, -1);
+                    cr.move_to (image.width - i, -1);
+                    cr.line_to (image.width - i - 1, -1);
+                    cr.move_to (i, image.height + 1);
+                    cr.line_to (i + 1, image.height + 1);
+                    cr.move_to (image.width - i, image.height + 1);
+                    cr.line_to (image.width - i - 1, image.height + 1);
+                }
+
+                for (int i = 1; i < image.height / 2; i += 2) {
+                    cr.move_to (-1, i);
+                    cr.line_to (-1, i + 1);
+                    cr.move_to (-1, image.height - i);
+                    cr.line_to (-1, image.height - i - 1);
+                    cr.move_to (image.width + 1, i);
+                    cr.line_to (image.width + 1, i + 1);
+                    cr.move_to (image.width + 1, image.height - i);
+                    cr.line_to (image.width + 1, image.height - i - 1);
+                }
+
                 cr.set_line_width (2 / zoom);
                 cr.stroke ();
             }
@@ -348,7 +387,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         drag_controller.drag_end.connect ((event) => {
             // Stop scrolling, dragging, etc.
             unbind_point ();
-            scrolling = false;
+            if (scrolling) {
+                scrolling = false;
+                horizontal.lower = double.min (horizontal.value, -width);
+                horizontal.upper = double.max (horizontal.value + width, image.width * zoom + width);
+                vertical.lower = double.min (vertical.value, -height);
+                vertical.upper = double.max (vertical.value + height, image.height * zoom + height);
+            }
         });
 
         var scroll_controller = new Gtk.EventControllerScroll (Gtk.EventControllerScrollFlags.BOTH_AXES);
@@ -357,7 +402,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Differentiates between mice and touchpads: mice zoom by scrolling, touchpads don't
             if (dx == 0) {
                 update_zoom (Math.pow (2, -dy) * zoom);
+                return true;
             }
+
+            return false;
         });
 
         var zoom_controller = new Gtk.GestureZoom ();
