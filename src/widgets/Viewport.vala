@@ -42,6 +42,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _current_handle = value;
         }
     }
+    private Element? current_element = null;
+    private Handle? hovered_handle = null;
+    private Segment? hovered_segment = null;
+    private Element? hovered_element = null;
 
     private Undoable bound_obj;
     private string bound_prop;
@@ -55,8 +59,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _image.update.connect (() => {
                 queue_draw ();
             });
-            image.path_selected.connect (() => {
+            image.path_selected.connect ((elem) => {
                 current_handle = null;
+                current_element = elem;
             });
             image.apply_transform.connect ((t, e) => {
                 current_handle = null;
@@ -288,6 +293,25 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 cr.stroke ();
             }
 
+            if (hovered_element != null && hovered_element != current_element) {
+                hovered_element.draw (cr, 1 / zoom, {0, 0, 0, 0}, {0.15f, 0.85f, 0.95f, 1.0f}, true);
+            }
+
+            if (hovered_handle != null && (current_handle == null || !hovered_handle.same_point (current_handle))) {
+                Point center = hovered_handle.point;
+                cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);
+                cr.set_line_width (2 / zoom);
+                if (image.error != null) {
+                    cr.move_to (center.x + 5/zoom, center.y + 5/zoom);
+                    cr.line_to (center.x - 5/zoom, center.y - 5/zoom);
+                    cr.move_to (center.x + 5/zoom, center.y - 5/zoom);
+                    cr.line_to (center.x - 5/zoom, center.y + 5/zoom);
+                }
+
+                cr.set_source_rgb (0.15, 0.85, 0.95);
+                cr.stroke ();
+            }
+
             cr.restore();
         });
 
@@ -332,6 +356,16 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             var sx = scale_x(x);
             var sy = scale_y(y);
             cursor_pos = {sx, sy};
+            Element element;
+            Segment segment;
+            Handle handle;
+            image.clicked_element (sx, sy, 6 / zoom, out element, out segment, out handle);
+            if (element != hovered_element || segment != hovered_segment || handle != hovered_handle) {
+                hovered_element = element;
+                hovered_segment = segment;
+                hovered_handle = handle;
+                queue_draw ();
+            }
         });
 
         var drag_controller = new Gtk.GestureDrag ();

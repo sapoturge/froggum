@@ -17,6 +17,10 @@ public class TransformedHandle : Handle {
         }
     }
 
+    protected override BaseHandle core {
+        get { return base_handle.core; }
+    }
+
     public override Gee.List<ContextOption> options {
         get { return base_handle.options; }
     }
@@ -37,6 +41,10 @@ public class TransformedHandle : Handle {
         if (prop == "point") {
             base_handle.cancel ("point");
         }
+    }
+
+    public override bool same_point (Handle other) {
+        return base_handle.same_point (other);
     }
 
     public TransformedHandle (string name, Handle base_handle, Transform transform) {

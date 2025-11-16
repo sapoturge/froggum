@@ -13,6 +13,10 @@ public class BaseHandle : Handle {
         }
     }
 
+    protected override BaseHandle core {
+        get { return this; }
+    }
+
     private Gee.List<ContextOption> _options;
     public override Gee.List<ContextOption> options {
         get {
@@ -47,5 +51,9 @@ public class BaseHandle : Handle {
 
     public void add_option (ContextOption option) {
         _options.add (option);
+    }
+
+    public override bool same_point (Handle handle) {
+        return (target == handle.core.target && property == handle.core.property);
     }
 }
