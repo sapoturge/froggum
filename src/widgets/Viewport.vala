@@ -315,24 +315,22 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             cr.restore();
         });
 
-        var double_click_controller = new Gtk.GestureClick ();
-        add_controller (double_click_controller);
-        double_click_controller.pressed.connect ((n, x, y) => {
-            if (n == 2) {
-                Element path;
-                Segment segment;
-                Handle handle;
-                if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
-                    if (tutorial != null && tutorial.step == CLICK) {
-                        tutorial.next_step ();
-                    }
-
-                    path.select (true);
-                    current_handle = handle;
-                } else {
-                    image.deselect ();
-                    current_handle = null;
+        var click_controller = new Gtk.GestureClick ();
+        add_controller (click_controller);
+        click_controller.pressed.connect ((n, x, y) => {
+            Element path;
+            Segment segment;
+            Handle handle;
+            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+                if (tutorial != null && tutorial.step == CLICK) {
+                    tutorial.next_step ();
                 }
+
+                path.select (true);
+                current_handle = handle;
+            } else {
+                image.deselect ();
+                current_handle = null;
             }
         });
 
