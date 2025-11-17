@@ -492,6 +492,14 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         });
     }
 
+    public void zoom_in () {
+        update_zoom (zoom * 2);
+    }
+
+    public void zoom_out () {
+        update_zoom (zoom / 2);
+    }
+
     private void update_zoom (double new_zoom) {
         new_zoom = double.max (new_zoom, 1);
 

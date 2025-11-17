@@ -398,6 +398,14 @@ public class EditorView : Gtk.Box, ErrorReporter {
         viewport.recenter ();
     }
 
+    public void zoom_in () {
+        viewport.zoom_in ();
+    }
+
+    public void zoom_out () {
+        viewport.zoom_out ();
+    }
+
     private void try_again () {
         var err = image.error;
         image.resolve_error ();
