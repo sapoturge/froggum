@@ -421,7 +421,7 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    private void insert_top (Element element, Command command) {
+    protected void insert_top (Element element, Command command) {
         var insert = ModelUpdate () {
             position = 0,
             elements = { element },
@@ -439,7 +439,7 @@ public interface Container : Undoable, Updatable, Transformed {
         add_command (command);
     }
 
-    private void insert_bottom (Element element, Command command) {
+    protected void insert_bottom (Element element, Command command) {
         var insert = ModelUpdate () {
             position = model.get_n_items (),
             elements = { element },

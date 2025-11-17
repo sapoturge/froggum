@@ -253,21 +253,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                              {0.33f, 0.33f, 0.33f, 1f},
                              "New Path");
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {path},
-            removals = 0,
-            selection = path,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (path, command);
     }
 
     public void new_circle () {
@@ -275,81 +261,25 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                                  new Pattern.color ({0.66f, 0.66f, 0.66f, 1}),
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {circle},
-            removals = 0,
-            selection = circle,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (circle, command);
     }
 
     public void new_rectangle () {
         var rectangle = new Rectangle (2.5, 2.5, width - 5, height - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {rectangle},
-            removals = 0,
-            selection = rectangle,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (rectangle, command);
     }
 
     public void new_ellipse () {
         var ellipse = new Ellipse (width / 2, height / 2, width / 2 - 5, height / 2 - 5, new Pattern.color ({0.66f, 0.66f, 0.66f, 1}), new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {ellipse},
-            removals = 0,
-            selection = ellipse,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (ellipse, command);
     }
 
     public void new_line () {
         var line = new Line (1.5, 1.5, width - 1.5, height - 1.5, new Pattern.color ({0.33f, 0.33f, 0.33f, 1}));
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {line},
-            removals = 0,
-            selection = line,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (line, command);
     }
 
     public void new_polyline () {
@@ -361,21 +291,7 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polyline");
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {line},
-            removals = 0,
-            selection = line,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (line, command);
     }
 
     public void new_polygon () {
@@ -387,41 +303,13 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
                                  new Pattern.color ({0.33f, 0.33f, 0.33f, 1}),
                                  "New Polygon");
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {shape},
-            removals = 0,
-            selection = shape,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (shape, command);
     }
 
     public void new_group () {
         var group = new Group ();
         var command = new Command ();
-        var insert_update = ModelUpdate () {
-            position = 0,
-            elements = {group},
-            removals = 0,
-            selection = group,
-        };
-        var remove_update = ModelUpdate () {
-            position = 0,
-            elements = {},
-            removals = 1,
-            selection = null,
-        };
-        updator = insert_update;
-        command.add_value (this, "updator", insert_update, remove_update);
-        add_command (command);
+        insert_top (group, command);
     }
 
     private void save_xml () {
