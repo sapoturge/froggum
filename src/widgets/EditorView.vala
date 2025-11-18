@@ -1,4 +1,6 @@
 public class EditorView : Gtk.Box, ErrorReporter {
+    public signal void close_popovers ();
+
     public Image image { get; private set; }
 
     private Gtk.ListView paths_list;
@@ -118,6 +120,8 @@ public class EditorView : Gtk.Box, ErrorReporter {
             bind_property ("allow_edits", row, "allow_edits");
             row.allow_edits = allow_edits;
             li.child = row;
+            row.request_close_popovers.connect (() => close_popovers ());
+            close_popovers.connect (() => row.close_popovers ());
         });
         builder.bind.connect ((l) => {
             var li = (Gtk.ListItem) l;
@@ -135,6 +139,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
             var li = (Gtk.ListItem) l;
             var layout = (PathRow) li.child;
             layout.unbind ();
+            // TODO: remove bindings
         });
 
         paths_list = new Gtk.ListView (selection, builder);

@@ -1,6 +1,8 @@
 public class PathRow : Gtk.Box {
     // Some commented items will be added back eventually.
 
+    public signal void request_close_popovers ();
+
     // private Image image;
     // private int view_width;
     // private int view_height;
@@ -35,6 +37,9 @@ public class PathRow : Gtk.Box {
         visibility.tooltip_text = _("Toggle visibility");
         fill.tooltip_text = _("Fill pattern");
         stroke.tooltip_text = _("Stroke pattern");
+
+        fill.request_close_popovers.connect (() => request_close_popovers ());
+        stroke.request_close_popovers.connect (() => request_close_popovers ());
 
         append (expander);
         append (view);
@@ -91,5 +96,10 @@ public class PathRow : Gtk.Box {
             fill.sensitive = value;
             stroke.sensitive = value;
         }
+    }
+
+    public void close_popovers () {
+        fill.close_popover ();
+        stroke.close_popover ();
     }
 }
