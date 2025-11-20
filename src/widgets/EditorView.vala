@@ -1,4 +1,33 @@
 public class EditorView : Gtk.Box, ErrorReporter {
+    private const string PREFIX = "edit";
+    private const string ACTION_NEW_PATH = "new-path";
+    private const string ACTION_NEW_CIRCLE = "new-circle";
+    private const string ACTION_NEW_ELLIPSE = "new-ellipse";
+    private const string ACTION_NEW_RECTANGLE = "new-rectangle";
+    private const string ACTION_NEW_LINE = "new-line";
+    private const string ACTION_NEW_POLYLINE = "new-polyline";
+    private const string ACTION_NEW_POLYGON = "new-polygon";
+    private const string ACTION_NEW_GROUP = "new-group";
+    private const string ACTION_DUPLICATE = "duplicate";
+    private const string ACTION_SWAP_UP = "swap-up";
+    private const string ACTION_SWAP_DOWN = "swap-down";
+    private const string ACTION_DELETE = "delete";
+
+    private const ActionEntry[] ACTION_ENTRIES = {
+        { ACTION_NEW_PATH, action_new_path },
+        { ACTION_NEW_CIRCLE, action_new_circle },
+        { ACTION_NEW_ELLIPSE, action_new_ellipse },
+        { ACTION_NEW_RECTANGLE, action_new_rectangle },
+        { ACTION_NEW_LINE, action_new_line },
+        { ACTION_NEW_POLYLINE, action_new_polyline },
+        { ACTION_NEW_POLYGON, action_new_polygon },
+        { ACTION_NEW_GROUP, action_new_group },
+        { ACTION_DUPLICATE, action_duplicate },
+        { ACTION_SWAP_UP, action_swap_up },
+        { ACTION_SWAP_DOWN, action_swap_down },
+        { ACTION_DELETE, action_delete },
+    };
+
     public signal void close_popovers ();
 
     public Image image { get; private set; }
@@ -48,6 +77,10 @@ public class EditorView : Gtk.Box, ErrorReporter {
     }
 
     public EditorView (Image image) {
+        var action_group = new SimpleActionGroup ();
+        action_group.add_action_entries (ACTION_ENTRIES, this);
+        insert_action_group (PREFIX, action_group);
+
         this.image = image;
         selection = new Gtk.SingleSelection (image.tree);
         paths_list.model = selection;
@@ -154,121 +187,63 @@ public class EditorView : Gtk.Box, ErrorReporter {
         new_path = new Gtk.Button () {
             icon_name = "list-add-symbolic",
             tooltip_text = _("New Path"),
+            action_name = PREFIX + "." + ACTION_NEW_PATH,
         };
-        new_path.clicked.connect (() => {
-            image.new_path ();
-        });
-
         new_circle = new Gtk.Button () {
             icon_name = "circle-new-symbolic",
             tooltip_text = _("New Circle"),
+            action_name = PREFIX + "." + ACTION_NEW_CIRCLE,
         };
-        new_circle.clicked.connect (() => {
-            image.new_circle ();
-        });
-
         new_rectangle = new Gtk.Button () {
             icon_name = "rectangle-new-symbolic",
             tooltip_text = _("New Rectangle"),
+            action_name = PREFIX + "." + ACTION_NEW_RECTANGLE,
         };
-        new_rectangle.clicked.connect (() => {
-            image.new_rectangle ();
-        });
-
         new_ellipse = new Gtk.Button () {
             icon_name = "ellipse-new-symbolic",
             tooltip_text = _("New Ellipse"),
+            action_name = PREFIX + "." + ACTION_NEW_ELLIPSE,
         };
-        new_ellipse.clicked.connect (() => {
-            image.new_ellipse ();
-        });
-
         new_line = new Gtk.Button () {
             icon_name = "line-new-symbolic",
             tooltip_text = _("New Line"),
+            action_name = PREFIX + "." + ACTION_NEW_LINE,
         };
-        new_line.clicked.connect (() => {
-            image.new_line ();
-        });
-
         new_polyline = new Gtk.Button () {
             icon_name = "polyline-new-symbolic",
             tooltip_text = _("New Polyline"),
+            action_name = PREFIX + "." + ACTION_NEW_POLYLINE,
         };
-        new_polyline.clicked.connect (() => {
-            image.new_polyline ();
-        });
-
         new_polygon = new Gtk.Button () {
             icon_name = "polygon-new-symbolic",
             tooltip_text = _("New Polygon"),
+            action_name = PREFIX + "." + ACTION_NEW_POLYGON,
         };
-        new_polygon.clicked.connect (() => {
-            image.new_polygon ();
-        });
-
-        new_group = new Gtk.Button.from_icon_name ("folder-new-symbolic");
-        new_group.tooltip_text = _("New group");
-        new_group.clicked.connect (() => {
-            image.new_group ();
-        });
-
-        duplicate_path = new Gtk.Button.from_icon_name ("edit-copy-symbolic");
-        duplicate_path.tooltip_text = _("Duplicate element");
-        duplicate_path.clicked.connect (() => {
-            var row = image.tree.get_row (selection.selected);
-            var elem = row.item as Element;
-            if (elem != null) {
-                elem.request_duplicate ();
-            }
-        });
-
-        path_up = new Gtk.Button.from_icon_name ("go-up-symbolic");
-        path_up.tooltip_text = _("Move element up");
-        path_up.clicked.connect (() => {
-            var row = image.tree.get_row (selection.selected);
-            var prev_row = image.tree.get_row (selection.selected - 1);
-            var elem = row.item as Element;
-            if (row != null && prev_row != null && elem != null) {
-                var into = false;
-                if (prev_row.depth > row.depth) {
-                    into = true;
-                } else if (prev_row.depth == row.depth) {
-                    into = prev_row.expanded;
-                }
-
-                elem.swap_up (into);
-            }
-        });
-
-        path_down = new Gtk.Button.from_icon_name ("go-down-symbolic");
-        path_down.tooltip_text = _("Move element down");
-        path_down.clicked.connect (() => {
-            var row = image.tree.get_row (selection.selected);
-            if (row != null) {
-                var elem = row.item as Element;
-                if (elem != null) {
-                    var into = false;
-                    var next_row = image.tree.get_row (selection.selected + 1);
-                    if (next_row != null) {
-                        into = next_row.expanded;
-                    }
-                    elem.swap_down (into);
-                }
-            }
-        });
-
-        delete_path = new Gtk.Button.from_icon_name ("edit-delete-symbolic");
-        delete_path.tooltip_text = _("Delete element");
-        delete_path.clicked.connect (() => {
-            var row = image.tree.get_row (selection.selected);
-            if (row != null) {
-                var elem = row.item as Element;
-                if (elem != null) {
-                    elem.request_delete ();
-                }
-            }
-        });
+        new_group = new Gtk.Button () {
+            icon_name = "folder-new-symbolic",
+            tooltip_text = _("New group"),
+            action_name = PREFIX + "." + ACTION_NEW_GROUP,
+        };
+        duplicate_path = new Gtk.Button () {
+            icon_name = "edit-copy-symbolic",
+            tooltip_text = _("Duplicate element"),
+            action_name = PREFIX + "." + ACTION_DUPLICATE,
+        };
+        path_up = new Gtk.Button () {
+            icon_name = "go-up-symbolic",
+            tooltip_text = _("Move element up"),
+            action_name = PREFIX + "." + ACTION_SWAP_UP,
+        };
+        path_down = new Gtk.Button () {
+            icon_name = "go-down-symbolic",
+            tooltip_text = _("Move element down"),
+            action_name = PREFIX + "." + ACTION_SWAP_DOWN,
+        };
+        delete_path = new Gtk.Button () {
+            icon_name = "edit-delete-symbolic",
+            tooltip_text = _("Delete element"),
+            action_name = PREFIX + "." + ACTION_DELETE,
+        };
 
         var task_bar = new Gtk.Grid () {
             column_homogeneous = true,
@@ -427,5 +402,60 @@ public class EditorView : Gtk.Box, ErrorReporter {
         error_bar.error = image.error;
         error_from_image = true;
         allow_edits = image.error == null;
+    }
+
+    private void action_new_path () { image.new_path (); }
+    private void action_new_circle () { image.new_circle (); }
+    private void action_new_ellipse () { image.new_ellipse (); }
+    private void action_new_rectangle () { image.new_rectangle (); }
+    private void action_new_line () { image.new_line (); }
+    private void action_new_polyline () { image.new_polyline (); }
+    private void action_new_polygon () { image.new_polygon (); }
+    private void action_new_group () { image.new_group (); }
+    private void action_duplicate () {
+        var row = image.tree.get_row (selection.selected);
+        var elem = row.item as Element;
+        if (elem != null) {
+            elem.request_duplicate ();
+        }
+    }
+    private void action_swap_up () {
+        var row = image.tree.get_row (selection.selected);
+        var prev_row = image.tree.get_row (selection.selected - 1);
+        var elem = row.item as Element;
+        if (row != null && prev_row != null && elem != null) {
+            var into = false;
+            if (prev_row.depth > row.depth) {
+                into = true;
+            } else if (prev_row.depth == row.depth) {
+                into = prev_row.expanded;
+            }
+
+            elem.swap_up (into);
+        }
+    }
+    private void action_swap_down () {
+        var row = image.tree.get_row (selection.selected);
+        if (row != null) {
+            var elem = row.item as Element;
+            if (elem != null) {
+                var into = false;
+                var next_row = image.tree.get_row (selection.selected + 1);
+                if (next_row != null) {
+                    into = next_row.expanded;
+                }
+
+                elem.swap_down (into);
+            }
+        }
+    }
+    private void action_delete () {
+        var row = image.tree.get_row (selection.selected);
+        if (row != null) {
+            var elem = row.item as Element;
+            if (elem != null) {
+                elem.request_delete ();
+            }
+        }
     }
 }
