@@ -32,6 +32,8 @@ public class EditorView : Gtk.Box, ErrorReporter {
 
     public Image image { get; private set; }
 
+    private static Menu default_layers_context_menu;
+
     private Gtk.ListView paths_list;
     private Gtk.SingleSelection selection;
     private Viewport viewport;
@@ -145,6 +147,22 @@ public class EditorView : Gtk.Box, ErrorReporter {
         });
     }
 
+    static construct {
+        default_layers_context_menu = new Menu ();
+        default_layers_context_menu.append (_("New Path"), PREFIX + "." + ACTION_NEW_PATH);
+        default_layers_context_menu.append (_("New Circle"), PREFIX + "." + ACTION_NEW_CIRCLE);
+        default_layers_context_menu.append (_("New Ellipse"), PREFIX + "." + ACTION_NEW_ELLIPSE);
+        default_layers_context_menu.append (_("New Rectangle"), PREFIX + "." + ACTION_NEW_RECTANGLE);
+        default_layers_context_menu.append (_("New Line"), PREFIX + "." + ACTION_NEW_LINE);
+        default_layers_context_menu.append (_("New Polyline"), PREFIX + "." + ACTION_NEW_POLYLINE);
+        default_layers_context_menu.append (_("New Polygon"), PREFIX + "." + ACTION_NEW_POLYGON);
+        default_layers_context_menu.append (_("New Group"), PREFIX + "." + ACTION_NEW_GROUP);
+        default_layers_context_menu.append (_("Duplicate Selected"), PREFIX + "." + ACTION_DUPLICATE);
+        default_layers_context_menu.append (_("Shift Up"), PREFIX + "." + ACTION_SWAP_UP);
+        default_layers_context_menu.append (_("Shift Down"), PREFIX + "." + ACTION_SWAP_DOWN);
+        default_layers_context_menu.append (_("Delete"), PREFIX + "." + ACTION_DELETE);
+    }
+
     construct {
         var builder = new Gtk.SignalListItemFactory ();
         builder.setup.connect ((l) => {
@@ -176,6 +194,16 @@ public class EditorView : Gtk.Box, ErrorReporter {
         });
 
         paths_list = new Gtk.ListView (selection, builder);
+        
+        var paths_context_menu = new Gtk.PopoverMenu.from_model (default_layers_context_menu);
+        paths_context_menu.set_parent (paths_list);
+        var right_click_controller = new Gtk.GestureClick ();
+        right_click_controller.set_button (3);
+        paths_list.add_controller (right_click_controller);
+        right_click_controller.pressed.connect ((n, x, y) => {
+            paths_context_menu.pointing_to = {(int) x - 5, (int) y - 5, 10, 10};
+            paths_context_menu.popup ();
+        });
 
         var list_box_scroll = new Gtk.ScrolledWindow () {
             hscrollbar_policy = Gtk.PolicyType.NEVER,
