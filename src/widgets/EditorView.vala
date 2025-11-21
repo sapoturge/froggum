@@ -164,6 +164,8 @@ public class EditorView : Gtk.Box, ErrorReporter {
     }
 
     construct {
+        var edit_sidebar = new EditorSidebar ();
+
         var builder = new Gtk.SignalListItemFactory ();
         builder.setup.connect ((l) => {
             var li = (Gtk.ListItem) l;
@@ -296,7 +298,8 @@ public class EditorView : Gtk.Box, ErrorReporter {
         var side_bar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         side_bar.hexpand = false;
         side_bar.vexpand = true;
-        side_bar.prepend (list_box_scroll);
+        side_bar.append (edit_sidebar);
+        side_bar.append (list_box_scroll);
         side_bar.append (task_bar);
 
         error_bar = new ErrorBar ();
@@ -364,6 +367,10 @@ public class EditorView : Gtk.Box, ErrorReporter {
         scrolled.vscrollbar_policy = Gtk.PolicyType.ALWAYS;
         scrolled.hexpand = true;
         scrolled.vexpand = true;
+
+        viewport.bind_property ("current_element", edit_sidebar, "element");
+        viewport.bind_property ("current_segment", edit_sidebar, "segment");
+        viewport.bind_property ("current_handle", edit_sidebar, "handle");
 
         status_bar = new StatusBar ();
         viewport.bind_property ("current_handle", status_bar, "handle");

@@ -42,7 +42,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             _current_handle = value;
         }
     }
-    private Element? current_element = null;
+
+    public Segment? current_segment { get; private set; }
+    public Element? current_element { get; private set; }
+
     private Handle? hovered_handle = null;
     private Segment? hovered_segment = null;
     private Element? hovered_element = null;
@@ -318,33 +321,38 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         var click_controller = new Gtk.GestureClick ();
         add_controller (click_controller);
         click_controller.pressed.connect ((n, x, y) => {
-            Element path;
+            Element element;
             Segment segment;
             Handle handle;
-            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
+            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out element, out segment, out handle)) {
                 if (tutorial != null && tutorial.step == CLICK) {
                     tutorial.next_step ();
                 }
 
-                path.select (true);
-                current_handle = handle;
+                element.select (true);
             } else {
                 image.deselect ();
-                current_handle = null;
             }
+
+            current_handle = handle;
+            current_segment = segment;
+            current_element = element;
         });
 
         var right_click_controller = new Gtk.GestureClick ();
         right_click_controller.set_button (3);
         add_controller (right_click_controller);
         right_click_controller.pressed.connect ((n, x, y) => {
-            Element path;
+            Element element;
             Segment segment;
             Handle handle;
-            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out path, out segment, out handle)) {
-                path.select (true);
+            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out element, out segment, out handle)) {
+                element.select (true);
                 current_handle = handle;
-                show_context_menu (path, segment, handle, x, y);
+                current_segment = segment;
+                current_element = element;
+
+                show_context_menu (element, segment, handle, x, y);
             }
         });
 
