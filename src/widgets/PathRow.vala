@@ -57,10 +57,15 @@ public class PathRow : Gtk.Box {
     public void bind (Gtk.TreeListRow row, Element elem) {
         expander.list_row = row;
 
-        view.content_width = (int) elem.transform.width;
-        view.content_height = (int) elem.transform.height;
+        var scale = 32 / elem.transform.height;
+        view.content_width = (int) (elem.transform.width * scale);
+        view.content_height = 32;
+        view.valign = Gtk.Align.CENTER;
         view.set_draw_func ((d, cr, w, h) => {
+            cr.save ();
+            cr.scale (scale, scale);
             elem.draw (cr);
+            cr.restore ();
         });
 
         view_handle = elem.update.connect (() => { view.queue_draw (); });
