@@ -80,6 +80,7 @@ public class EditorSidebar : Gtk.Box {
             var preview = new Gtk.DrawingArea () {
                 content_width = (int) element.transform.width,
                 content_height = (int) element.transform.height,
+                tooltip_text = _("Element preview"),
             };
             preview.set_draw_func ((d, cr, w, h) => {
                 element.draw (cr);
@@ -88,6 +89,7 @@ public class EditorSidebar : Gtk.Box {
 
             var title = new Gtk.EditableLabel (element.title) {
                 hexpand = true,
+                tooltip_text = _("Element name"),
             };
             title.changed.connect (() => {
                 element.begin ("title");
@@ -203,6 +205,7 @@ public class EditorSidebar : Gtk.Box {
                 };
                 var button = new Gtk.ColorDialogButton (dialog) {
                     rgba = rgba,
+                    tooltip_text = option.label,
                 };
                 button.notify["rgba"].connect (() => {
                     option.target.begin (option.prop);

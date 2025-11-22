@@ -39,11 +39,13 @@ public class GradientEditor : Gtk.Box {
             hexpand = true,
             vexpand = true,
             content_height = 30,
+            tooltip_text = _("Click to add stop"),
         };
 
         stop_view = new Gtk.DrawingArea () {
             hexpand = true,
             content_height = 40,
+            tooltip_text = _("Edit stops"),
         };
 
         pattern_view.set_draw_func ((d, cr, w, h) => {
