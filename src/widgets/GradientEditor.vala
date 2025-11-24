@@ -33,7 +33,6 @@ public class GradientEditor : Gtk.Box {
 
     construct {
         orientation = Gtk.Orientation.VERTICAL;
-        sensitive = true;
 
         pattern_view = new Gtk.DrawingArea () {
             hexpand = true,
@@ -51,10 +50,6 @@ public class GradientEditor : Gtk.Box {
         pattern_view.set_draw_func ((d, cr, w, h) => {
             pattern.apply_custom (cr, {15, h / 2}, {w - 15, h / 2}, PatternType.LINEAR);
             cr.paint ();
-            if (!sensitive) {
-                cr.set_source_rgba(0.8, 0.8, 0.8, 0.2);
-                cr.paint();
-            }
         });
 
         stop_view.set_draw_func((d, cr, w, h) => {
@@ -68,19 +63,10 @@ public class GradientEditor : Gtk.Box {
                 cr.line_to (cx - 10, h - 25);
                 cr.close_path ();
 
-                var darkness = 0.4;
-                if (!sensitive) {
-                    darkness += 0.2;
-                }
-
-                cr.set_source_rgb (darkness, darkness, darkness);
+                cr.set_source_rgb (0.4, 0.4, 0.4);
                 cr.fill ();
                 cr.rectangle (cx - 8, h - 23, 16, 16);
                 cr.set_source_rgba (s.rgba.red, s.rgba.green, s.rgba.blue, s.rgba.alpha);
-                if (!sensitive) {
-                    cr.fill_preserve();
-                    cr.set_source_rgba(0.8, 0.8, 0.8, 0.2);
-                }
 
                 cr.fill ();
             }
@@ -89,7 +75,7 @@ public class GradientEditor : Gtk.Box {
         var stop_click_controller = new Gtk.GestureClick ();
         stop_view.add_controller (stop_click_controller);
         stop_click_controller.pressed.connect ((n, x, y) => {
-            if (sensitive && n == 2) {
+            if (n == 1) {
                 for (int i = 0; i < pattern.get_n_items(); i++) {
                     Stop stop = (Stop) pattern.get_item (i);
                     var cx = 15 + (pattern_view.get_width () - 30) * stop.offset;
@@ -98,7 +84,6 @@ public class GradientEditor : Gtk.Box {
                             title = _("Stop Color"),
                             with_alpha = true,
                         };
-                        stop.begin ("rgba");
                         dialog.choose_rgba.begin (root as Gtk.Window, stop.rgba, null, (obj, res) => {
                             try {
                                 var color = dialog.choose_rgba.end (res);
@@ -119,26 +104,22 @@ public class GradientEditor : Gtk.Box {
         var pattern_click_controller = new Gtk.GestureClick ();
         pattern_view.add_controller(pattern_click_controller);
         pattern_click_controller.pressed.connect ((n, x, y) => {
-            if (sensitive) {
-                var offset = (x - 15) / (pattern_view.get_width () - 30);
-                pattern.add_stop (new Stop (offset, pattern.rgba));
-            }
+            var offset = (x - 15) / (pattern_view.get_width () - 30);
+            pattern.add_stop (new Stop (offset, pattern.rgba));
         });
 
         var drag_controller = new Gtk.GestureDrag ();
         stop_view.add_controller (drag_controller);
         drag_controller.drag_begin.connect ((x, y) => {
-            if (sensitive) {
-                for (int i = 0; i < pattern.get_n_items(); i++) {
-                    Stop stop = (Stop) pattern.get_item (i);
-                    var cx = 15 + (pattern_view.get_width () - 30) * stop.offset;
-                    if (cx - 10 < x && x < cx + 10) {
-                        stop.begin ("offset");
-                        bound_stop = stop;
-                        stop_binding = bind_property ("offset", stop, "offset");
-                        base_offset = x - 15;
-                        return;
-                    }
+            for (int i = 0; i < pattern.get_n_items(); i++) {
+                Stop stop = (Stop) pattern.get_item (i);
+                var cx = 15 + (pattern_view.get_width () - 30) * stop.offset;
+                if (cx - 10 < x && x < cx + 10) {
+                    stop.begin ("offset");
+                    bound_stop = stop;
+                    stop_binding = bind_property ("offset", stop, "offset");
+                    base_offset = x - 15;
+                    return;
                 }
             }
         });
