@@ -1,5 +1,6 @@
 public abstract class Handle : Object, Undoable {
     public abstract Point point { get; set; }
+    public abstract Segment? segment { get; }
     protected abstract BaseHandle core { get; }
     public abstract Gee.List<ContextOption> options { get; }
     public abstract void begin (string prop);

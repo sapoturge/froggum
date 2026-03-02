@@ -953,58 +953,58 @@ public class PathSegment : Segment {
     public bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if ((x - end.x).abs () <= tolerance &&
             (y - end.y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> (), this);
             return true;
         }
         switch (segment_type) {
             case CURVE:
                 if ((x - p1.x).abs () <= tolerance &&
                     (y - p1.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 if ((x - p2.x).abs () <= tolerance &&
                     (y - p2.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "p2", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "p2", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 break;
             case QUADRATIC:
                 if ((x - p1.x).abs () <= tolerance &&
                     (y - p1.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "p1", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 break;
             case ARC:
                 if ((x - controller.x).abs () <= tolerance &&
                     (y - controller.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "controller", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "controller", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 if ((x - topleft.x).abs () <= tolerance &&
                     (y - topleft.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "topleft", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "topleft", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 if ((x - topright.x).abs () <= tolerance &&
                     (y - topright.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "topright", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "topright", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 if ((x - bottomleft.x).abs () <= tolerance &&
                     (y - bottomleft.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "bottomleft", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "bottomleft", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 if ((x - bottomright.x).abs () <= tolerance &&
                     (y - bottomright.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "bottomright", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "bottomright", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 if ((x - center.x).abs () <= tolerance &&
                     (y - center.y).abs () <= tolerance) {
-                    handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
+                    handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> (), this);
                     return true;
                 }
                 break;

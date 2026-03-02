@@ -167,12 +167,12 @@ public class Line : Element {
         }
 
         if ((x - start.x).abs () <= tolerance && (y - start.y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((x - end.x).abs () <= tolerance && (y - end.y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 

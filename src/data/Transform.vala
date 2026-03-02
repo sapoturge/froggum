@@ -642,37 +642,37 @@ public class Transform : Object, Undoable {
 
     public bool check_controls (double x, double y, double tolerance, out Handle? handle) {
         if ((center.x - x).abs () <= tolerance && (center.y - y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((top_left.x - x).abs () <= tolerance && (top_left.y - y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((top_right.x - x).abs () <= tolerance && (top_right.y - y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((bottom_left.x - x).abs () <= tolerance && (bottom_left.y - y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((bottom_right.x - x).abs () <= tolerance && (bottom_right.y - y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((rotator.x - x).abs () <= tolerance && (rotator.y - y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "rotator", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "rotator", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((skewer.x - x).abs () <= tolerance && (skewer.y - y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "skewer", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "skewer", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 

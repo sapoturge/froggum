@@ -335,7 +335,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             current_handle = handle;
-            current_segment = segment;
+
+            if (segment == null) {
+                current_segment = handle.segment;
+            } else {
+                current_segment = segment;
+            }
+
             current_element = element;
         });
 

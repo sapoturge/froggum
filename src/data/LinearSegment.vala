@@ -93,13 +93,13 @@ public class LinearSegment : Segment {
     public bool check_controls (double x, double y, double tolerance, out BaseHandle? handle) {
         if ((x - start.x).abs () <= tolerance &&
             (y - start.y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> (), this);
             return true;
         }
 
         if ((x - end.x).abs () <= tolerance &&
             (y - end.y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> (), this);
             return true;
         }
 

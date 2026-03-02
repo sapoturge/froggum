@@ -17,6 +17,10 @@ public class TransformedHandle : Handle {
         }
     }
 
+    public override Segment? segment {
+        get { return base_handle.segment; }
+    }
+
     protected override BaseHandle core {
         get { return base_handle.core; }
     }

@@ -644,20 +644,20 @@ public class Pattern : Object, ListModel, Undoable {
                     var opts = new Gee.ArrayList<ContextOption> ();
                     opts.add (new ContextOption.deleter (_("Delete Stop"), () => { delete_stop (stop); }));
                     opts.add (new ContextOption.color (_("Change Color"), stop, "rgba"));
-                    handle = new BaseHandle(stop, "display", opts);
+                    handle = new BaseHandle(stop, "display", opts, new PatternSegment (this, stop.offset));
                     return true;
                 }
             }
 
             if ((x - start.x).abs () <= tolerance &&
                 (y - start.y).abs () <= tolerance) {
-                handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> ());
+                handle = new BaseHandle(this, "start", new Gee.ArrayList<ContextOption> (), new PatternSegment (this, 0.0));
                 return true;
             }
 
             if ((x - end.x).abs () <= tolerance &&
                 (y - end.y).abs () <= tolerance) {
-                handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> ());
+                handle = new BaseHandle(this, "end", new Gee.ArrayList<ContextOption> (), new PatternSegment (this, 1.0));
                 return true;
             }
         }

@@ -220,19 +220,19 @@ public class Ellipse : Element {
         var bottom_close = (y - cy - ry).abs () <= tolerance;
 
         if (top_close && left_close) {
-            handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "top_left", new Gee.ArrayList<ContextOption> (), null);
             return true;
         } else if (top_close && right_close) {
-            handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "top_right", new Gee.ArrayList<ContextOption> (), null);
             return true;
         } else if (bottom_close && left_close) {
-            handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "bottom_left", new Gee.ArrayList<ContextOption> (), null);
             return true;
         } else if (bottom_close && right_close) {
-            handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "bottom_right", new Gee.ArrayList<ContextOption> (), null);
             return true;
         } else if ((x - cx).abs () <= tolerance && (y - cy).abs () <= tolerance) {
-            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> (), null);
             return true;
         } else {
             handle = null;

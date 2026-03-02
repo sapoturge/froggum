@@ -13,6 +13,11 @@ public class BaseHandle : Handle {
         }
     }
 
+    private Segment? _segment;
+    public override Segment? segment {
+        get { return _segment; }
+    }
+
     protected override BaseHandle core {
         get { return this; }
     }
@@ -24,11 +29,12 @@ public class BaseHandle : Handle {
         }
     }
 
-    public BaseHandle (Undoable target, string property, Gee.List<ContextOption> options) {
+    public BaseHandle (Undoable target, string property, Gee.List<ContextOption> options, Segment? segment) {
         this.target = target;
         this.property = property;
         this._options = options;
         this.target.notify.connect (() => updated ());
+        this._segment = segment;
     }
 
     public override void begin (string prop) {

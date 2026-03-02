@@ -200,12 +200,12 @@ public class Circle : Element {
         }
 
         if ((x - this.x).abs () <= tolerance && (y - this.y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "center", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
         if ((x - radius.x).abs () <= tolerance && (y - radius.y).abs () <= tolerance) {
-            handle = new BaseHandle(this, "radius", new Gee.ArrayList<ContextOption> ());
+            handle = new BaseHandle(this, "radius", new Gee.ArrayList<ContextOption> (), null);
             return true;
         }
 
