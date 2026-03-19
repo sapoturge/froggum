@@ -40,6 +40,12 @@ public class Pattern : Object, ListModel, Undoable {
         }
     }
 
+    public int resort {
+        set {
+            sort_stops ();
+        }
+    }
+
     private Gee.ArrayList<Stop> stops;
 
     public signal void update ();
@@ -450,22 +456,8 @@ public class Pattern : Object, ListModel, Undoable {
         bind_property ("end", stop, "end");
         stop.notify.connect (() => { update (); });
         stop.add_command.connect ((c) => {
+            c.add_value (this, "resort", 1, 1);
             add_command (c);
-            bool swapped = false;
-            for (int i = 1; i < stops.size; i++) {
-                for (int j = 1; j < stops.size; j++) {
-                    Stop first = stops.@get(j-1);
-                    Stop second = stops.@get(j);
-                    if (first.offset > second.offset) {
-                        swapped = true;
-                        stops.@set (j, first);
-                        stops.@set (j-1, second);
-                    }
-                }
-            }
-            if (swapped) {
-                items_changed (0, stops.size, stops.size);
-            }
         });
 
         var index = stops.size / 2;
@@ -498,6 +490,26 @@ public class Pattern : Object, ListModel, Undoable {
         }
 
         stop_update = insert_update;
+    }
+
+    private void sort_stops () {
+        bool swapped = false;
+        for (int i = 1; i < stops.size; i++) {
+            for (int j = 1; j < stops.size; j++) {
+                Stop first = stops.@get(j-1);
+                Stop second = stops.@get(j);
+                if (first.offset > second.offset) {
+                    swapped = true;
+                    stops.@set (j, first);
+                    stops.@set (j-1, second);
+                }
+            }
+        }
+
+        if (swapped) {
+            items_changed (0, stops.size, stops.size);
+            update ();
+        }
     }
 
     public void begin (string prop) {
@@ -533,6 +545,7 @@ public class Pattern : Object, ListModel, Undoable {
                 command.add_value (this, "rgba", rgba, previous_rgba);
                 break;
         }
+
         add_command (command);
     }
 
@@ -614,6 +627,19 @@ public class Pattern : Object, ListModel, Undoable {
             cr.set_line_width (1 / zoom);
             cr.move_to (start.x, start.y);
             cr.line_to (end.x, end.y);
+
+            if (pattern_type == RADIAL) {
+                cr.new_sub_path ();
+                cr.arc (start.x, start.y, start.dist (end), 0, Math.PI * 2);
+            } else {
+                double x_delta = start.x - end.x;
+                double y_delta = start.y - end.y;
+                cr.move_to (start.x - y_delta, start.y + x_delta);
+                cr.line_to (start.x + y_delta, start.y - x_delta);
+                cr.move_to (end.x - y_delta, end.y + y_delta);
+                cr.line_to (end.x + y_delta, end.y - y_delta);
+            }
+
             cr.set_source_rgba (0, 1, 0, 0.9);
             cr.stroke ();
 
@@ -721,6 +747,19 @@ public class Pattern : Object, ListModel, Undoable {
         }
 
         return false;
+    }
+
+    public void reverse_gradient () {
+        var command = new Command ();
+
+        for (int i = 0; i < stops.size; i++) {
+            var s = stops.@get (i);
+            command.add_value (s, "offset", 1 - s.offset, s.offset);
+        }
+
+        command.add_value (this, "resort", 1, 1);
+        command.apply ();
+        add_command (command);
     }
 }
 

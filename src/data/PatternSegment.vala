@@ -8,11 +8,18 @@ public class PatternSegment : Segment {
     }
 
     public override Gee.List<ContextOption> options () {
+        var pattern_type_options = new Gee.HashMap<string, int> ();
+        pattern_type_options.set (_("Linear"), PatternType.LINEAR);
+        pattern_type_options.set (_("Radial"), PatternType.RADIAL);
         return new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.action (_("Add Stop"), () => {
                 var stop = new Stop (offset, parent.rgba);
                 parent.add_stop (stop);
-            })
+            }),
+            new ContextOption.action (_("Reverse Gradient"), () => {
+                parent.reverse_gradient ();
+            }),
+            new ContextOption.options (_("Gradient Type"), parent, "pattern_type", pattern_type_options),
         });
     }
 
