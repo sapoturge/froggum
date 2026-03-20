@@ -22,12 +22,22 @@ public class FroggumApplication : Gtk.Application {
     public const string ACTION_REDO = "action_redo";
     public const string ACTION_ZOOM_IN = "action_zoom_in";
     public const string ACTION_ZOOM_OUT = "action_zoom_out";
+    public const string ACTION_SAVE_AS = "action_save_as";
+    public const string ACTION_RECENTER = "action_recenter";
 
     static construct {
         settings = new Settings ("io.github.sapoturge.froggum");
     }
 
     construct {
+        actions = new SimpleActionGroup ();
+
+        var save_as_action = new SimpleAction(ACTION_SAVE_AS, null);
+        save_as_action.activate.connect (() => { save_as (); });
+        actions.add_action (save_as_action);
+        save_as_action.set_enabled (true);
+        set_accels_for_action ("froggum.action_save_as", {"<Control><Shift>S", null});
+
         var undo_action = new SimpleAction ("action_undo", null);
         undo_action.activate.connect (() => {
             var tab = notebook.get_selected_page ();
@@ -37,6 +47,9 @@ public class FroggumApplication : Gtk.Application {
                 image.undo ();
             }
         });
+        actions.add_action (undo_action);
+        undo_action.set_enabled (true);
+        set_accels_for_action ("froggum.action_undo", {"<Control>Z", null});
 
         var redo_action = new SimpleAction ("action_redo", null);
         redo_action.activate.connect (() => {
@@ -47,6 +60,9 @@ public class FroggumApplication : Gtk.Application {
                 image.redo ();
             }
         });
+        actions.add_action (redo_action);
+        redo_action.set_enabled (true);
+        set_accels_for_action ("froggum.action_redo", {"<Control>Y", null});
 
         var recenter_action = new SimpleAction ("action_recenter", null);
         recenter_action.activate.connect (() => {
@@ -56,6 +72,9 @@ public class FroggumApplication : Gtk.Application {
                 editor.recenter ();
             }
         });
+        actions.add_action (recenter_action);
+        recenter_action.set_enabled (true);
+        set_accels_for_action ("froggum.action_recenter", {"<Control>0", null});
 
         var zoom_in_action = new SimpleAction ("action_zoom_in", null);
         zoom_in_action.activate.connect (() => {
@@ -65,6 +84,9 @@ public class FroggumApplication : Gtk.Application {
                 editor.zoom_in ();
             }
         });
+        actions.add_action (zoom_in_action);
+        zoom_in_action.set_enabled (true);
+        set_accels_for_action ("froggum.action_zoom_in", {"<Control>plus", "<Control>equal", null});
 
         var zoom_out_action = new SimpleAction ("action_zoom_out", null);
         zoom_out_action.activate.connect (() => {
@@ -74,23 +96,9 @@ public class FroggumApplication : Gtk.Application {
                 editor.zoom_out ();
             }
         });
-        
-        actions = new SimpleActionGroup ();
-        actions.add_action (undo_action);
-        actions.add_action (redo_action);
-        actions.add_action (recenter_action);
-        actions.add_action (zoom_in_action);
         actions.add_action (zoom_out_action);
-        
-        set_accels_for_action ("froggum.action_undo", {"<Control>Z", null});
-        set_accels_for_action ("froggum.action_redo", {"<Control>Y", null});
-        // set_accels_for_action ("froggum.action_recenter", {"<Control>Y", null});
-        set_accels_for_action ("froggum.action_zoom_in", {"<Control>plus", "<Control>equal", null});
-        set_accels_for_action ("froggum.action_zoom_out", {"<Control>minus", null});
-        undo_action.set_enabled (true);
-        redo_action.set_enabled (true);
-        zoom_in_action.set_enabled (true);
         zoom_out_action.set_enabled (true);
+        set_accels_for_action ("froggum.action_zoom_out", {"<Control>minus", null});
     }
 
     protected override void activate () {
@@ -146,43 +154,7 @@ public class FroggumApplication : Gtk.Application {
 
         var save_button = new Gtk.Button.from_icon_name ("document-save-as");
         save_button.tooltip_text = _("Save as new file");
-        save_button.clicked.connect (() => {
-            dialog = new Gtk.FileDialog () {
-                title = _("untitled.svg"),
-            };
-            dialog.save.begin (main_window, null, (obj, res) => {
-                try {
-                    var file = dialog.save.end (res);
-                    if (file != null) {
-                        var tab = notebook.selected_page;
-                        var editor = tab.child as EditorView;
-                        if (editor != null) {
-                            editor.image.file = file;
-                            tab.title = file.get_basename ();
-                            main_window.title = _("Froggum - %s").printf (tab.title);
-                            settings.set_string ("focused-file", file.get_uri ());
-                        }
-
-                        recalculate_open_files ();
-                    }
-                } catch (GLib.Error e) {
-                    if (e.code == Gtk.DialogError.DISMISSED) {
-                        // The user didn't pick a file
-                        // No "error handling" necessary
-                    } else if (e.code == Gtk.DialogError.CANCELLED) {
-                        // Froggum closed the dialog (this shouldn't ever happen)
-                        // Still no response required
-                    } else {
-                        // Something actually went wrong
-                        var tab = notebook.selected_page;
-                        var inner = tab.child as ErrorReporter;
-                        if (inner != null) {
-                            inner.add_error (new Error.glib_error (e));
-                        }
-                    }
-                }
-            });
-        });
+        save_button.action_name = "froggum.action_save_as";
 
         header.pack_start (save_button);
 
@@ -374,19 +346,19 @@ public class FroggumApplication : Gtk.Application {
     }
 
     private void make_new_tab (Adw.TabPage? old_tab) {
-         var new_page = new NewTab ();
-         Adw.TabPage tab;
-         if (old_tab == null) {
-             tab = notebook.append (new_page);
-         } else {
-             tab = notebook.add_page (new_page, old_tab);
-             notebook.close_page (old_tab);
-         }
-         tab.title = _("New Image");
-         new_page.new_image.connect ((width, height) => new_image (width, height, tab));
-         new_page.open_image.connect (() => open_image (tab));
+        var new_page = new NewTab ();
+        Adw.TabPage tab;
+        if (old_tab == null) {
+            tab = notebook.append (new_page);
+        } else {
+            tab = notebook.add_page (new_page, old_tab);
+            notebook.close_page (old_tab);
+        }
+        tab.title = _("New Image");
+        new_page.new_image.connect ((width, height) => new_image (width, height, tab));
+        new_page.open_image.connect (() => open_image (tab));
 
-         notebook.selected_page = tab;
+        notebook.selected_page = tab;
     }
 
     private void recalculate_open_files () {
@@ -413,6 +385,39 @@ public class FroggumApplication : Gtk.Application {
             } else {
                 main_window.title = _("Froggum - New Icon");
             }
+        }
+    }
+
+    private void save_as () {
+        var tab = notebook.selected_page;
+        var editor = tab.child as EditorView;
+        if (editor != null) {
+            dialog = new Gtk.FileDialog () {
+                title = _("untitled.svg"),
+            };
+            dialog.save.begin (main_window, null, (obj, res) => {
+                try {
+                    var file = dialog.save.end (res);
+                    if (file != null) {
+                        editor.image.file = file;
+                        tab.title = file.get_basename ();
+                        main_window.title = _("Froggum - %s").printf (tab.title);
+                        settings.set_string ("focused-file", file.get_uri ());
+                        recalculate_open_files ();
+                    }
+                } catch (GLib.Error e) {
+                    if (e.code == Gtk.DialogError.DISMISSED) {
+                        // The user didn't pick a file
+                        // No "error handling" necessary
+                    } else if (e.code == Gtk.DialogError.CANCELLED) {
+                        // Froggum closed the dialog (this shouldn't ever happen)
+                        // Still no response required
+                    } else {
+                        // Something actually went wrong
+                        editor.add_error (new Error.glib_error (e));
+                    }
+                }
+            });
         }
     }
 
