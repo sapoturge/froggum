@@ -323,8 +323,8 @@ public class Rectangle : Element {
         }
     }
 
-    public override void draw_controls (Cairo.Context cr, double zoom) {
-        draw (cr, 1 / zoom, { 0, 0, 0}, {1, 0, 0, 1}, true);
+    public override void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
+        draw (cr, stroke_size, { 0, 0, 0}, {1, 0, 0, 1}, true);
 
         if (rounded) {
             cr.move_to (top_left_round.x, top_left_round.y);
@@ -344,40 +344,40 @@ public class Rectangle : Element {
             cr.stroke ();
         }
 
-        cr.arc (top_left.x, top_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_left.x, top_left.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (top_right.x, top_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_right.x, top_right.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_left.x, bottom_left.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_right.x, bottom_right.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (center.x, center.y, handle_size, 0, Math.PI * 2);
 
         if (rounded) {
             cr.new_sub_path ();
-            cr.arc (top_left_round.x, top_left_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (top_left_round.x, top_left_round.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
-            cr.arc (top_right_round.x, top_right_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (top_right_round.x, top_right_round.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
-            cr.arc (left_top_round.x, left_top_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (left_top_round.x, left_top_round.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
-            cr.arc (left_bottom_round.x, left_bottom_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (left_bottom_round.x, left_bottom_round.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
-            cr.arc (bottom_left_round.x, bottom_left_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (bottom_left_round.x, bottom_left_round.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
-            cr.arc (bottom_right_round.x, bottom_right_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (bottom_right_round.x, bottom_right_round.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
-            cr.arc (right_top_round.x, right_top_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (right_top_round.x, right_top_round.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
-            cr.arc (right_bottom_round.x, right_bottom_round.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (right_bottom_round.x, right_bottom_round.y, handle_size, 0, Math.PI * 2);
         }
 
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
-        fill.draw_controls (cr, zoom);
-        stroke.draw_controls (cr, zoom);
+        fill.draw_controls (cr, handle_size, stroke_size);
+        stroke.draw_controls (cr, handle_size, stroke_size);
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {

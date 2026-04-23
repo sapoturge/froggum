@@ -469,15 +469,17 @@ public interface Container : Undoable, Updatable, Transformed {
         }
     }
 
-    protected void draw_selected_child (Cairo.Context cr, double zoom) {
+    protected void draw_selected_child (Cairo.Context cr, double handle_size, double stroke_size) {
         if (selected_child != null) {
             selected_child.transform.apply (cr);
-            var new_zoom = zoom;
-            selected_child.transform.update_distance (zoom, out new_zoom);
-            selected_child.draw_controls (cr, new_zoom);
+            var new_handle_size = handle_size;
+            var new_stroke_size = stroke_size;
+            selected_child.transform.update_distance (handle_size, out new_handle_size);
+            selected_child.transform.update_distance (stroke_size, out new_stroke_size);
+            selected_child.draw_controls (cr, new_handle_size, new_stroke_size);
             cr.restore ();
             if (selected_child.transform_enabled && !selected_child.transform_applied) {
-                selected_child.transform.draw_controls (cr, zoom);
+                selected_child.transform.draw_controls (cr, handle_size, stroke_size);
             }
         }
     }

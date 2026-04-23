@@ -54,8 +54,8 @@ public class Group : Element, Container {
         }
     }
 
-    public override void draw_controls (Cairo.Context cr, double zoom) {
-        draw_selected_child (cr, zoom);
+    public override void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
+        draw_selected_child (cr, handle_size, stroke_size);
     }
 
     public override void begin (string prop) {

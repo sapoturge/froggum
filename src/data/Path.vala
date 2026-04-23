@@ -247,19 +247,19 @@ public class Path : Element {
         cr.stroke ();
     }
 
-    public override void draw_controls (Cairo.Context cr, double zoom) {
-        draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
-        cr.set_line_width (1 / zoom);
+    public override void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
+        draw (cr, stroke_size, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
+        cr.set_line_width (stroke_size);
         var s = root_segment;
         var first = true;
         while (first || s != root_segment) {
             first = false;
-            s.draw_controls (cr, zoom);
+            s.draw_controls (cr, handle_size, stroke_size);
             s = s.next;
         }
 
-        fill.draw_controls (cr, zoom);
-        stroke.draw_controls (cr, zoom);
+        fill.draw_controls (cr, handle_size, stroke_size);
+        stroke.draw_controls (cr, handle_size, stroke_size);
     }
 
     public override void begin (string prop) {

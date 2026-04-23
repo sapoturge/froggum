@@ -83,16 +83,16 @@ public class Line : Element {
         }
     }
 
-    public override void draw_controls (Cairo.Context cr, double zoom) {
-        draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
+    public override void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
+        draw (cr, stroke_size, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
 
-        cr.arc (start.x, start.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (start.x, start.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (end.x, end.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (end.x, end.y, handle_size, 0, Math.PI * 2);
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
-        stroke.draw_controls (cr, zoom);
+        stroke.draw_controls (cr, handle_size, stroke_size);
     }
 
     public override void begin (string prop) {

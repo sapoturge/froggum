@@ -183,18 +183,18 @@ public class Ellipse : Element {
         }
     }
 
-    public override void draw_controls (Cairo.Context cr, double zoom) {
-        draw (cr, 1 / zoom, { 0, 0, 0}, {1, 0, 0, 1}, true);
+    public override void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
+        draw (cr, stroke_size, { 0, 0, 0}, {1, 0, 0, 1}, true);
 
-        cr.arc (top_left.x, top_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_left.x, top_left.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (top_right.x, top_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_right.x, top_right.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_left.x, bottom_left.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_right.x, bottom_right.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (center.x, center.y, handle_size, 0, Math.PI * 2);
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
@@ -205,8 +205,8 @@ public class Ellipse : Element {
         cr.close_path ();
         cr.stroke ();
 
-        fill.draw_controls (cr, zoom);
-        stroke.draw_controls (cr, zoom);
+        fill.draw_controls (cr, handle_size, stroke_size);
+        stroke.draw_controls (cr, handle_size, stroke_size);
     }
 
     public override bool check_controls (double x, double y, double tolerance, out Handle? handle) {

@@ -890,7 +890,7 @@ public class PathSegment : Segment {
         return context.in_stroke(x, y);
     }
 
-    public void draw_controls (Cairo.Context cr, double zoom) {
+    public void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
         switch (segment_type) {
             case SegmentType.CURVE:
                 cr.move_to (start.x, start.y);
@@ -899,9 +899,9 @@ public class PathSegment : Segment {
                 cr.line_to (end.x, end.y);
                 cr.set_source_rgba(0, 0.5, 1, 0.8);
                 cr.stroke ();
-                cr.arc (p1.x, p1.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (p1.x, p1.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
-                cr.arc (p2.x, p2.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (p2.x, p2.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
                 break;
             case SegmentType.QUADRATIC:
@@ -910,7 +910,7 @@ public class PathSegment : Segment {
                 cr.line_to (end.x, end.y);
                 cr.set_source_rgba (0, 0.5, 1, 0.8);
                 cr.stroke ();
-                cr.arc (p1.x, p1.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (p1.x, p1.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
                 break;
             case SegmentType.ARC:
@@ -928,24 +928,24 @@ public class PathSegment : Segment {
                 cr.restore ();
                 cr.set_source_rgba (0, 0.5, 1, 0.8);
                 cr.stroke ();
-                cr.arc (controller.x, controller.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (controller.x, controller.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
-                cr.arc (topleft.x, topleft.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (topleft.x, topleft.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
-                cr.arc (topright.x, topright.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (topright.x, topright.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
-                cr.arc (bottomleft.x, bottomleft.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (bottomleft.x, bottomleft.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
-                cr.arc (bottomright.x, bottomright.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (bottomright.x, bottomright.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
-                cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
+                cr.arc (center.x, center.y, handle_size, 0, Math.PI * 2);
                 cr.new_sub_path ();
                 break;
             default:
                 break;
         }
 
-        cr.arc (end.x, end.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (end.x, end.y, handle_size, 0, Math.PI * 2);
         cr.set_source_rgba (1, 0, 0, 0.9);
         cr.fill ();
     }

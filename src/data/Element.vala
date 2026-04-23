@@ -109,7 +109,7 @@ public abstract class Element : Object, Undoable, Updatable, Transformed {
 
     public abstract void draw (Cairo.Context cr, double width = 1, Gdk.RGBA? fill = null, Gdk.RGBA? stroke = null, bool always_draw = false);
 
-    public abstract void draw_controls (Cairo.Context cr, double zoom);
+    public abstract void draw_controls (Cairo.Context cr, double handle_size, double stroke_size);
 
     public abstract void begin (string prop);
 

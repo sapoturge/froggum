@@ -13,6 +13,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private bool zooming = false;
     private uint zoom_stop_callback;
 
+    private double handle_size = 9;
+
     private int width = 0;
     private int height = 0;
     private Point base_point;
@@ -278,19 +280,19 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            image.draw_selection (cr, zoom);
+            image.draw_selection (cr, handle_size / zoom, 1 / zoom);
             if (current_handle != null) {
                 Point center = current_handle.point;
-                cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);
+                cr.arc (center.x, center.y, (handle_size+1)/zoom, 0, Math.PI*2);
                 cr.set_line_width (2 / zoom);
                 if (image.error == null) {
                     cr.set_source_rgb (0.95, 0.85, 0.15);
                 } else {
                     cr.set_source_rgb (0.75, 0.75, 0.75);
-                    cr.move_to (center.x + 5/zoom, center.y + 5/zoom);
-                    cr.line_to (center.x - 5/zoom, center.y - 5/zoom);
-                    cr.move_to (center.x + 5/zoom, center.y - 5/zoom);
-                    cr.line_to (center.x - 5/zoom, center.y + 5/zoom);
+                    cr.move_to (center.x + handle_size*0.75/zoom, center.y + handle_size*0.75/zoom);
+                    cr.line_to (center.x - handle_size*0.75/zoom, center.y - handle_size*0.75/zoom);
+                    cr.move_to (center.x + handle_size*0.75/zoom, center.y - handle_size*0.75/zoom);
+                    cr.line_to (center.x - handle_size*0.75/zoom, center.y + handle_size*0.75/zoom);
                 }
 
                 cr.stroke ();
@@ -302,13 +304,13 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             if (hovered_handle != null && (current_handle == null || !hovered_handle.same_point (current_handle))) {
                 Point center = hovered_handle.point;
-                cr.arc (center.x, center.y, 7/zoom, 0, Math.PI*2);
+                cr.arc (center.x, center.y, (handle_size+1)/zoom, 0, Math.PI*2);
                 cr.set_line_width (2 / zoom);
                 if (image.error != null) {
-                    cr.move_to (center.x + 5/zoom, center.y + 5/zoom);
-                    cr.line_to (center.x - 5/zoom, center.y - 5/zoom);
-                    cr.move_to (center.x + 5/zoom, center.y - 5/zoom);
-                    cr.line_to (center.x - 5/zoom, center.y + 5/zoom);
+                    cr.move_to (center.x + handle_size*0.75/zoom, center.y + handle_size*0.75/zoom);
+                    cr.line_to (center.x - handle_size*0.75/zoom, center.y - handle_size*0.75/zoom);
+                    cr.move_to (center.x + handle_size*0.75/zoom, center.y - handle_size*0.75/zoom);
+                    cr.line_to (center.x - handle_size*0.75/zoom, center.y + handle_size*0.75/zoom);
                 }
 
                 cr.set_source_rgb (0.15, 0.85, 0.95);
@@ -324,7 +326,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             Element element;
             Segment segment;
             Handle handle;
-            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out element, out segment, out handle)) {
+            if (image.clicked_element (scale_x (x), scale_y (y), handle_size / zoom, out element, out segment, out handle)) {
                 if (tutorial != null && tutorial.step == CLICK) {
                     tutorial.next_step ();
                 }
@@ -352,7 +354,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             Element element;
             Segment segment;
             Handle handle;
-            if (image.clicked_element (scale_x (x), scale_y (y), 6 / zoom, out element, out segment, out handle)) {
+            if (image.clicked_element (scale_x (x), scale_y (y), handle_size / zoom, out element, out segment, out handle)) {
                 element.select (true);
                 current_handle = handle;
                 current_segment = segment;
@@ -371,7 +373,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             Element element;
             Segment segment;
             Handle handle;
-            image.clicked_element (sx, sy, 6 / zoom, out element, out segment, out handle);
+            image.clicked_element (sx, sy, handle_size / zoom, out element, out segment, out handle);
             if (element != hovered_element || segment != hovered_segment || handle != hovered_handle) {
                 hovered_element = element;
                 hovered_segment = segment;
@@ -390,7 +392,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             // Check for clicking on a control handle
             if (image.has_selected ()) {
                 Handle obj;
-                if (image.clicked_control (sx, sy, 6 / zoom, out obj)) {
+                if (image.clicked_control (sx, sy, handle_size / zoom, out obj)) {
                     current_handle = obj;
                     bind_point (obj, "point");
                     return;

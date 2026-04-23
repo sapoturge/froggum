@@ -136,21 +136,21 @@ public class Polygon : Element {
         }
     }
 
-    public override void draw_controls (Cairo.Context cr, double zoom) {
-        draw (cr, 1 / zoom, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
+    public override void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
+        draw (cr, stroke_size, {0, 0, 0, 0}, {1, 0, 0, 1}, true);
 
         var first = true;
         for (var segment = root_segment; first || segment != root_segment; segment = segment.next) {
             first = false;
-            cr.arc (segment.start.x, segment.start.y, 6 / zoom, 0, Math.PI * 2);
+            cr.arc (segment.start.x, segment.start.y, handle_size, 0, Math.PI * 2);
             cr.new_sub_path ();
         }
 
         cr.set_source_rgb (1, 0, 0);
         cr.fill ();
 
-        fill.draw_controls (cr, zoom);
-        stroke.draw_controls (cr, zoom);
+        fill.draw_controls (cr, handle_size, stroke_size);
+        stroke.draw_controls (cr, handle_size, stroke_size);
     }
 
     public override void begin (string prop) {

@@ -230,9 +230,9 @@ public class Image : Object, Undoable, Updatable, Transformed, Container {
         cr.restore ();
     }
 
-    public void draw_selection (Cairo.Context cr, double zoom) {
+    public void draw_selection (Cairo.Context cr, double handle_size, double stroke_size) {
         applied_transform.apply (cr);
-        draw_selected_child (cr, zoom);
+        draw_selected_child (cr, handle_size, stroke_size);
         cr.restore ();
     }
 

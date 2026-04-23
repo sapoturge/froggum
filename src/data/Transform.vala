@@ -609,24 +609,24 @@ public class Transform : Object, Undoable {
         }
     }
 
-    public void draw_controls (Cairo.Context cr, double zoom) {
-        cr.arc (center.x, center.y, 6 / zoom, 0, Math.PI * 2);
+    public void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
+        cr.arc (center.x, center.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (top_right.x, top_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_right.x, top_right.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (top_left.x, top_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (top_left.x, top_left.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_right.x, bottom_right.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_right.x, bottom_right.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (bottom_left.x, bottom_left.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (bottom_left.x, bottom_left.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (rotator.x, rotator.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (rotator.x, rotator.y, handle_size, 0, Math.PI * 2);
         cr.new_sub_path ();
-        cr.arc (skewer.x, skewer.y, 6 / zoom, 0, Math.PI * 2);
+        cr.arc (skewer.x, skewer.y, handle_size, 0, Math.PI * 2);
         cr.set_source_rgb (0, 0, 1);
         cr.fill ();
 
-        cr.set_line_width (1 / zoom);
+        cr.set_line_width (stroke_size);
         cr.move_to (top_left.x, top_left.y);
         cr.line_to (top_right.x, top_right.y);
         cr.line_to (bottom_right.x, bottom_right.y);
@@ -695,9 +695,15 @@ public class Transform : Object, Undoable {
     }
 
     public void update_distance (double dist, out double new_dist) {
-        new_dist = dist;
-        matrix.transform_distance (ref dist, ref new_dist);
-        new_dist = Math.sqrt ((dist * dist + new_dist * new_dist) / 2);
+        var x1 = dist;
+        var y1 = dist;
+        var x2 = dist;
+        var y2 = -dist;
+        var inverted = matrix;
+        inverted.invert();
+        inverted.transform_distance (ref x1, ref y1);
+        inverted.transform_distance (ref x2, ref y2);
+        new_dist = Math.sqrt ((x1 * x1 + y1 * y1) / 8) + Math.sqrt((x2 * x2 + y2 * y2) / 8);
     }
 
     public Transform invert () {
