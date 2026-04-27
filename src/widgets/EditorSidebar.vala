@@ -11,6 +11,7 @@ public class EditorSidebar : Gtk.Box {
             if (value != _element) {
                 if (preview_update_handle != 0) {
                     _element.disconnect (preview_update_handle);
+                    preview_update_handle = 0;
                 }
 
                 _element = value;

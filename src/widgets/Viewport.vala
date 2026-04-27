@@ -338,7 +338,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             current_handle = handle;
 
-            if (segment == null) {
+            if (segment == null && handle != null) {
                 current_segment = handle.segment;
             } else {
                 current_segment = segment;
