@@ -31,6 +31,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
     public signal void close_popovers ();
 
     public Image image { get; private set; }
+    public double handle_size { get; set; }
 
     private static Menu default_layers_context_menu;
 
@@ -78,10 +79,12 @@ public class EditorView : Gtk.Box, ErrorReporter {
         }
     }
 
-    public EditorView (Image image) {
+    public EditorView (Image image, double handle_size) {
         var action_group = new SimpleActionGroup ();
         action_group.add_action_entries (ACTION_ENTRIES, this);
         insert_action_group (PREFIX, action_group);
+
+        this.handle_size = handle_size;
 
         this.image = image;
         selection = new Gtk.SingleSelection (image.tree);
@@ -373,6 +376,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
         transform_bar.response.connect ((response) => image.apply_transform (new Transform.identity(), null));
 
         viewport = new Viewport ();
+        bind_property ("handle-size", viewport, "handle-size", BindingFlags.SYNC_CREATE);
         var scrolled = new Gtk.ScrolledWindow ();
         scrolled.child = viewport;
         scrolled.hscrollbar_policy = Gtk.PolicyType.ALWAYS;

@@ -13,8 +13,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private bool zooming = false;
     private uint zoom_stop_callback;
 
-    private double handle_size = 9;
-
     private int width = 0;
     private int height = 0;
     private Point base_point;
@@ -32,6 +30,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     public Point control_point { get; set; }
     public Point cursor_pos { get; private set; }
+
+    public double handle_size { get; set; }
 
     private Binding point_binding;
     private Handle? _current_handle;
@@ -506,6 +506,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 tutorial.popup ();
             }
         });
+
+        notify["handle-size"].connect (() => queue_draw ());
     }
 
     public void zoom_in () {
