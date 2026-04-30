@@ -30,17 +30,6 @@ public class FroggumApplication : Gtk.Application {
     }
 
     construct {
-        settings.changed["handle-radius"].connect (() => {
-            var new_size = settings.get_double("handle-radius");
-            for (int i = 0; i < notebook.n_pages; i++) {
-                var tab = notebook.get_nth_page (i);
-                var editor = tab.child as EditorView;
-                if (editor != null) {
-                    editor.handle_size = new_size;
-                }
-            }
-        });
-
         actions = new SimpleActionGroup ();
 
         var save_as_action = new SimpleAction(ACTION_SAVE_AS, null);
@@ -225,7 +214,7 @@ public class FroggumApplication : Gtk.Application {
             if (file != "") {
                 var real_file = File.new_for_uri (file);
                 var image = new Image.load (real_file);
-                var editor = new EditorView (image, settings.get_double ("handle-radius"));
+                var editor = new EditorView (image);
                 editor.hexpand = true;
                 editor.vexpand = true;
                 var tab = notebook.append (editor);
@@ -272,7 +261,7 @@ public class FroggumApplication : Gtk.Application {
         foreach (unowned string arg in args[1:args.length]) {
             var file = File.new_for_commandline_arg (arg);
             var image = new Image.load (file);
-            var editor = new EditorView (image, settings.get_double ("handle-radius"));
+            var editor = new EditorView (image);
             editor.hexpand = true;
             editor.vexpand = true;
             var tab = notebook.append (editor);
@@ -294,7 +283,7 @@ public class FroggumApplication : Gtk.Application {
 
         foreach (File file in files) {
             var image = new Image.load (file);
-            var editor = new EditorView (image, settings.get_double ("handle-radius"));
+            var editor = new EditorView (image);
             editor.hexpand = true;
             editor.vexpand = true;
             var tab = notebook.append (editor);
@@ -320,7 +309,7 @@ public class FroggumApplication : Gtk.Application {
         var path = new Path.with_pattern (segments, new Pattern.color ({0.3f, 0.3f, 0.3f, 1f}), new Pattern.color ({0.1f, 0.1f, 0.1f, 1f}), _("Default Path"));
         var circle = new Circle (width / 2, height / 2, double.min (width / 2, height / 2), new Pattern.color ({0.4f, 0.5f, 0.6f, 1f}), new Pattern.color ({0.7f, 0.6f, 0.5f, 1f}));
         var image = new Image (width, height, {path, circle});
-        var editor = new EditorView (image, settings.get_double ("handle-radius"));
+        var editor = new EditorView (image);
         editor.hexpand = true;
         editor.vexpand = true;
 
@@ -337,7 +326,7 @@ public class FroggumApplication : Gtk.Application {
                 var file = dialog.open.end (res);
                 if (file != null) {
                     var image = new Image.load (file);
-                    var editor = new EditorView (image, settings.get_double ("handle-radius"));
+                    var editor = new EditorView (image);
                     editor.hexpand = true;
                     editor.vexpand = true;
                     var new_tab = notebook.add_page (editor, tab);

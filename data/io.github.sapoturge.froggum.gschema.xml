@@ -31,5 +31,20 @@
       <summary>Should the tutorial be shown?</summary>
       <description>Whether or not to show the tutorial</description>
     </key>
+    <key name="handle-radius" type="d">
+      <default>8</default>
+      <summary>Size of control handles</summary>
+      <description>Radius in pixels of the draggable handles</description>
+    </key>
+    <key name="line-thickness" type="d">
+      <default>1</default>
+      <summary>Size of highlighted element lines</summary>
+      <description>Width in pixels of highlights for hovered and selected element outlines</description>
+    </key>
+    <key name="snap-tolerance" type="d">
+      <default>3</default>
+      <summary>Radius to snap to grid lines</summary>
+      <description>Maximum distance (in pixels) at which handles snap to a grid line</description>
+    </key>
   </schema>
 </schemalist>

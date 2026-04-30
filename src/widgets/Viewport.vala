@@ -18,6 +18,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private Point base_point;
     private uint cancel_drag_id;
 
+    private double handle_size;
+    private double line_thickness;
+    private double snap_tolerance;
+
     private bool scrolling = false;
 
     private Gdk.RGBA background;
@@ -30,8 +34,6 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     public Point control_point { get; set; }
     public Point cursor_pos { get; private set; }
-
-    public double handle_size { get; set; }
 
     private Binding point_binding;
     private Handle? _current_handle;
@@ -280,7 +282,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            image.draw_selection (cr, handle_size / zoom, 1 / zoom);
+            image.draw_selection (cr, handle_size / zoom, line_thickness / zoom);
             if (current_handle != null) {
                 Point center = current_handle.point;
                 cr.arc (center.x, center.y, (handle_size+1)/zoom, 0, Math.PI*2);
@@ -412,11 +414,11 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 var new_y = y / zoom + base_point.y;
 
                 // Snap to grid if within tolerance
-                if ((new_x * 2 - Math.round (new_x * 2)).abs () < 6 / zoom) {
+                if ((new_x * 2 - Math.round (new_x * 2)).abs () < snap_tolerance / zoom) {
                     new_x = Math.round (new_x * 2) / 2;
                 }
 
-                if ((new_y * 2 - Math.round (new_y * 2)).abs () < 6 / zoom) {
+                if ((new_y * 2 - Math.round (new_y * 2)).abs () < snap_tolerance / zoom) {
                     new_y = Math.round (new_y * 2) / 2;
                 }
 
@@ -507,7 +509,24 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
         });
 
-        notify["handle-size"].connect (() => queue_draw ());
+        FroggumApplication.settings.changed["handle-radius"].connect (() => {
+            handle_size = FroggumApplication.settings.get_double("handle-radius");
+            if (current_element != null) {
+                queue_draw ();
+            }
+        });
+        FroggumApplication.settings.changed["line-thickness"].connect (() => {
+            line_thickness = FroggumApplication.settings.get_double("line-thickness");
+            if (current_element != null || hovered_element != null) {
+                queue_draw ();
+            }
+        });
+        FroggumApplication.settings.changed["snap-tolerance"].connect (() => {
+            snap_tolerance = FroggumApplication.settings.get_double("snap-tolerance");
+        });
+        handle_size = FroggumApplication.settings.get_double("handle-radius");
+        line_thickness = FroggumApplication.settings.get_double("line-thickness");
+        snap_tolerance = FroggumApplication.settings.get_double("snap-tolerance");
     }
 
     public void zoom_in () {
