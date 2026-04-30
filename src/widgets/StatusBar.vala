@@ -2,6 +2,7 @@ public class StatusBar : Gtk.Box {
     private Gtk.Label cursor_x;
     private Gtk.Label cursor_y;
     private Gtk.Button expander_button;
+    private Gtk.Button contractor_button;
     private bool expanded;
     private Gee.List<SignalManager> bindings;
     private Handle _handle;
@@ -101,9 +102,10 @@ public class StatusBar : Gtk.Box {
 
             if (value != null) {
                 var element_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+                var transformed = value as TransformedHandle;
+                var show_button = transformed != null;
                 if (expanded) {
                     element_box.append (new Gtk.Label (_("(")));
-                    var transformed = value as TransformedHandle;
                     while (transformed != null) {
                         add_entry (element_box, value);
                         append (element_box);
@@ -119,11 +121,16 @@ public class StatusBar : Gtk.Box {
 
                 add_entry (element_box, value);
                 append (element_box);
+                if (show_button) {
+                    if (expanded) {
+                        append (contractor_button);
+                    } else {
+                        append (expander_button);
+                    }
+                }
             } else {
                 append (new Gtk.Label (_("No handle selected")));
             }
-
-            append (expander_button);
         }
     }
 
@@ -311,19 +318,20 @@ public class StatusBar : Gtk.Box {
         hexpand = true;
         vexpand = false;
         bindings = new Gee.ArrayList<SignalManager> ();
-        expander_button = new Gtk.Button.from_icon_name ("go-next-symbolic");
+        expander_button = new Gtk.Button.from_icon_name ("go-next-symbolic") {
+            tooltip_text = _("Show transformed coordinates")
+        };
         expander_button.clicked.connect (() => {
-            if (expanded) {
-                expanded = false;
-                expander_button.icon_name = "go-next-symbolic";
-            } else {
-                expanded = true;
-                expander_button.icon_name = "go-previous-symbolic";
-            }
-
+            expanded = true;
+            handle = handle; // Triggers reconstruction of display
+        });
+        contractor_button = new Gtk.Button.from_icon_name ("go-previous-symbolic") {
+            tooltip_text = _("Hide transformed coordinates")
+        };
+        contractor_button.clicked.connect (() => {
+            expanded = false;
             handle = handle;
         });
-        append (expander_button);
         spacing = 10;
         cancel.connect (() => {
             if (editing) {
