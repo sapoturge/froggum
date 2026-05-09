@@ -24,6 +24,7 @@ public class FroggumApplication : Gtk.Application {
     public const string ACTION_ZOOM_OUT = "action_zoom_out";
     public const string ACTION_SAVE_AS = "action_save_as";
     public const string ACTION_RECENTER = "action_recenter";
+    public const string ACTION_HANDLE_SIZE = "action_set_handle_size";
 
     static construct {
         settings = new Settings ("io.github.sapoturge.froggum");
@@ -99,6 +100,14 @@ public class FroggumApplication : Gtk.Application {
         actions.add_action (zoom_out_action);
         zoom_out_action.set_enabled (true);
         set_accels_for_action ("froggum.action_zoom_out", {"<Control>minus", null});
+
+        var set_handle_size_action = new SimpleAction.stateful (ACTION_HANDLE_SIZE, VariantType.DOUBLE, new Variant.double (settings.get_double ("handle-radius")));
+        set_handle_size_action.change_state.connect ((size) => {
+            settings.set_value ("handle-radius", size);
+            set_handle_size_action.set_state (size);
+        });
+        actions.add_action (set_handle_size_action);
+        set_handle_size_action.set_enabled (true);
     }
 
     protected override void activate () {
@@ -108,6 +117,10 @@ public class FroggumApplication : Gtk.Application {
         main_window = new Gtk.ApplicationWindow (this);
         main_window.insert_action_group ("froggum", actions);
         main_window.title = _("Froggum - Untitled");
+
+        var provider = new Gtk.CssProvider ();
+        provider.load_from_resource ("/io/github/sapoturge/froggum/froggum.css");
+        Gtk.StyleContext.add_provider_for_display (main_window.display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 
         if (settings.get_boolean ("window-maximized")) {
             main_window.maximize ();

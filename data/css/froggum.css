@@ -1,0 +1,16 @@
+checkbutton#handle-small radio {
+	min-width: 8px;
+	min-height: 8px;
+}
+checkbutton#handle-medium radio {
+	min-width: 16px;
+	min-height: 16px;
+}
+checkbutton#handle-large radio {
+	min-width: 24px;
+	min-height: 24px;
+}
+checkbutton#handle-extra-large radio {
+	min-width: 32px;
+	min-height: 32px;
+}
