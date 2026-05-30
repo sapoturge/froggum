@@ -46,5 +46,10 @@
       <summary>Radius to snap to grid lines</summary>
       <description>Maximum distance (in pixels) at which handles snap to a grid line</description>
     </key>
+    <key name="show-grid" type="b">
+      <default>true</default>
+      <summary>Whether the grid should be shown</summary>
+      <description>Enables viewing and snapping to the grid.</description>
+    </key>
   </schema>
 </schemalist>

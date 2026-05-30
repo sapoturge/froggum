@@ -21,6 +21,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
     private double handle_size;
     private double line_thickness;
     private double snap_tolerance;
+    private bool show_grid;
 
     private bool scrolling = false;
 
@@ -221,7 +222,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             image.draw (cr);
 
             // Draw Grid
-            if (zoom > 4) {
+            if (zoom > 4 && show_grid) {
                 cr.move_to (0, 0);
                 cr.line_to (image.width, 0);
                 cr.line_to (image.width, image.height);
@@ -510,23 +511,30 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         });
 
         FroggumApplication.settings.changed["handle-radius"].connect (() => {
-            handle_size = FroggumApplication.settings.get_double("handle-radius");
+            handle_size = FroggumApplication.settings.get_double ("handle-radius");
             if (current_element != null) {
                 queue_draw ();
             }
         });
         FroggumApplication.settings.changed["line-thickness"].connect (() => {
-            line_thickness = FroggumApplication.settings.get_double("line-thickness");
+            line_thickness = FroggumApplication.settings.get_double ("line-thickness");
             if (current_element != null || hovered_element != null) {
                 queue_draw ();
             }
         });
         FroggumApplication.settings.changed["snap-tolerance"].connect (() => {
-            snap_tolerance = FroggumApplication.settings.get_double("snap-tolerance");
+            snap_tolerance = FroggumApplication.settings.get_double ("snap-tolerance");
         });
-        handle_size = FroggumApplication.settings.get_double("handle-radius");
-        line_thickness = FroggumApplication.settings.get_double("line-thickness");
-        snap_tolerance = FroggumApplication.settings.get_double("snap-tolerance");
+        FroggumApplication.settings.changed["show-grid"].connect (() => {
+            show_grid = FroggumApplication.settings.get_boolean ("show-grid");
+            if (zoom >= 4) {
+                queue_draw ();
+            }
+        });
+        handle_size = FroggumApplication.settings.get_double ("handle-radius");
+        line_thickness = FroggumApplication.settings.get_double ("line-thickness");
+        snap_tolerance = FroggumApplication.settings.get_double ("snap-tolerance");
+        show_grid = FroggumApplication.settings.get_boolean ("show-grid");
     }
 
     public void zoom_in () {
