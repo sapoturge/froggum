@@ -25,6 +25,8 @@ public class FroggumApplication : Gtk.Application {
     public const string ACTION_SAVE_AS = "action_save_as";
     public const string ACTION_RECENTER = "action_recenter";
     public const string ACTION_HANDLE_SIZE = "action_set_handle_size";
+    public const string ACTION_TOGGLE_GRID = "action_toggle_grid";
+    public const string ACTION_EDITOR = "action_editor";
 
     static construct {
         settings = new Settings ("io.github.sapoturge.froggum");
@@ -108,6 +110,37 @@ public class FroggumApplication : Gtk.Application {
         });
         actions.add_action (set_handle_size_action);
         set_handle_size_action.set_enabled (true);
+
+        var grid_toggle_action = new SimpleAction (ACTION_TOGGLE_GRID, null);
+        grid_toggle_action.activate.connect (() => {
+            settings.set_boolean ("show-grid", !settings.get_boolean ("show-grid"));
+        });
+        actions.add_action (grid_toggle_action);
+        grid_toggle_action.set_enabled (true);
+        set_accels_for_action ("froggum.action_toggle_grid", {"<Ctrl><Shift>G", null});
+
+        var editor_action = new SimpleAction (ACTION_EDITOR, VariantType.STRING);
+        editor_action.activate.connect ((action) => {
+            var tab = notebook.get_selected_page ();
+            var editor = tab.child;
+            if (editor is EditorView) {
+                editor.activate_action (action.get_string (), null);
+            }
+        });
+        editor_action.set_enabled (true);
+        actions.add_action (editor_action);
+        set_accels_for_action ("froggum.action_editor('edit.new-rectangle')", {"<Control>R", null});
+        set_accels_for_action ("froggum.action_editor('edit.new-path')", {"<Control>N", null});
+        set_accels_for_action ("froggum.action_editor('edit.new-ellipse')", {"<Control>E", null});
+        set_accels_for_action ("froggum.action_editor('edit.new-circle')", {"<Control>O", null});
+        set_accels_for_action ("froggum.action_editor('edit.new-polygon')", {"<Control>P", null});
+        set_accels_for_action ("froggum.action_editor('edit.new-polyline')", {"<Control><Shift>P", null});
+        set_accels_for_action ("froggum.action_editor('edit.new-line')", {"<Control>L", null});
+        set_accels_for_action ("froggum.action_editor('edit.new-group')", {"<Control>G", null});
+        set_accels_for_action ("froggum.action_editor('edit.swap-up')", {"<Control>Up", null});
+        set_accels_for_action ("froggum.action_editor('edit.swap-down')", {"<Control>Down", null});
+        set_accels_for_action ("froggum.action_editor('edit.delete')", {"Delete", null});
+        set_accels_for_action ("froggum.action_editor('edit.duplicate')", {"<Control>D", null});
     }
 
     protected override void activate () {
@@ -166,33 +199,33 @@ public class FroggumApplication : Gtk.Application {
         notebook.page_reordered.connect (() => { recalculate_open_files (); });
 
         var save_button = new Gtk.Button.from_icon_name ("document-save-as");
-        save_button.tooltip_text = _("Save as new file");
+        save_button.tooltip_text = _("Save as new file (Ctrl-Shift-S)");
         save_button.action_name = "froggum.action_save_as";
 
         header.pack_start (save_button);
 
         var undo_button  = new Gtk.Button.from_icon_name ("edit-undo");
         undo_button.action_name = "froggum.action_undo";
-        undo_button.tooltip_text = _("Undo");
+        undo_button.tooltip_text = _("Undo (Ctrl-Z)");
         var redo_button  = new Gtk.Button.from_icon_name ("edit-redo");
         redo_button.action_name = "froggum.action_redo";
-        redo_button.tooltip_text = _("Redo");
+        redo_button.tooltip_text = _("Redo (Ctrl-Y)");
 
         header.pack_start (undo_button);
         header.pack_start (redo_button);
 
         var center_button = new Gtk.Button.from_icon_name ("zoom-fit-best");
         center_button.action_name = "froggum.action_recenter";
-        center_button.tooltip_text = _("Recenter image");
+        center_button.tooltip_text = _("Recenter image (Ctrl-0)");
         var zoom_in_button = new Gtk.Button () {
             icon_name = "zoom-in",
             action_name = "froggum.action_zoom_in",
-            tooltip_text = _("Zoom in"),
+            tooltip_text = _("Zoom in (Ctrl-Plus)"),
         };
         var zoom_out_button = new Gtk.Button () {
             icon_name = "zoom-out",
             action_name = "froggum.action_zoom_out",
-            tooltip_text = _("Zoom out"),
+            tooltip_text = _("Zoom out (Ctrl-Minus)"),
         };
 
         header.pack_start (center_button);

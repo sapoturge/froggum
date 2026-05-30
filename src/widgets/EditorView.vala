@@ -221,62 +221,62 @@ public class EditorView : Gtk.Box, ErrorReporter {
 
         new_path = new Gtk.Button () {
             icon_name = "list-add-symbolic",
-            tooltip_text = _("New Path"),
+            tooltip_text = _("New Path (Ctrl-N)"),
             action_name = PREFIX + "." + ACTION_NEW_PATH,
         };
         new_circle = new Gtk.Button () {
             icon_name = "circle-new-symbolic",
-            tooltip_text = _("New Circle"),
+            tooltip_text = _("New Circle (Ctrl-O)"),
             action_name = PREFIX + "." + ACTION_NEW_CIRCLE,
         };
         new_rectangle = new Gtk.Button () {
             icon_name = "rectangle-new-symbolic",
-            tooltip_text = _("New Rectangle"),
+            tooltip_text = _("New Rectangle (Ctrl-R)"),
             action_name = PREFIX + "." + ACTION_NEW_RECTANGLE,
         };
         new_ellipse = new Gtk.Button () {
             icon_name = "ellipse-new-symbolic",
-            tooltip_text = _("New Ellipse"),
+            tooltip_text = _("New Ellipse (Ctrl-E)"),
             action_name = PREFIX + "." + ACTION_NEW_ELLIPSE,
         };
         new_line = new Gtk.Button () {
             icon_name = "line-new-symbolic",
-            tooltip_text = _("New Line"),
+            tooltip_text = _("New Line (Ctrl-L)"),
             action_name = PREFIX + "." + ACTION_NEW_LINE,
         };
         new_polyline = new Gtk.Button () {
             icon_name = "polyline-new-symbolic",
-            tooltip_text = _("New Polyline"),
+            tooltip_text = _("New Polyline (Ctrl-Shift-P)"),
             action_name = PREFIX + "." + ACTION_NEW_POLYLINE,
         };
         new_polygon = new Gtk.Button () {
             icon_name = "polygon-new-symbolic",
-            tooltip_text = _("New Polygon"),
+            tooltip_text = _("New Polygon (Ctrl-P)"),
             action_name = PREFIX + "." + ACTION_NEW_POLYGON,
         };
         new_group = new Gtk.Button () {
             icon_name = "folder-new-symbolic",
-            tooltip_text = _("New group"),
+            tooltip_text = _("New Group (Ctrl-G)"),
             action_name = PREFIX + "." + ACTION_NEW_GROUP,
         };
         duplicate_path = new Gtk.Button () {
             icon_name = "edit-copy-symbolic",
-            tooltip_text = _("Duplicate element"),
+            tooltip_text = _("Duplicate element (Ctrl-D)"),
             action_name = PREFIX + "." + ACTION_DUPLICATE,
         };
         path_up = new Gtk.Button () {
             icon_name = "go-up-symbolic",
-            tooltip_text = _("Move element up"),
+            tooltip_text = _("Move element up (Ctrl-Up)"),
             action_name = PREFIX + "." + ACTION_SWAP_UP,
         };
         path_down = new Gtk.Button () {
             icon_name = "go-down-symbolic",
-            tooltip_text = _("Move element down"),
+            tooltip_text = _("Move element down (Ctrl-Down)"),
             action_name = PREFIX + "." + ACTION_SWAP_DOWN,
         };
         delete_path = new Gtk.Button () {
             icon_name = "edit-delete-symbolic",
-            tooltip_text = _("Delete element"),
+            tooltip_text = _("Delete element (Delete)"),
             action_name = PREFIX + "." + ACTION_DELETE,
         };
 
