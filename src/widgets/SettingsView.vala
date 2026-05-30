@@ -42,18 +42,26 @@ public class SettingsView : Gtk.Popover {
         handle_size.append (large);
         handle_size.append (extra_large);
 
-        var line_label = new Gtk.Label (_("Line Width"));
-        var line_size = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 3, 30, 1);
+        var line_label = new Gtk.Label (_("Line Width")) {
+            hexpand = true
+        };
+        var line_preview = new LinePreview () {
+            vexpand = true
+        };
+        var line_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        line_row.append (line_label);
+        line_row.append (line_preview);
+        var line_size = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 0.1, 1, 0.1);
         settings.bind ("line-thickness", line_size.adjustment, "value", DEFAULT);
 
         var grid_label = new Gtk.Label (_("Snap Distance"));
-        var grid_size = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 0, 20, 1);
+        var grid_size = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 1, 40, 1);
         settings.bind ("snap-tolerance", grid_size.adjustment, "value", DEFAULT);
 
         var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 3);
         layout.append (handle_label);
         layout.append (handle_size);
-        layout.append (line_label);
+        layout.append (line_row);
         layout.append (line_size);
         layout.append (grid_label);
         layout.append (grid_size);

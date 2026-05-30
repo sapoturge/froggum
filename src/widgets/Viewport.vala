@@ -282,7 +282,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             // Draw Control Handles
-            image.draw_selection (cr, handle_size / zoom, line_thickness / zoom);
+            image.draw_selection (cr, handle_size / zoom, handle_size * line_thickness / zoom);
             if (current_handle != null) {
                 Point center = current_handle.point;
                 cr.arc (center.x, center.y, (handle_size+1)/zoom, 0, Math.PI*2);
@@ -301,7 +301,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
             }
 
             if (hovered_element != null && hovered_element != current_element) {
-                hovered_element.draw (cr, 1 / zoom, {0, 0, 0, 0}, {0.15f, 0.85f, 0.95f, 1.0f}, true);
+                hovered_element.draw (cr, handle_size * line_thickness / zoom, {0, 0, 0, 0}, {0.15f, 0.85f, 0.95f, 1.0f}, true);
             }
 
             if (hovered_handle != null && (current_handle == null || !hovered_handle.same_point (current_handle))) {
