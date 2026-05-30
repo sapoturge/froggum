@@ -69,9 +69,9 @@ public class SettingsView : Gtk.Popover {
         grid_enable.notify["state"].connect (() => {
             grid_subsection.visible = grid_enable.state;
             if (grid_enable.state) {
-                grid_enable.tooltip_text = _("Hide grid");
+                grid_enable.tooltip_text = _("Hide grid (Ctrl-G)");
             } else {
-                grid_enable.tooltip_text = _("Show grid");
+                grid_enable.tooltip_text = _("Show grid (Ctrl-G)");
             }
         });
         settings.bind ("show-grid", grid_enable, "state", DEFAULT);
