@@ -176,6 +176,9 @@ public class FroggumApplication : Gtk.Application {
             });
         });
 
+        settings.bind ("window-width", main_window, "default-width", DEFAULT);
+        settings.bind ("window-height", main_window, "default-height", DEFAULT);
+
         var header = new Gtk.HeaderBar ();
         header.decoration_layout = "close:maximize";
         header.show_title_buttons = true;
