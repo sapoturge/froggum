@@ -15,6 +15,7 @@ public class SettingsView : Gtk.Popover {
             tooltip_text = _("Small handles"),
             action_name = "froggum." + FroggumApplication.ACTION_HANDLE_SIZE,
             action_target = 4.0,
+            hexpand = true,
         };
         var medium = new Gtk.CheckButton () {
             group = small,
@@ -22,6 +23,7 @@ public class SettingsView : Gtk.Popover {
             tooltip_text = _("Medium handles"),
             action_name = "froggum." + FroggumApplication.ACTION_HANDLE_SIZE,
             action_target = 8.0,
+            hexpand = true,
         };
         var large = new Gtk.CheckButton () {
             group = small,
@@ -29,6 +31,7 @@ public class SettingsView : Gtk.Popover {
             tooltip_text = _("Large handles"),
             action_name = "froggum." + FroggumApplication.ACTION_HANDLE_SIZE,
             action_target = 12.0,
+            hexpand = true,
         };
         var extra_large = new Gtk.CheckButton () {
             group = small,
@@ -36,11 +39,15 @@ public class SettingsView : Gtk.Popover {
             tooltip_text = _("Extra large handles"),
             action_name = "froggum." + FroggumApplication.ACTION_HANDLE_SIZE,
             action_target = 16.0,
+            hexpand = true,
         };
         handle_size.append (small);
         handle_size.append (medium);
         handle_size.append (large);
         handle_size.append (extra_large);
+        var handle_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        handle_section.append (handle_label);
+        handle_section.append (handle_size);
 
         var line_label = new Gtk.Label (_("Line Width")) {
             hexpand = true
@@ -48,11 +55,14 @@ public class SettingsView : Gtk.Popover {
         var line_preview = new LinePreview () {
             vexpand = true
         };
-        var line_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        var line_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 10);
         line_row.append (line_label);
         line_row.append (line_preview);
         var line_size = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 0.1, 1, 0.1);
         settings.bind ("line-thickness", line_size.adjustment, "value", DEFAULT);
+        var line_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 3);
+        line_section.append (line_row);
+        line_section.append (line_size);
 
         var grid_size_display = new SnapPreview ();
         var grid_size_label = new Gtk.Label (_("Snap Distance")) {
@@ -83,15 +93,18 @@ public class SettingsView : Gtk.Popover {
         settings.bind ("show-grid", grid_enable, "state", DEFAULT);
         grid_enable.set_active (settings.get_boolean ("show-grid"));
         grid_subsection.visible = grid_enable.state;
-        var grid_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        var grid_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 20);
         grid_row.append (grid_label);
         grid_row.append (grid_enable);
 
-        var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 3);
-        layout.append (handle_label);
-        layout.append (handle_size);
-        layout.append (line_row);
-        layout.append (line_size);
+        var layout = new Gtk.Box (Gtk.Orientation.VERTICAL, 20) {
+            margin_top = 10,
+            margin_bottom = 10,
+            margin_start = 10,
+            margin_end = 10,
+        };
+        layout.append (handle_section);
+        layout.append (line_section);
         layout.append (grid_row);
         layout.append (grid_subsection);
         child = layout;
