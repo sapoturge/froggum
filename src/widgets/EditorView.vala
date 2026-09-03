@@ -57,6 +57,8 @@ public class EditorView : Gtk.Box, ErrorReporter {
 
     public signal void create_new ();
 
+    public bool settings_visible { get; set; }
+
     public bool allow_edits {
         get {
             return image.error == null;
@@ -373,6 +375,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
         transform_bar.response.connect ((response) => image.apply_transform (new Transform.identity(), null));
 
         viewport = new Viewport ();
+        bind_property ("settings-visible", viewport, "settings-visible");
         var scrolled = new Gtk.ScrolledWindow ();
         scrolled.child = viewport;
         scrolled.hscrollbar_policy = Gtk.PolicyType.ALWAYS;

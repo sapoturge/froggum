@@ -33,6 +33,8 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
     private Tutorial tutorial;
 
+    public bool settings_visible { get; set; }
+
     public Point control_point { get; set; }
     public Point cursor_pos { get; private set; }
 
@@ -223,6 +225,40 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
 
             // Draw Grid
             if (zoom > 4 && show_grid) {
+                if (settings_visible) {
+                    cr.set_line_width (double.min (snap_tolerance / zoom, 0.5));
+                    cr.set_source_rgba (0.55, 0.35, 0.75, 0.55);
+
+                    for (double i = 0.5; i < image.width; i++) {
+                        cr.move_to (i, 0);
+                        cr.line_to (i, image.height);
+                    }
+
+                    cr.stroke ();
+
+                    for (double i = 0.5; i < image.height; i++) {
+                        cr.move_to (0, i);
+                        cr.line_to (image.width, i);
+                    }
+
+                    cr.stroke ();
+                    cr.set_source_rgba (0.35, 0.75, 0.55, 0.55);
+
+                    for (double i = 0; i <= image.width; i++) {
+                        cr.move_to (i, 0);
+                        cr.line_to (i, image.height);
+                    }
+
+                    cr.stroke ();
+
+                    for (double i = 0; i <= image.height; i++) {
+                        cr.move_to (0, i);
+                        cr.line_to (image.width, i);
+                    }
+
+                    cr.stroke ();
+                }
+
                 cr.move_to (0, 0);
                 cr.line_to (image.width, 0);
                 cr.line_to (image.width, image.height);
@@ -509,6 +545,7 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 tutorial.popup ();
             }
         });
+        notify["settings-visible"].connect (() => queue_draw ());
 
         FroggumApplication.settings.changed["handle-radius"].connect (() => {
             handle_size = FroggumApplication.settings.get_double ("handle-radius");
@@ -524,6 +561,9 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
         });
         FroggumApplication.settings.changed["snap-tolerance"].connect (() => {
             snap_tolerance = FroggumApplication.settings.get_double ("snap-tolerance");
+            if (zoom >= 4) {
+                queue_draw ();
+            }
         });
         FroggumApplication.settings.changed["show-grid"].connect (() => {
             show_grid = FroggumApplication.settings.get_boolean ("show-grid");
