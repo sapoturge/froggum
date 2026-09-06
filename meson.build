@@ -32,6 +32,7 @@ executable(
     'src/widgets/SettingsView.vala',
     'src/widgets/LinePreview.vala',
     'src/widgets/SnapPreview.vala',
+    'src/widgets/Preview.vala',
     'src/data/Image.vala',
     'src/data/Path.vala',
     'src/data/Segment.vala',

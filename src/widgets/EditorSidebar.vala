@@ -53,11 +53,26 @@ public class EditorSidebar : Gtk.Box {
 
     construct {
         orientation = Gtk.Orientation.VERTICAL;
-        spacing = 5;
+        spacing = 10;
 
-        element_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        segment_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        handle_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        element_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 5) {
+            margin_top = 5,
+            margin_bottom = 5,
+            margin_start = 5,
+            margin_end = 5,
+        };
+        segment_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 5) {
+            margin_top = 5,
+            margin_bottom = 5,
+            margin_start = 5,
+            margin_end = 5,
+        };
+        handle_section = new Gtk.Box (Gtk.Orientation.VERTICAL, 5) {
+            margin_top = 5,
+            margin_bottom = 5,
+            margin_start = 5,
+            margin_end = 5,
+        };
 
         append (element_section);
         append (segment_section);
@@ -78,51 +93,6 @@ public class EditorSidebar : Gtk.Box {
         if (element == null) {
             element_section.append (new Gtk.Label (_("No element selected")));
         } else {
-            var preview = new Gtk.DrawingArea () {
-                content_width = (int) element.transform.width,
-                content_height = (int) element.transform.height,
-                tooltip_text = _("Element preview"),
-            };
-            preview.set_draw_func ((d, cr, w, h) => {
-                element.draw (cr);
-            });
-            preview_update_handle = element.update.connect (() => preview.queue_draw ());
-
-            var title = new Gtk.EditableLabel (element.title) {
-                hexpand = true,
-                tooltip_text = _("Element name"),
-            };
-            title.changed.connect (() => {
-                element.begin ("title");
-                element.title = title.text;
-                element.finish ("title");
-            });
-
-            var header_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
-            header_row.append (preview);
-            header_row.append (title);
-            element_section.append (header_row);
-
-            var fill_button = new PatternButton () {
-                tooltip_text = _("Fill pattern"),
-            };
-            fill_button.pattern = element.fill;
-
-            var fill_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
-            fill_row.append (new Gtk.Label (_("Fill")) { hexpand = true });
-            fill_row.append (fill_button);
-            element_section.append (fill_row);
-
-            var stroke_button = new PatternButton () {
-                tooltip_text = _("Stroke pattern"),
-            };
-            stroke_button.pattern = element.stroke;
-
-            var stroke_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
-            stroke_row.append (new Gtk.Label (_("Stroke")) { hexpand = true });
-            stroke_row.append (stroke_button);
-            element_section.append (stroke_row);
-
             var options = element.options ();
             fill_section (element_section, options);
         }
@@ -185,7 +155,7 @@ public class EditorSidebar : Gtk.Box {
                 section.append (button);
                 break;
             case TOGGLE:
-                var button = new Gtk.CheckButton.with_label (option.label);
+                var button = new Gtk.ToggleButton.with_label (option.label);
                 bool value = false;
                 option.target.get (option.prop, &value);
                 button.set_active (value);
@@ -222,8 +192,9 @@ public class EditorSidebar : Gtk.Box {
                 section.append (row);
                 break;
             case OPTIONS:
+                var inner_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
                 var caption = new Gtk.Label (option.label);
-                section.append (caption);
+                inner_box.append (caption);
                 int value = 0;
                 option.target.get (option.prop, &value);
                 Gtk.ToggleButton first_button = null;
@@ -247,9 +218,10 @@ public class EditorSidebar : Gtk.Box {
                         button.active = true;
                     }
 
-                    section.append (button);
+                    inner_box.append (button);
                 }
 
+                section.append (inner_box);
                 break;
             }
         }

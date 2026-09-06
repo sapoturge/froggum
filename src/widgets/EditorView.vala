@@ -166,6 +166,8 @@ public class EditorView : Gtk.Box, ErrorReporter {
     }
 
     construct {
+        var preview = new Preview ();
+
         var edit_sidebar = new EditorSidebar ();
         var edit_sidebar_scroll = new Gtk.ScrolledWindow () {
             child = edit_sidebar,
@@ -313,6 +315,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
         var side_bar = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         side_bar.hexpand = false;
         side_bar.vexpand = true;
+        side_bar.append (preview);
         side_bar.append (side_bar_panes);
         side_bar.append (task_bar);
 
@@ -383,6 +386,7 @@ public class EditorView : Gtk.Box, ErrorReporter {
         scrolled.hexpand = true;
         scrolled.vexpand = true;
 
+        viewport.bind_property ("current-element", preview, "element");
         viewport.bind_property ("current_element", edit_sidebar, "element");
         viewport.bind_property ("current_segment", edit_sidebar, "segment");
         viewport.bind_property ("current_handle", edit_sidebar, "handle");
