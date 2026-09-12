@@ -177,7 +177,7 @@ public class Polyline : Element {
 
                 replace (new Polygon (points, fill, stroke, title, transform));
             }),
-            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+            new ContextOption.toggle (_("Show Transformation"), this, "transform-enabled")
         });
         if (transform_enabled && transform_applied) {
             opts.add (new ContextOption.action (_("Revert View"), () => {

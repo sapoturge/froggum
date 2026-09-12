@@ -274,7 +274,7 @@ public class Ellipse : Element {
                     new PathSegment.arc (cx - rx, cy, cx, cy, rx, ry, 0, false)
                 }, fill, stroke, title, transform));
             }),
-            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+            new ContextOption.toggle (_("Show Transformation"), this, "transform-enabled")
         });
         if (transform_enabled && transform_applied) {
             opts.add (new ContextOption.action (_("Revert View"), () => {

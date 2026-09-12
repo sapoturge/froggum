@@ -176,7 +176,7 @@ public class Polygon : Element {
 
                 replace (new Path.with_pattern (segments, fill, stroke, title, transform));
             }),
-            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+            new ContextOption.toggle (_("Show Transformation"), this, "transform-enabled")
         });
         if (transform_enabled && transform_applied) {
             opts.add (new ContextOption.action (_("Revert View"), () => {

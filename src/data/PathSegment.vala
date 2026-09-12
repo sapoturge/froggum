@@ -1031,7 +1031,7 @@ public class PathSegment : Segment {
         segment_type_options.set (_("Curve"), SegmentType.CURVE);
         segment_type_options.set (_("Quadratic Curve"), SegmentType.QUADRATIC);
         segment_type_options.set (_("Arc"), SegmentType.ARC);
-        options.add (new ContextOption.options (_("Change segment to:"), this, "segment_type", segment_type_options));
+        options.add (new ContextOption.options (_("Change segment to:"), this, "segment-type", segment_type_options));
         return options;
     }
 }

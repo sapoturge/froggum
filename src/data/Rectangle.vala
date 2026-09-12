@@ -528,7 +528,7 @@ public class Rectangle : Element {
         var options = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Rectangle"), () => { request_delete(); }),
             new ContextOption.toggle (_("Round Corners"), this, "rounded"),
-            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+            new ContextOption.toggle (_("Show Transformation"), this, "transform-enabled")
         });
         if (rounded && rx > 0 && ry > 0) {
             options.add (new ContextOption.action (_("Convert to Path"), () => {

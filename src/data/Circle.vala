@@ -161,7 +161,7 @@ public class Circle : Element {
         var opts = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Circle"), () => { request_delete(); }),
             new ContextOption.action (_("Convert to Ellipse"), () => { replace (new Ellipse (x, y, r, r, fill, stroke, title, transform)); }),
-            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+            new ContextOption.toggle (_("Show Transformation"), this, "transform-enabled")
         });
         if (transform_enabled && transform_applied) {
             opts.add (new ContextOption.action (_("Revert View"), () => {

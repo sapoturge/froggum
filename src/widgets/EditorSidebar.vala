@@ -135,6 +135,7 @@ public class EditorSidebar : Gtk.Box {
     }
 
     private void fill_section (Gtk.Box section, Gee.List<ContextOption> options) {
+        var updating = false; // For preventing adding extra undo items for external changes
         foreach (ContextOption option in options) {
             switch (option.option_type) {
             case SEPARATOR:
@@ -160,11 +161,20 @@ public class EditorSidebar : Gtk.Box {
                 option.target.get (option.prop, &value);
                 button.set_active (value);
                 button.toggled.connect (() => {
+                    if (!updating) {
+                        bool val = false;
+                        option.target.get (option.prop, &val);
+                        option.target.begin (option.prop);
+                        option.target.set (option.prop, !val);
+                        option.target.finish (option.prop);
+                    }
+                });
+                option.target.notify[option.prop].connect (() => {
                     bool val = false;
                     option.target.get (option.prop, &val);
-                    option.target.begin (option.prop);
-                    option.target.set (option.prop, !val);
-                    option.target.finish (option.prop);
+                    updating = true;
+                    button.set_active (val);
+                    updating = false;
                 });
                 section.append (button);
                 break;
@@ -179,9 +189,18 @@ public class EditorSidebar : Gtk.Box {
                     tooltip_text = option.label,
                 };
                 button.notify["rgba"].connect (() => {
-                    option.target.begin (option.prop);
-                    option.target.set (option.prop, button.get_rgba ()); // Using button.rgba doesn't compile (too many arguments)
-                    option.target.finish (option.prop);
+                    if (!updating) {
+                        option.target.begin (option.prop);
+                        option.target.set (option.prop, button.get_rgba ()); // Using button.rgba doesn't compile (too many arguments)
+                        option.target.finish (option.prop);
+                    }
+                });
+                option.target.notify[option.prop].connect (() => {
+                    Gdk.RGBA? inner = Gdk.RGBA ();
+                    option.target.get (option.prop, &inner);
+                    updating = true;
+                    button.set_rgba (inner);
+                    updating = false;
                 });
                 var label = new Gtk.Label (option.label) {
                     hexpand = true,
@@ -208,10 +227,19 @@ public class EditorSidebar : Gtk.Box {
                     }
 
                     button.toggled.connect (() => {
-                        if (button.active) {
+                        if (button.active && !updating) {
                             option.target.begin (option.prop);
                             option.target.set (option.prop, variant.value);
                             option.target.finish (option.prop);
+                        }
+                    });
+                    option.target.notify[option.prop].connect (() => {
+                        int val = 0;
+                        option.target.get (option.prop, &val);
+                        if (val == variant.value) {
+                            updating = true;
+                            button.set_active (true);
+                            updating = false;
                         }
                     });
                     if (value == variant.value) {

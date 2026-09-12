@@ -19,7 +19,7 @@ public class PatternSegment : Segment {
             new ContextOption.action (_("Reverse Gradient"), () => {
                 parent.reverse_gradient ();
             }),
-            new ContextOption.options (_("Gradient Type"), parent, "pattern_type", pattern_type_options),
+            new ContextOption.options (_("Gradient Type"), parent, "pattern-type", pattern_type_options),
         });
     }
 

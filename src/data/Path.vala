@@ -274,7 +274,7 @@ public class Path : Element {
     public override Gee.List<ContextOption> options () {
         var opts = new Gee.ArrayList<ContextOption>.wrap (new ContextOption[]{
             new ContextOption.deleter (_("Delete Path"), () => { request_delete(); }),
-            new ContextOption.toggle (_("Show Transformation"), this, "transform_enabled")
+            new ContextOption.toggle (_("Show Transformation"), this, "transform-enabled")
         });
         if (transform_enabled && transform_applied) {
             opts.add (new ContextOption.action (_("Revert View"), () => {
