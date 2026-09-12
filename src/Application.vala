@@ -28,6 +28,7 @@ public class FroggumApplication : Gtk.Application {
     public const string ACTION_HANDLE_SIZE = "action_set_handle_size";
     public const string ACTION_TOGGLE_GRID = "action_toggle_grid";
     public const string ACTION_EDITOR = "action_editor";
+    public const string ACTION_NEW_IMAGE = "action_new_image";
 
     static construct {
         settings = new Settings ("io.github.sapoturge.froggum");
@@ -142,6 +143,14 @@ public class FroggumApplication : Gtk.Application {
         set_accels_for_action ("froggum.action_editor('edit.swap-down')", {"<Control>Down", null});
         set_accels_for_action ("froggum.action_editor('edit.delete')", {"Delete", null});
         set_accels_for_action ("froggum.action_editor('edit.duplicate')", {"<Control>D", null});
+
+        var new_image_action = new SimpleAction (ACTION_NEW_IMAGE, null);
+        new_image_action.activate.connect (() => {
+            make_new_tab (null);
+        });
+        new_image_action.set_enabled (true);
+        actions.add_action (new_image_action);
+        set_accels_for_action ("froggum." + ACTION_NEW_IMAGE, {"<Control><Shift>N", null});
     }
 
     protected override void activate () {
@@ -255,11 +264,10 @@ public class FroggumApplication : Gtk.Application {
 
         main_window.set_titlebar (header);
 
-        var new_button = new Gtk.Button.from_icon_name ("list-add-symbolic");
-        new_button.clicked.connect (() => {
-            make_new_tab (null);
-        });
-        new_button.tooltip_text = _("New icon");
+        var new_button = new Gtk.Button.from_icon_name ("list-add-symbolic") {
+            action_name = "froggum." + ACTION_NEW_IMAGE,
+            tooltip_text = _("New image (Ctrl-Shift-N)"),
+        };
 
         notebook.hexpand = true;
         notebook.vexpand = true;
