@@ -608,6 +608,7 @@ public class PathSegment : Segment {
                 previous_angle = angle;
                 break;
             case "segment_type":
+            case "segment-type":
                 previous_segment_type = segment_type;
                 previous_p1 = p1;
                 previous_p2 = p2;
@@ -651,7 +652,8 @@ public class PathSegment : Segment {
                 command.add_value (this, "end", end, previous_end);
                 break;
             case "segment_type":
-                command.add_value (this, "segment_type", segment_type, previous_segment_type);
+            case "segment-type":
+                command.add_value (this, "segment-type", segment_type, previous_segment_type);
                 command.add_value (this, "p1", p1, previous_p1);
                 command.add_value (this, "p2", p2, previous_p2);
                 break;
