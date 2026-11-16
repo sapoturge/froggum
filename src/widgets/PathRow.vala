@@ -11,7 +11,7 @@ public class PathRow : Gtk.Box {
     private Gtk.TreeExpander expander;
     private Gtk.DrawingArea view;
     private Gtk.ToggleButton visibility;
-    private Gtk.EditableLabel title;
+    private Gtk.Editable title;
     private PatternButton fill;
     private PatternButton stroke;
 
@@ -28,8 +28,9 @@ public class PathRow : Gtk.Box {
         expander = new Gtk.TreeExpander ();
         view = new Gtk.DrawingArea ();
         visibility = new Gtk.ToggleButton ();
-        title = new Gtk.EditableLabel ("Element") {
+        title = new Gtk.Entry () {
             hexpand = true,
+            has_frame = false,
         };
         fill = new PatternButton ();
         stroke = new PatternButton ();
