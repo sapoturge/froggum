@@ -94,6 +94,7 @@ public class EditorSidebar : Gtk.Box {
             element_section.append (new Gtk.Label (_("No element selected")));
         } else {
             var options = element.options ();
+            element_section.append (new Granite.HeaderLabel (_("Element Options")));
             fill_section (element_section, options);
         }
     }
