@@ -892,6 +892,14 @@ public class PathSegment : Segment {
         return context.in_stroke(x, y);
     }
 
+    public override void draw (Cairo.Context cr, double width, Gdk.RGBA stroke) {
+        cr.move_to (start.x, start.y);
+        do_command (cr);
+        cr.set_line_width (width);
+        cr.set_source_rgba (stroke.red, stroke.green, stroke.blue, stroke.alpha);
+        cr.stroke ();
+    }
+
     public void draw_controls (Cairo.Context cr, double handle_size, double stroke_size) {
         switch (segment_type) {
             case SegmentType.CURVE:

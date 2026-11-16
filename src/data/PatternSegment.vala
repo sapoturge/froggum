@@ -28,4 +28,12 @@ public class PatternSegment : Segment {
     public override void begin (string prop) {}
     public override void finish (string prop) {}
     public override void cancel (string prop) {}
+
+    public override void draw (Cairo.Context cr, double width, Gdk.RGBA stroke) {
+        cr.move_to (parent.start.x, parent.start.y);
+        cr.line_to (parent.end.x, parent.end.y);
+        cr.set_line_width (width);
+        cr.set_source_rgba (stroke.red, stroke.green, stroke.blue, stroke.alpha);
+        cr.stroke ();
+    }
 }

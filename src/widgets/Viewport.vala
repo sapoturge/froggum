@@ -337,6 +337,10 @@ public class Viewport : Gtk.DrawingArea, Gtk.Scrollable {
                 cr.stroke ();
             }
 
+            if (current_segment != null) {
+                current_segment.draw (cr, handle_size * line_thickness / zoom, {0.95f, 0.85f, 0.15f, 1.0f});
+            }
+
             if (hovered_element != null && hovered_element != current_element) {
                 hovered_element.draw (cr, handle_size * line_thickness / zoom, {0, 0, 0, 0}, {0.15f, 0.85f, 0.95f, 1.0f}, true);
             }

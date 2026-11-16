@@ -106,5 +106,13 @@ public class LinearSegment : Segment {
         handle = null;
         return false;
     }
+
+    public override void draw (Cairo.Context cr, double width, Gdk.RGBA stroke) {
+        cr.move_to (start.x, start.y);
+        cr.line_to (end.x, end.y);
+        cr.set_line_width (width);
+        cr.set_source_rgba (stroke.red, stroke.green, stroke.blue, stroke.alpha);
+        cr.stroke ();
+    }
 }
 
